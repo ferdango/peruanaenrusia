@@ -1,0 +1,150 @@
+---
+/**
+ * AuthArt — imagen lateral del modal de inicio de sesión / registro
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Modal Login" (1797:4340) › "Frame 628286" (1797:4344)
+ * › "Mask group" (2405:222). Es igual en los 6 pasos del modal.
+ *
+ * Composición decorativa de 419 × 680 px (las posiciones son las de Figma):
+ *   1. Degradado azul de fondo.
+ *   2. Patrón de marca rojo con fusión "overlay" (sobre el degradado se ve
+ *      rosado con huecos celestes).
+ *   3. Foto del graduado (PNG recortado, con transparencia).
+ *   4. Ondas roja y celeste.
+ *   5. Estrella de marca en un círculo blanco.
+ *
+ * Si el contenedor es más angosto que 419 px (tablet) la composición se
+ * centra y se recorta por los lados. Es decorativa: aria-hidden.
+ *
+ * Uso (dentro de AuthModal):
+ *   <AuthArt />
+ */
+import { Image } from 'astro:assets';
+
+import graduatePhoto from '@assets/images/overlays/auth-graduate.png';
+import PatternLattice from '@assets/graphics/patterns/pattern-lattice-red.svg';
+import WaveRed from '@assets/graphics/waves/wave-red-auth.svg';
+import WaveSkyblue from '@assets/graphics/waves/wave-skyblue-auth.svg';
+import StarBadge from '@assets/graphics/stars/star-badge-red.svg';
+---
+
+<div class="auth-art" aria-hidden="true">
+	<div class="auth-art__canvas">
+		<!-- Patrón de marca (dos copias, una sobre otra). Como <img> para que el
+		     filtro interno del SVG no repita ids en la página. -->
+		<img
+			src={PatternLattice.src}
+			width={PatternLattice.width}
+			height={PatternLattice.height}
+			alt=""
+			decoding="async"
+			class="auth-art__pattern auth-art__pattern--top"
+		/>
+		<img
+			src={PatternLattice.src}
+			width={PatternLattice.width}
+			height={PatternLattice.height}
+			alt=""
+			decoding="async"
+			class="auth-art__pattern auth-art__pattern--bottom"
+		/>
+
+		<Image src={graduatePhoto} alt="" widths={[648, 1024]} sizes="648px" class="auth-art__photo" />
+
+		<div class="auth-art__wave auth-art__wave--red">
+			<WaveRed />
+		</div>
+		<div class="auth-art__wave auth-art__wave--skyblue">
+			<WaveSkyblue />
+		</div>
+
+		<div class="auth-art__star">
+			<StarBadge />
+		</div>
+	</div>
+</div>
+
+<style>
+	.auth-art {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		overflow: clip;
+	}
+
+	/* Lienzo de 419 × 680 px (medidas de Figma), centrado horizontalmente */
+	.auth-art__canvas {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 419px;
+		height: 680px;
+		margin-left: -209.5px;
+		overflow: clip;
+		/* Grupo aislado: el patrón se fusiona solo con este degradado */
+		isolation: isolate;
+		/* Degradado del rectángulo 2405:225 (1003 px de alto) convertido al lienzo */
+		background: linear-gradient(
+			to bottom,
+			var(--color-pure-white) -20.22%,
+			#0ebef7 50.78%,
+			var(--color-blue) 78.08%
+		);
+	}
+
+	.auth-art__pattern,
+	.auth-art__photo,
+	.auth-art__wave,
+	.auth-art__star {
+		position: absolute;
+		max-width: none;
+	}
+
+	/* Patrón rojo en modo "overlay" (Figma: mix-blend-overlay) */
+	.auth-art__pattern {
+		left: -61.03px;
+		width: 541px;
+		height: 327px;
+		mix-blend-mode: overlay;
+	}
+
+	.auth-art__pattern--top {
+		top: -193px;
+	}
+
+	.auth-art__pattern--bottom {
+		top: 141px;
+	}
+
+	.auth-art__photo {
+		left: -136.03px;
+		top: -106.09px;
+		width: 648px;
+		height: 972px;
+		object-fit: cover;
+	}
+
+	/* Ondas: misma rotación e inclinación que en Figma (desde su centro) */
+	.auth-art__wave--red {
+		left: -119.92px;
+		top: 557.77px;
+		width: 646.432px;
+		height: 146.062px;
+		transform: rotate(165deg) skewX(4.69deg);
+	}
+
+	.auth-art__wave--skyblue {
+		left: -39.16px;
+		top: 483.02px;
+		width: 582.948px;
+		height: 136.396px;
+		transform: rotate(-51.04deg) scale(1, 0.99) skewX(6.53deg);
+	}
+
+	.auth-art__star {
+		left: 268px;
+		top: 400px;
+		width: 74px;
+		height: 74px;
+	}
+</style>

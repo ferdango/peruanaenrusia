@@ -1,0 +1,62 @@
+---
+/**
+ * AuthGoogleButton — botón "Usa tu cuenta de Google"
+ * --------------------------------------------------------------------------
+ * Figma: "Modal Login" › botón de Google (1797:4355): borde gris, logo de
+ * Google de 28px a la izquierda y texto a 36px del logo.
+ *
+ * El comportamiento (OAuth con Google, pendiente) se conecta en
+ * src/scripts/auth-flow.ts mediante el atributo data-auth-google.
+ *
+ * Uso:
+ *   <AuthGoogleButton />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+const label = 'Usa tu cuenta de Google';
+---
+
+<button type="button" class="auth-google" data-auth-google>
+	<span class="auth-google__logo">
+		<Icon name="google" width={23.6463} height={24.4897} />
+	</span>
+	<span>{label}</span>
+</button>
+
+<style>
+	/* Figma: alto 52px, padding 12/16 (borde interior), radio 12px, gap 36px */
+	.auth-google {
+		display: flex;
+		align-items: center;
+		gap: 2.25rem;
+		width: 100%;
+		min-height: 3.25rem;
+		padding: calc(var(--space-3) - 1px) calc(var(--space-4) - 1px);
+		border: 1px solid color-mix(in srgb, var(--color-black) 40%, transparent);
+		border-radius: var(--radius-md);
+		background-color: transparent;
+		/* Figma: Circular Std Medium 15/20 → Poppins Medium */
+		font-size: var(--font-size-nav);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		color: var(--text-on-light);
+		text-align: left;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.auth-google:hover {
+		border-color: color-mix(in srgb, var(--color-black) 64%, transparent);
+		background-color: color-mix(in srgb, var(--color-black) 4%, transparent);
+	}
+
+	/* Recuadro de 28 × 28 px con el logo centrado (Figma: "material-icon-theme:google") */
+	.auth-google__logo {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 28px;
+		height: 28px;
+	}
+</style>

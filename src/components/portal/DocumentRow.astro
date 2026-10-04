@@ -1,0 +1,167 @@
+---
+/**
+ * DocumentRow — fila gris de un documento o archivo del proceso
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › filas de documentos
+ * (2223:396 … 2223:452), "Contrato Peru x Rusia" (2223:350), "Tickets de
+ * vuelo" (2199:285) y "Ahora puedes descargar tus documentos" (2227:534).
+ *
+ * Título + descripción (+ enlace opcional de descarga) a la izquierda y una
+ * acción a la derecha:
+ *   - upload   → botón "Subir archivo" (UploadButton) y, al elegir un archivo,
+ *                se muestra su nombre bajo la descripción (portal-upload.ts).
+ *   - download → botón "Descargar …" (PortalButton variante "action").
+ *
+ * Uso:
+ *   <DocumentRow id="doc-passport" title="Foto tamaño pasaporte" description="…" />
+ *   <DocumentRow id="tickets" title="Tickets de vuelo" description="…"
+ *       action="download" actionLabel="Descargar tickets" href="…" />
+ */
+import PortalButton from './PortalButton.astro';
+import UploadButton from './UploadButton.astro';
+
+interface Props {
+	/** Identificador único (se usa para los ids del input y del título) */
+	id: string;
+	title: string;
+	description: string;
+	/** Enlace de descarga bajo la descripción (ej. "Descargar contrato") */
+	download?: { label: string; href: string };
+	action?: 'upload' | 'download';
+	/** Texto del botón de descarga */
+	actionLabel?: string;
+	/** URL del archivo a descargar (acción "download") */
+	href?: string;
+	/** Ancho fijo del botón de descarga en px (como en Figma) */
+	actionWidth?: number;
+	class?: string;
+}
+
+const {
+	id,
+	title,
+	description,
+	download,
+	action = 'upload',
+	actionLabel = 'Descargar',
+	href = '#',
+	actionWidth,
+	class: className,
+} = Astro.props;
+
+const titleId = `${id}-title`;
+const descriptionId = `${id}-description`;
+---
+
+<div class:list={['document-row', className]} data-upload={action === 'upload' ? '' : undefined}>
+	<div class="document-row__text">
+		<h3 id={titleId} class="document-row__title">
+			{title}
+		</h3>
+		<p id={descriptionId} class="document-row__description">
+			{description}
+		</p>
+		{download && (
+			<a class="document-row__link" href={download.href} download>
+				{download.label}
+			</a>
+		)}
+		{action === 'upload' && <p class="document-row__file" data-upload-output hidden />}
+	</div>
+
+	{action === 'upload' ? (
+		<UploadButton id={`${id}-file`} name={id} describedBy={`${titleId} ${descriptionId}`} />
+	) : (
+		<PortalButton
+			variant="action"
+			icon="download"
+			href={href}
+			width={actionWidth}
+			class="document-row__action"
+			download
+		>
+			{actionLabel}
+		</PortalButton>
+	)}
+</div>
+
+<style>
+	.document-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-7); /* 40px */
+		width: 100%;
+		padding: var(--space-5); /* 24px */
+		border-radius: var(--portal-radius-field);
+		background-color: var(--portal-row);
+	}
+
+	.document-row__text {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: var(--space-2); /* 8px */
+		min-width: 0;
+	}
+
+	.document-row__title {
+		color: var(--color-blue-title);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+		text-wrap: wrap; /* corte de línea normal, como en Figma */
+	}
+
+	.document-row__description {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+
+	.document-row__link {
+		align-self: flex-start;
+		color: var(--color-blue);
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.document-row__link:hover {
+		color: var(--color-blue-title);
+	}
+
+	/* Nombre del archivo elegido (lo escribe portal-upload.ts) */
+	.document-row__file {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		color: var(--color-green);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		word-break: break-word;
+	}
+
+	.document-row__file[data-state='error'] {
+		color: var(--color-red);
+	}
+
+	.document-row :global(.document-row__action) {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	@media (max-width: 640px) {
+		.document-row {
+			flex-direction: column;
+			align-items: stretch;
+			gap: var(--space-4);
+			padding: var(--space-4);
+		}
+
+		.document-row :global(.upload-button),
+		.document-row :global(.document-row__action) {
+			width: 100%;
+		}
+	}
+</style>

@@ -1,0 +1,105 @@
+---
+/**
+ * ProcessUploadStep — paso con un documento para subir (pasos 3 y 4)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8":
+ *   Paso 3 "Contrato con el centro de estudios": 2223:333 (subir),
+ *          3300:209 (en revisión), 3300:248 (completado).
+ *   Paso 4 "Visado del estudiante": 2026:226 (subir), 3300:274 (revisando),
+ *          3300:308 (validado).
+ *
+ * Estados:
+ *   in-progress → ilustración + fila del documento + Volver / Enviar documento
+ *   in-review   → ilustración + mensaje de revisión
+ *   done        → ilustración + mensaje de éxito + Continuar
+ *
+ * Uso:
+ *   <ProcessUploadStep stepId="contract" state="in-progress" />
+ */
+import DocumentRow from './DocumentRow.astro';
+import PortalButton from './PortalButton.astro';
+import StepActions from './StepActions.astro';
+import StepCard from './StepCard.astro';
+import StepIllustration from './StepIllustration.astro';
+import StepMessage from './StepMessage.astro';
+import {
+	contractDocument,
+	getProcessStep,
+	portalRoutes,
+	reviewMessage,
+	stepMessages,
+	visaDocument,
+} from '@data/portal';
+
+interface Props {
+	stepId: 'contract' | 'visa';
+	state: 'in-progress' | 'in-review' | 'done';
+}
+
+const { stepId, state } = Astro.props;
+const step = getProcessStep(stepId);
+const document = stepId === 'contract' ? contractDocument : visaDocument;
+const messages = stepMessages[stepId];
+
+// ----- Textos -----
+const content = {
+	back: 'Volver',
+	submit: 'Enviar documento',
+	continue: 'Continuar',
+};
+---
+
+<StepCard number={step.number} title={step.title} description={step.description} status={state}>
+	<StepIllustration name={stepId} />
+
+	{state === 'in-progress' && (
+		<form class="upload-step" data-portal-form data-redirect={portalRoutes.process}>
+			<DocumentRow
+				id={`${stepId}-${document.id}`}
+				title={document.title}
+				description={document.description}
+				download={document.download}
+			/>
+			<StepActions>
+				<PortalButton
+					variant="outline"
+					width={190}
+					data-portal-back
+					data-fallback={portalRoutes.process}
+				>
+					{content.back}
+				</PortalButton>
+				<PortalButton type="submit" width={200}>
+					{content.submit}
+				</PortalButton>
+			</StepActions>
+		</form>
+	)}
+
+	{state === 'in-review' && <StepMessage title={messages.review} text={reviewMessage} />}
+
+	{state === 'done' && (
+		<>
+			<StepMessage title={messages.done} text={reviewMessage} />
+			<StepActions>
+				<PortalButton href={portalRoutes.process} width={200}>
+					{content.continue}
+				</PortalButton>
+			</StepActions>
+		</>
+	)}
+</StepCard>
+
+<script>
+	import { initPortalForms } from '@scripts/portal-forms';
+
+	initPortalForms();
+</script>
+
+<style>
+	.upload-step {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6); /* 32px */
+	}
+</style>

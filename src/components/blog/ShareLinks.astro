@@ -1,0 +1,174 @@
+---
+/**
+ * ShareLinks — "Compartir"
+ * --------------------------------------------------------------------------
+ * Botones para compartir una publicación en WhatsApp, Facebook, X y
+ * LinkedIn (Figma: "Single Article Text" › 1584:880). Son enlaces normales a
+ * las páginas oficiales para compartir de cada red: no cargan scripts de
+ * terceros ni usan cookies.
+ *
+ * Desktop: columna vertical (fija al hacer scroll, ver BlogPostArticle).
+ * Móvil: fila horizontal (el diseño móvil no la muestra; se agregó bajo el
+ * texto para no perder la opción de compartir).
+ *
+ * Uso:
+ *   <ShareLinks url="https://peruanaenrusia.pe/blog/mi-articulo/" title="Mi artículo" />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	/** URL absoluta de la página a compartir */
+	url: string;
+	/** Título de la publicación (se incluye en el mensaje) */
+	title: string;
+	class?: string;
+}
+
+const { url, title, class: className } = Astro.props;
+
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+
+// ----- Contenido -----
+const content = {
+	label: 'Compartir',
+};
+
+const networks = [
+	{
+		name: 'WhatsApp',
+		icon: 'whatsapp',
+		iconSize: 32,
+		href: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+		highlight: true,
+	},
+	{
+		name: 'Facebook',
+		icon: 'facebook-fill',
+		iconSize: 32,
+		href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+	},
+	{
+		name: 'X',
+		icon: 'x-logo',
+		iconSize: 20,
+		href: `https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`,
+	},
+	{
+		name: 'LinkedIn',
+		icon: 'linkedin',
+		iconSize: 32,
+		href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+	},
+];
+---
+
+<div class:list={['share-links', className]}>
+	<p class="share-links__label" id="share-links-label">
+		{content.label}
+	</p>
+	<ul class="share-links__list" role="list" aria-labelledby="share-links-label">
+		{networks.map((network) => (
+			<li>
+				<a
+					href={network.href}
+					class:list={[
+						'share-links__button',
+						{ 'share-links__button--highlight': network.highlight },
+					]}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<Icon name={network.icon} size={network.iconSize} />
+					<span class="visually-hidden">
+						Compartir en {network.name} (se abre en una pestaña nueva)
+					</span>
+				</a>
+			</li>
+		))}
+	</ul>
+</div>
+
+<style>
+	.share-links {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+	}
+
+	.share-links__label {
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
+		color: color-mix(in srgb, var(--color-white) 85%, transparent);
+		white-space: nowrap;
+	}
+
+	.share-links__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+
+	/* Botón circular de 64px */
+	.share-links__button {
+		display: grid;
+		place-items: center;
+		width: 4rem;
+		height: 4rem;
+		border: 1px solid color-mix(in srgb, var(--color-white) 24%, transparent);
+		border-radius: var(--radius-pill);
+		background-color: var(--surface-dark-raised);
+		color: var(--color-white);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.share-links__button:hover {
+		background-color: color-mix(in srgb, var(--surface-dark-raised) 80%, var(--color-white));
+	}
+
+	.share-links__button:active {
+		transform: scale(0.96);
+	}
+
+	.share-links__button:focus-visible {
+		border-radius: var(--radius-pill);
+	}
+
+	/* WhatsApp destacado en verde (#2F9442 en Figma; no hay token de este color) */
+	.share-links__button--highlight {
+		--whatsapp-green: #2f9442;
+
+		border-color: var(--border-on-dark-strong);
+		background-color: var(--whatsapp-green);
+	}
+
+	.share-links__button--highlight:hover {
+		background-color: color-mix(in srgb, var(--whatsapp-green) 85%, var(--color-white));
+	}
+
+	/* ----- Móvil: fila horizontal ----- */
+	@media (max-width: 640px) {
+		.share-links {
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: var(--space-4);
+		}
+
+		.share-links__list {
+			flex-direction: row;
+		}
+
+		.share-links__button {
+			width: 3rem; /* 48px */
+			height: 3rem;
+		}
+
+		/* Íconos al 75% para que entren en el botón más pequeño */
+		.share-links__button :global(svg) {
+			scale: 0.75;
+		}
+	}
+</style>

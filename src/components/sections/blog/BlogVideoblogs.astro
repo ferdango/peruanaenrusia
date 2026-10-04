@@ -1,0 +1,81 @@
+---
+/**
+ * BlogVideoblogs — "Videoblogs"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › Blog (1519:383) › "Frame 628310" (1711:504).
+ *
+ * Carrusel con todos los videos (src/data/videos.ts), del más reciente al
+ * más antiguo. Usa la tarjeta VideoCard en tamaño 320 × 364 px.
+ *
+ * Tiene el ancla #videoblogs: el ítem "Charlas informativas" del menú
+ * lateral y el enlace "← VideoBlogs" de cada video llevan aquí.
+ *
+ * Uso: tercera sección de src/pages/blog/index.astro
+ *   <BlogVideoblogs />
+ */
+import VideoCard from '@components/cards/VideoCard.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { blogSectionIds } from '@data/blog';
+import { getVideosByDate } from '@data/videos';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Videoblogs',
+};
+
+const videos = getVideosByDate();
+---
+
+<section class="blog-videoblogs" id={blogSectionIds.videoblogs} aria-labelledby="blog-videoblogs-title">
+	<h2 id="blog-videoblogs-title" class="blog-videoblogs__title container">
+		{content.title}
+	</h2>
+
+	<Carousel label={content.title} gap={12}>
+		{videos.map((video) => (
+			<VideoCard video={video} />
+		))}
+	</Carousel>
+</section>
+
+<style>
+	.blog-videoblogs {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+		padding-block: var(--space-9); /* 64px */
+		--carousel-controls-gap: 1.75rem; /* 28px */
+	}
+
+	.blog-videoblogs__title {
+		font-size: var(--font-size-h3);
+		line-height: 1.15; /* 32px */
+	}
+
+	/* Tarjetas de 320 × 364 px con la foto a todo el alto */
+	.blog-videoblogs :global(.video-card) {
+		--video-card-height: 22.75rem;
+		--video-card-media-height: 22.75rem;
+	}
+
+	/* En el diseño, la fecha va pegada al título (sin el espacio de 8px de la tarjeta) */
+	.blog-videoblogs :global(.video-card__date) {
+		margin-top: calc(-1 * var(--space-2));
+	}
+
+	/* Controles en una fila de 55px (como en Figma) */
+	.blog-videoblogs :global(.carousel__controls) {
+		min-height: 3.4375rem;
+	}
+
+	@media (max-width: 640px) {
+		.blog-videoblogs {
+			padding-block: var(--space-7);
+		}
+
+		.blog-videoblogs :global(.video-card) {
+			--video-card-width: min(82vw, 20rem);
+		}
+	}
+</style>

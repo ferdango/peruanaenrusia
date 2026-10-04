@@ -1,0 +1,206 @@
+---
+/**
+ * PostHeader
+ * --------------------------------------------------------------------------
+ * Encabezado de una publicación del blog: enlace "← Categoría" (vuelve a la
+ * portada del blog), título (h1), autor con foto, fecha y bajada opcional.
+ *
+ * Figma: "Single Article Text" (1584:671 › 1584:865) — alineado a la
+ * izquierda · "Single Article Video" (1698:165 › 1698:229) — centrado.
+ *
+ * Uso:
+ *   <PostHeader
+ *       category={{ label: 'VideoBlogs', href: '/blog/#videoblogs' }}
+ *       title="EP1: Conoce PeRu"
+ *       author="jose-quinteros"
+ *       date="2025-05-07"
+ *       lead="Bajada opcional…"
+ *       align="center"
+ *   />
+ */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import { getAuthor, type AuthorId } from '@data/authors';
+import { formatShortDate } from '@utils/format';
+
+interface Props {
+	/** Categoría: texto y enlace de regreso */
+	category: { label: string; href: string };
+	title: string;
+	author?: AuthorId;
+	/** Fecha de publicación (AAAA-MM-DD) */
+	date: string;
+	/** Bajada bajo el título (opcional) */
+	lead?: string;
+	align?: 'left' | 'center';
+	/** id del h1 (para aria-labelledby de la sección) */
+	titleId?: string;
+	class?: string;
+}
+
+const { category, title, author, date, lead, align = 'left', titleId, class: className } = Astro.props;
+const authorData = getAuthor(author);
+---
+
+<header class:list={['post-header', `post-header--${align}`, className]}>
+	<a href={category.href} class="post-header__category">
+		<Icon name="arrow-left" size={24} class="post-header__category-icon" />
+		<span>{category.label}</span>
+	</a>
+
+	<h1 id={titleId} class="post-header__title">
+		{title}
+	</h1>
+
+	<div class="post-header__meta">
+		{authorData && (
+			<p class="post-header__author">
+				{authorData.avatar && (
+					<Image
+						src={authorData.avatar}
+						alt=""
+						width={24}
+						height={24}
+						class="post-header__avatar"
+					/>
+				)}
+				<span>
+					<span class="visually-hidden">Escrito por </span>
+					{authorData.name}
+				</span>
+			</p>
+		)}
+		<p class="post-header__date">
+			<span class="visually-hidden">Publicado el </span>
+			<time datetime={date}>{formatShortDate(date)}</time>
+		</p>
+	</div>
+
+	{lead && <p class="post-header__lead">{lead}</p>}
+</header>
+
+<style>
+	.post-header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.post-header--center {
+		align-items: center;
+		text-align: center;
+	}
+
+	/* ----- "← Categoría" (amarillo de marca) ----- */
+	.post-header__category {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5rem;
+		color: var(--color-yellow);
+		transition: opacity var(--duration-base) var(--ease-out);
+	}
+
+	.post-header__category:hover {
+		opacity: 0.8;
+	}
+
+	.post-header :global(.post-header__category-icon) {
+		flex-shrink: 0;
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.post-header__category:hover :global(.post-header__category-icon) {
+		transform: translateX(-4px);
+	}
+
+	/* ----- Título ----- */
+	.post-header__title {
+		font-size: var(--font-size-h1);
+		font-weight: var(--font-weight-extrabold);
+		line-height: 1.17; /* 56px */
+		color: var(--color-pure-white);
+	}
+
+	/* El diseño de video usa un interlineado más compacto (48px) */
+	.post-header--center .post-header__title {
+		line-height: 1;
+	}
+
+	/* ----- Autor + fecha ----- */
+	.post-header__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		column-gap: var(--space-5);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5rem;
+	}
+
+	.post-header--center .post-header__meta {
+		justify-content: center;
+		margin-top: var(--space-1);
+	}
+
+	.post-header__author {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		color: var(--color-orange);
+	}
+
+	.post-header__avatar {
+		width: 24px;
+		height: 24px;
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.post-header__date {
+		color: var(--color-white);
+	}
+
+	/* ----- Bajada ----- */
+	.post-header__lead {
+		font-size: var(--font-size-lg);
+		line-height: 2rem; /* 32px */
+		color: color-mix(in srgb, var(--color-white) 90%, transparent);
+	}
+
+	/* ----- Móvil (Figma 1096:13) ----- */
+	@media (max-width: 640px) {
+		.post-header__category {
+			font-size: var(--font-size-sm);
+		}
+
+		.post-header__title {
+			font-size: 2.5rem; /* 40px */
+			line-height: 1.1; /* 44px */
+		}
+
+		.post-header__title,
+		.post-header--center .post-header__title {
+			margin-top: var(--space-3);
+		}
+
+		.post-header--center .post-header__title {
+			line-height: 1.1;
+		}
+
+		.post-header__meta {
+			margin-top: var(--space-1);
+			font-size: var(--font-size-xs);
+		}
+
+		.post-header__lead {
+			margin-top: var(--space-1);
+			font-size: var(--font-size-md);
+			line-height: 1.75rem; /* 28px */
+		}
+	}
+</style>

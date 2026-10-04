@@ -1,0 +1,220 @@
+---
+/**
+ * UniversityDetails — "Detalles" de la ficha de universidad
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628442"
+ * (3333:266, áreas de estudio), "Frame 628441" (3333:265, "Reputación y
+ * rankings") y "Frame 628439" (3333:263, "Vida estudiantil e
+ * internacionalización").
+ *
+ * Áreas de estudio: acordeón nativo (<details>). Al pasar el cursor o al
+ * abrir una facultad, el texto se vuelve azul, se desplaza a la derecha y
+ * aparece la estrella de la marca (estado del primer ítem en Figma).
+ * Solo se dibujan los bloques con datos.
+ *
+ * Uso: <UniversityDetails id="detalles" university={university} />
+ */
+import UniversityStarList from './UniversityStarList.astro';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+import type { University } from '@data/universities';
+
+interface Props {
+	/** id del ancla (lo usa la píldora de navegación) */
+	id: string;
+	university: University;
+}
+
+const { id, university } = Astro.props;
+const { faculties = [], rankings, studentLife = [] } = university;
+
+// ----- Contenido de la sección -----
+const content = {
+	label: 'Detalles',
+	facultiesLead: 'Las áreas de estudio incluyen:',
+	rankingsTitle: 'Reputación y rankings',
+	studentLifeTitle: 'Vida estudiantil e internacionalización',
+};
+---
+
+<section id={id} class="university-details" aria-label={content.label}>
+	{faculties.length > 0 && (
+		<div class="university-details__block university-details__block--faculties">
+			<p class="university-details__lead">{content.facultiesLead}</p>
+
+			<div class="faculty-list">
+				{faculties.map((faculty) =>
+					faculty.description ? (
+						<details class="faculty" name="university-faculties">
+							<summary class="faculty__summary">
+								<span class="faculty__name">{faculty.name}</span>
+								<Star class="faculty__star" aria-hidden="true" />
+							</summary>
+							<p class="faculty__description">{faculty.description}</p>
+						</details>
+					) : (
+						<div class="faculty">
+							<p class="faculty__summary">
+								<span class="faculty__name">{faculty.name}</span>
+							</p>
+						</div>
+					),
+				)}
+			</div>
+		</div>
+	)}
+
+	{rankings && (
+		<div class="university-details__block">
+			<h2 class="university-details__title">{content.rankingsTitle}</h2>
+			<div class="university-details__content">
+				{rankings.intro && <p class="university-details__text">{rankings.intro}</p>}
+				<UniversityStarList items={rankings.items} />
+			</div>
+		</div>
+	)}
+
+	{studentLife.length > 0 && (
+		<div class="university-details__block">
+			<h2 class="university-details__title">{content.studentLifeTitle}</h2>
+			<div class="university-details__content">
+				{studentLife.map((paragraph) => (
+					<p class="university-details__text">{paragraph}</p>
+				))}
+			</div>
+		</div>
+	)}
+</section>
+
+<style>
+	.university-details {
+		scroll-margin-top: calc(4.75rem + var(--space-4));
+		color: var(--color-black);
+	}
+
+	/* Cada bloque: 32px 40px de padding (Figma) */
+	.university-details__block {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7); /* 40px entre título y contenido */
+		padding: var(--space-6) var(--space-7);
+	}
+
+	.university-details__block--faculties {
+		gap: var(--space-4); /* 16px */
+	}
+
+	.university-details__title {
+		font-size: clamp(1.625rem, 1.2rem + 1.5vw, 2.25rem); /* 36px */
+		line-height: 1.11; /* 40px */
+		color: var(--color-blue-title);
+	}
+
+	.university-details__content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.university-details__lead {
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.33; /* 32px */
+	}
+
+	.university-details__text {
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.5; /* 36px */
+	}
+
+	/* ----- Acordeón de facultades ----- */
+	.faculty-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.8125rem; /* 13px */
+	}
+
+	.faculty {
+		border-radius: 1rem; /* 16px */
+		background-color: var(--color-white);
+	}
+
+	.faculty__summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+		padding: var(--space-5) var(--space-6); /* 24px 32px */
+		font-size: clamp(1.25rem, 0.9rem + 1.5vw, 2rem); /* 32px */
+		line-height: 1.125; /* 36px */
+		list-style: none;
+		transition:
+			padding var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	details.faculty .faculty__summary {
+		cursor: pointer;
+	}
+
+	.faculty__summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.faculty__star {
+		flex: none;
+		color: var(--color-blue);
+		opacity: 0;
+		transform: scale(0.4) rotate(-45deg);
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			transform var(--duration-slow) var(--ease-out);
+	}
+
+	/* Estado activo (cursor o facultad abierta): como el primer ítem de Figma */
+	details.faculty:hover .faculty__summary,
+	details.faculty[open] .faculty__summary,
+	.faculty__summary:focus-visible {
+		padding-left: 3.5rem; /* 56px */
+		color: var(--color-blue-title);
+	}
+
+	details.faculty:hover .faculty__star,
+	details.faculty[open] .faculty__star,
+	.faculty__summary:focus-visible .faculty__star {
+		opacity: 1;
+		transform: none;
+	}
+
+	.faculty__summary:focus-visible {
+		border-radius: 1rem;
+	}
+
+	.faculty__description {
+		padding: 0 var(--space-6) var(--space-5) 3.5rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(23 26 26 / 0.8);
+	}
+
+	@media (max-width: 640px) {
+		.university-details__block {
+			gap: var(--space-5);
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.faculty__summary {
+			padding: var(--space-4) var(--space-5);
+		}
+
+		details.faculty:hover .faculty__summary,
+		details.faculty[open] .faculty__summary,
+		.faculty__summary:focus-visible {
+			padding-left: var(--space-6);
+		}
+
+		.faculty__description {
+			padding: 0 var(--space-5) var(--space-4) var(--space-6);
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+	}
+</style>

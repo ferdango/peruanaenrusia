@@ -1,0 +1,56 @@
+---
+/**
+ * StepMessage — mensaje centrado de un paso en revisión o terminado
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › "Tus documentos estan siendo
+ * revisados" (2227:551), "El contrato está siendo revisado" (3300:244),
+ * "Foto del pasaporte validado correctamente" (3300:346)…
+ *
+ * Título azul + texto (bloque de 408px centrado). Si es lo último de la
+ * tarjeta, deja 32px extra debajo (en Figma esas tarjetas terminan con 64px).
+ *
+ * Uso:
+ *   <StepMessage title="El contrato está siendo revisado" text="Una vez…" />
+ */
+
+interface Props {
+	title: string;
+	text?: string;
+	class?: string;
+}
+
+const { title, text, class: className } = Astro.props;
+---
+
+<div class:list={['step-message', className]}>
+	<p class="step-message__title">{title}</p>
+	{text && <p class="step-message__text">{text}</p>}
+</div>
+
+<style>
+	.step-message {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2); /* 8px */
+		width: 100%;
+		max-width: 25.5rem; /* 408px */
+		margin-inline: auto;
+		text-align: center;
+	}
+
+	.step-message:last-child {
+		margin-bottom: var(--space-6); /* 32px + 32px de la tarjeta = 64px */
+	}
+
+	.step-message__title {
+		color: var(--color-blue-title);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.25rem;
+	}
+
+	.step-message__text {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+</style>

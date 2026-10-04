@@ -1,3 +1,8 @@
+## Proyecto
+
+Sitio web de Peruana en Rusia (Astro 7 + CSS con design tokens).
+Antes de modificar el proyecto, lee `docs/GUIA-DESARROLLO.md` (estructura, convenciones y cómo agregar módulos).
+
 ## Development
 
 When starting the dev server, use background mode:

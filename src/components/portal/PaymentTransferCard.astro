@@ -1,0 +1,337 @@
+---
+/**
+ * PaymentTransferCard — tarjeta "Enviarás en soles" + datos de la cuenta
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › tarjeta izquierda (2256:607):
+ * monto con botón de cambio de moneda (2256:598), selector de banco
+ * (2256:601), cuenta de destino con botón de copiar (2256:606) y recuadro
+ * "No aceptamos" (2036:318).
+ *
+ * Monto, cuenta y bancos salen de src/data/portal.ts; el titular usa los
+ * datos legales de src/data/site.ts. Comportamiento: src/scripts/portal-payment.ts.
+ *
+ * Uso (dentro del formulario de pago):
+ *   <PaymentTransferCard />
+ */
+import { Image } from 'astro:assets';
+import Icon from '@components/ui/Icon.astro';
+import CopyPill from './CopyPill.astro';
+import InfoNote from './InfoNote.astro';
+import { banks, formatAmount, payment } from '@data/portal';
+import flagPe from '@assets/images/flags/pe.png';
+
+// ----- Textos de la tarjeta -----
+const content = {
+	srTitle: 'Datos de la transferencia',
+	amountLead: 'Enviarás en soles:',
+	swapLabel: 'Cambiar moneda',
+	bankLabel: '¿Desde qué banco realizarás el pago?',
+	transferTitle: 'Transfiérenos a esta cuenta',
+	holderLabel: 'Titular:',
+	copyAccountLabel: 'Copiar número de cuenta',
+	notAcceptedTitle: 'No aceptamos:',
+};
+
+const defaultBank = banks.find((bank) => bank.id === payment.defaultBankId);
+---
+
+<section class="payment-transfer" aria-labelledby="payment-transfer-title">
+	<h2 id="payment-transfer-title" class="visually-hidden">
+		{content.srTitle}
+	</h2>
+
+	<!-- Monto a transferir -->
+	<div class="payment-transfer__amount">
+		<div class="payment-transfer__amount-text">
+			<p class="payment-transfer__lead">{content.amountLead}</p>
+			<p class="payment-transfer__value">
+				<Image src={flagPe} width={28} height={28} widths={[28, 56]} sizes="28px" alt="" />
+				<span>{formatAmount(payment.amount)}</span>
+			</p>
+		</div>
+		<button
+			type="button"
+			class="payment-transfer__swap"
+			aria-label={content.swapLabel}
+			title={content.swapLabel}
+			data-currency-swap
+		>
+			<Icon name="arrows-exchange" size={24} />
+		</button>
+	</div>
+
+	<!-- Banco de origen -->
+	<div class="bank-select" data-bank-box data-has-logo={defaultBank?.logo ? '' : undefined}>
+		<span class="bank-select__logo" aria-hidden="true">
+			{banks.map(
+				(bank) =>
+					bank.logo && (
+						<Image
+							src={bank.logo}
+							width={24}
+							height={24}
+							widths={[24, 48]}
+							sizes="24px"
+							alt=""
+							data-bank-logo={bank.id}
+							hidden={bank.id !== payment.defaultBankId}
+						/>
+					),
+			)}
+		</span>
+		<select id="payment-bank" name="bank" class="bank-select__control" data-bank-select>
+			{banks.map((bank) => (
+				<option value={bank.id} selected={bank.id === payment.defaultBankId}>
+					{bank.name}
+				</option>
+			))}
+		</select>
+		<label for="payment-bank" class="bank-select__label">
+			{content.bankLabel}
+		</label>
+		<Icon name="chevron-down" size={16} class="bank-select__chevron" />
+	</div>
+
+	<!-- Cuenta de destino -->
+	<div class="payment-transfer__account">
+		<div class="payment-transfer__bank">
+			<h3 class="payment-transfer__title">{content.transferTitle}</h3>
+			<p class="payment-transfer__bank-name">
+				<Image
+					src={payment.account.bankLogo}
+					width={24}
+					height={24}
+					widths={[24, 48]}
+					sizes="24px"
+					alt=""
+				/>
+				{payment.account.bankName}
+			</p>
+		</div>
+
+		<div class="payment-transfer__number">
+			<p class="payment-transfer__label">{payment.account.type}:</p>
+			<CopyPill value={payment.account.number} label={content.copyAccountLabel} block />
+		</div>
+
+		<div>
+			<p class="payment-transfer__label">{content.holderLabel}</p>
+			<p class="payment-transfer__holder">{payment.account.holder}</p>
+		</div>
+
+		<InfoNote title={content.notAcceptedTitle} items={payment.notAccepted} />
+	</div>
+</section>
+
+<script>
+	import { initPaymentScreen } from '@scripts/portal-payment';
+
+	initPaymentScreen();
+</script>
+
+<style>
+	.payment-transfer {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5); /* 24px */
+		padding: 1.75rem; /* 28px */
+		border-radius: var(--radius-lg);
+		background-color: var(--portal-surface);
+	}
+
+	/* ----- Monto ----- */
+	.payment-transfer__amount {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.payment-transfer__amount-text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+		min-width: 0;
+	}
+
+	.payment-transfer__lead {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+	}
+
+	.payment-transfer__value {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		color: var(--color-blue-title);
+		font-size: var(--font-size-h3); /* 28px en desktop */
+		font-weight: var(--font-weight-bold);
+		line-height: 2rem;
+		white-space: nowrap;
+	}
+
+	.payment-transfer__value :global(img) {
+		flex-shrink: 0;
+		width: 1.75rem;
+		height: 1.75rem;
+	}
+
+	.payment-transfer__swap {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 2.5rem; /* 40px */
+		height: 2.5rem;
+		border: 1px solid var(--portal-border);
+		border-radius: var(--radius-pill);
+		color: var(--text-on-light);
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.payment-transfer__swap:hover {
+		background-color: var(--portal-tint);
+	}
+
+	/* ----- Selector de banco (etiqueta arriba, valor abajo, como en Figma) ----- */
+	.bank-select {
+		--bank-inset: var(--space-3); /* 12px sin logo */
+
+		position: relative;
+		min-height: 4.375rem; /* 70px */
+		border: 1px solid var(--portal-border);
+		border-radius: var(--portal-radius-field);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-base) var(--ease-out);
+	}
+
+	.bank-select[data-has-logo] {
+		--bank-inset: 3rem; /* 12px + logo de 24px + 12px */
+	}
+
+	.bank-select:hover {
+		border-color: var(--color-blue-title);
+	}
+
+	.bank-select:focus-within {
+		border-color: var(--color-blue-title);
+		box-shadow: var(--focus-ring);
+	}
+
+	.bank-select__control {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		padding: 2.125rem 2.5rem var(--space-3) var(--bank-inset); /* 34px arriba: deja sitio a la etiqueta */
+		border: 0;
+		border-radius: inherit;
+		background: transparent;
+		color: var(--text-on-light);
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		appearance: none;
+		cursor: pointer;
+	}
+
+	.bank-select__control:focus-visible {
+		outline: none;
+		box-shadow: none;
+	}
+
+	.bank-select__label {
+		position: absolute;
+		top: var(--space-3);
+		left: var(--bank-inset);
+		right: 2.5rem;
+		color: var(--color-blue-title);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.125rem; /* 18px */
+		pointer-events: none;
+	}
+
+	.bank-select__logo {
+		position: absolute;
+		left: var(--space-3);
+		bottom: var(--space-3);
+		display: flex;
+		pointer-events: none;
+	}
+
+	.bank-select__logo :global(img) {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.bank-select__logo :global(img[hidden]) {
+		display: none;
+	}
+
+	.bank-select :global(.bank-select__chevron) {
+		position: absolute;
+		right: var(--space-3);
+		bottom: var(--space-3);
+		color: var(--text-on-light);
+		pointer-events: none;
+	}
+
+	/* ----- Cuenta de destino ----- */
+	.payment-transfer__account {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+	}
+
+	.payment-transfer__bank {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+
+	.payment-transfer__title {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+	}
+
+	.payment-transfer__bank-name {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+	}
+
+	.payment-transfer__bank-name :global(img) {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.payment-transfer__number {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2); /* 8px */
+		width: min(12.875rem, 100%); /* 206px */
+	}
+
+	.payment-transfer__label {
+		color: var(--portal-text-soft);
+		font-size: var(--font-size-nav); /* 15px */
+		line-height: 1.5rem;
+	}
+
+	.payment-transfer__holder {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+	}
+
+	@media (max-width: 640px) {
+		.payment-transfer {
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.payment-transfer__value {
+			white-space: normal;
+		}
+	}
+</style>

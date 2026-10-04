@@ -1,0 +1,163 @@
+---
+/**
+ * PortalHeader — barra superior del portal del estudiante
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › header (1975:126). Se repite
+ * igual en todas las pantallas del portal (2045:365, 2075:465, 2113:147, 2026:240).
+ *
+ * Pestaña blanca "colgada" del borde superior con el logo a color, el saludo
+ * con la inicial del estudiante y el botón de cerrar sesión.
+ *
+ * Uso (ya lo incluye PortalLayout):
+ *   <PortalHeader />
+ */
+import Logo from '@components/brand/Logo.astro';
+import Icon from '@components/ui/Icon.astro';
+import { routes } from '@data/navigation';
+import { portalRoutes, student, studentInitial } from '@data/portal';
+
+// ----- Textos -----
+const content = {
+	greeting: 'Hola,',
+	homeLabel: 'Peruana en Rusia — ir al inicio',
+	logoutLabel: 'Cerrar sesión',
+};
+---
+
+<header class="portal-header">
+	<a class="portal-header__logo" href={routes.home} aria-label={content.homeLabel}>
+		<Logo variant="vertical" color="brand" width={59} />
+	</a>
+
+	<div class="portal-header__user">
+		<span class="portal-header__avatar" aria-hidden="true">
+			{studentInitial}
+		</span>
+		<div class="portal-header__session">
+			<p class="portal-header__greeting">
+				{content.greeting}
+				<strong class="portal-header__name">{student.firstName}</strong>
+			</p>
+			<!-- TODO (API): cerrar la sesión en el servidor antes de salir (ver src/scripts/portal-nav.ts) -->
+			<a
+				class="portal-header__logout"
+				href={portalRoutes.logout}
+				aria-label={content.logoutLabel}
+				title={content.logoutLabel}
+				data-portal-logout
+			>
+				<Icon name="logout" size={32} />
+			</a>
+		</div>
+	</div>
+</header>
+
+<script>
+	import { initPortalNav } from '@scripts/portal-nav';
+
+	initPortalNav();
+</script>
+
+<style>
+	.portal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: min(64rem, 100%); /* 1024px */
+		margin-inline: auto;
+		padding: var(--space-3) var(--space-9); /* 12px 64px */
+		border-radius: 0 0 var(--portal-header-radius) var(--portal-header-radius);
+		background-color: var(--portal-surface);
+	}
+
+	.portal-header__logo {
+		display: block;
+		flex-shrink: 0;
+	}
+
+	/* ----- Saludo + avatar + salir ----- */
+	.portal-header__user {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		min-height: 3.5rem; /* 56px */
+	}
+
+	.portal-header__avatar {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 2.5rem; /* 40px */
+		height: 2.5rem;
+		border: 1px solid var(--color-blue-2);
+		border-radius: var(--radius-pill);
+		background-color: var(--portal-tint);
+		color: var(--color-blue-2);
+		font-size: var(--font-size-h4);
+		font-weight: var(--font-weight-bold);
+		line-height: 2rem;
+	}
+
+	.portal-header__session {
+		display: flex;
+		align-items: center;
+	}
+
+	.portal-header__greeting {
+		width: 6.375rem; /* 102px: "Hola," arriba y el nombre debajo */
+		color: var(--text-on-light);
+		font-size: var(--font-size-md);
+		line-height: 1.25rem;
+	}
+
+	.portal-header__name {
+		display: block;
+		overflow: hidden;
+		font-weight: var(--font-weight-semibold);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.portal-header__logout {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		color: var(--color-blue-2);
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	.portal-header__logout:hover {
+		color: var(--color-blue-title);
+	}
+
+	@media (max-width: 1100px) {
+		.portal-header {
+			width: calc(100% - 2 * var(--gutter));
+			padding-inline: var(--space-7);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.portal-header {
+			width: 100%;
+			padding: var(--space-2) var(--space-4);
+			border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+		}
+
+		.portal-header__logo :global(.logo) {
+			width: 2.75rem;
+			height: auto;
+		}
+
+		.portal-header__user {
+			gap: var(--space-2);
+			min-height: 3rem;
+		}
+
+		.portal-header__greeting {
+			width: auto;
+			max-width: 7rem;
+			font-size: var(--font-size-sm);
+		}
+	}
+</style>

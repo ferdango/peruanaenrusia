@@ -1,0 +1,30 @@
+---
+/**
+ * /portal/pago/rechazado/ — transacción rechazada
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 10" (2075:455).
+ * "Volver a intentar" regresa a /portal/pago/.
+ */
+import PortalLayout from '@layouts/PortalLayout.astro';
+import PaymentStatusCard from '@components/portal/PaymentStatusCard.astro';
+import { paymentRejection, portalRoutes } from '@data/portal';
+
+const content = {
+	title: 'Transacción rechazada',
+	action: 'Volver a intentar',
+};
+---
+
+<PortalLayout
+	title={content.title}
+	description="No pudimos validar tu pago. Revisa la constancia y vuelve a intentarlo."
+	currentStep="payment"
+>
+	<PaymentStatusCard
+		variant="rejected"
+		title={content.title}
+		status={paymentRejection.status}
+		detail={paymentRejection.message}
+		action={{ label: content.action, href: portalRoutes.payment }}
+	/>
+</PortalLayout>

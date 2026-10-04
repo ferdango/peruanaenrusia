@@ -1,0 +1,39 @@
+---
+/**
+ * Página de una publicación del blog ( /blog/{slug}/ )
+ * --------------------------------------------------------------------------
+ * Se genera una página por cada video (src/data/videos.ts) y por cada
+ * artículo (src/data/articles.ts), con dos diseños de Figma:
+ *   - Video    → "Single Article Video" (1698:165)  · BlogPostVideo
+ *   - Artículo → "Single Article Text"  (1584:671)  · BlogPostArticle
+ * Al final, "Temas relacionados" (solo móvil, Figma 1096:13).
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import BlogPostArticle from '@components/sections/blog/BlogPostArticle.astro';
+import BlogPostVideo from '@components/sections/blog/BlogPostVideo.astro';
+import BlogRelated from '@components/sections/blog/BlogRelated.astro';
+import { blogPosts, type BlogPost } from '@data/blog';
+
+export function getStaticPaths() {
+	return blogPosts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props {
+	post: BlogPost;
+}
+
+const { post } = Astro.props;
+
+// Descripción para buscadores y redes sociales
+const description = post.type === 'article' ? post.article.excerpt : post.video.description;
+---
+
+<SiteLayout title={post.title} description={description} image={post.image.src}>
+	{post.type === 'video' ? (
+		<BlogPostVideo video={post.video} />
+	) : (
+		<BlogPostArticle article={post.article} />
+	)}
+	<BlogRelated currentSlug={post.slug} />
+</SiteLayout>

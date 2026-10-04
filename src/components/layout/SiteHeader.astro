@@ -44,22 +44,20 @@ const currentPath = Astro.url.pathname;
 		<!-- Centro: navegación principal (solo desktop) -->
 		<nav class="site-header__nav" aria-label="Navegación principal">
 			<ul role="list">
-				{
-					mainNav.map((link) => {
-						const active = isActiveLink(link, currentPath);
-						return (
-							<li>
-								<a
-									href={link.href}
-									class:list={['site-header__link', { 'is-active': active }]}
-									aria-current={active ? 'page' : undefined}
-								>
-									{link.label}
-								</a>
-							</li>
-						);
-					})
-				}
+				{mainNav.map((link) => {
+					const active = isActiveLink(link, currentPath);
+					return (
+						<li>
+							<a
+								href={link.href}
+								class:list={['site-header__link', { 'is-active': active }]}
+								aria-current={active ? 'page' : undefined}
+							>
+								{link.label}
+							</a>
+						</li>
+					);
+				})}
 			</ul>
 		</nav>
 

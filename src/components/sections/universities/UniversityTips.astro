@@ -1,0 +1,172 @@
+---
+/**
+ * UniversityTips — "Consejos"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628437" (3333:261).
+ *
+ * Tarjetas grises con la forma celeste de "reloj de arena" de la marca, el
+ * consejo en azul (ExtraBold) y dos estrellas pequeñas (roja y amarilla).
+ * 2 columnas en desktop/tablet y 1 en móvil.
+ *
+ * Uso: <UniversityTips id="consejos" tips={university.tips} />
+ */
+import Hourglass from '@assets/graphics/shapes/shape-hourglass-tip.svg';
+import StarRed from '@assets/graphics/stars/star-red-small.svg';
+import StarYellow from '@assets/graphics/stars/star-yellow-small.svg';
+
+interface Props {
+	/** id del ancla (lo usa la píldora de navegación) */
+	id: string;
+	tips: string[];
+}
+
+const { id, tips } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Consejos',
+};
+---
+
+<section id={id} class="university-tips" aria-labelledby={`${id}-title`}>
+	<h2 id={`${id}-title`} class="university-tips__title">
+		{content.title}
+	</h2>
+
+	<ul class="university-tips__grid" role="list">
+		{tips.map((tip) => (
+			<li class="tip-card">
+				<Hourglass class="tip-card__shape" aria-hidden="true" />
+				<p class="tip-card__text">{tip}</p>
+				<span class="tip-card__star tip-card__star--red" aria-hidden="true">
+					<StarRed />
+				</span>
+				<span class="tip-card__star tip-card__star--yellow" aria-hidden="true">
+					<StarYellow />
+				</span>
+			</li>
+		))}
+	</ul>
+</section>
+
+<style>
+	.university-tips {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7); /* 40px */
+		padding: var(--space-6) var(--space-7); /* 32px 40px */
+		scroll-margin-top: calc(4.75rem + var(--space-4));
+	}
+
+	.university-tips__title {
+		font-size: clamp(1.625rem, 1.2rem + 1.5vw, 2.25rem); /* 36px */
+		line-height: 1.11; /* 40px */
+		color: var(--color-blue-title);
+	}
+
+	.university-tips__grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-5) var(--space-4); /* 24px filas · 16px columnas */
+	}
+
+	/* ----- Tarjeta (585 × 430 px en Figma) ----- */
+	.tip-card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 26.875rem; /* 430px */
+		padding: var(--space-8) 9.06%; /* texto de 479px de ancho */
+		border-radius: var(--radius-lg); /* 24px */
+		overflow: clip;
+		background-color: var(--color-white);
+		text-align: center;
+	}
+
+	/* Forma de reloj de arena: centrada y recortada arriba y abajo por la tarjeta */
+	.tip-card__shape {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: -1;
+		width: auto;
+		max-width: none;
+		height: 167.75%; /* 721px sobre 430px */
+		aspect-ratio: 495.625 / 721.277;
+		transform: translate(-50%, -50%);
+	}
+
+	.tip-card__text {
+		font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem); /* 36px */
+		font-weight: var(--font-weight-extrabold);
+		line-height: 1.22; /* 44px */
+		color: var(--color-blue-title);
+		text-wrap: balance;
+	}
+
+	/* ----- Estrellas pequeñas (posiciones de Figma, en % de la tarjeta) ----- */
+	.tip-card__star {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+	}
+
+	.tip-card__star :global(svg) {
+		flex: none;
+		max-width: none;
+	}
+
+	.tip-card__star--red {
+		left: 11.24%;
+		top: 69.21%;
+		width: 14.689px;
+		height: 17.477px;
+	}
+
+	.tip-card__star--red :global(svg) {
+		transform: rotate(-36.13deg) skewX(-8.85deg);
+	}
+
+	.tip-card__star--yellow {
+		left: 83.66%;
+		top: 23.82%;
+		width: 12.232px;
+		height: 15.723px;
+	}
+
+	/* En la columna derecha la estrella amarilla sube un poco */
+	.tip-card:nth-child(even) .tip-card__star--yellow {
+		left: 89%;
+		top: 16.98%;
+	}
+
+	.tip-card__star--yellow :global(svg) {
+		transform: rotate(16.73deg) skewX(7.82deg);
+	}
+
+	@media (max-width: 640px) {
+		.university-tips {
+			gap: var(--space-5);
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.university-tips__grid {
+			grid-template-columns: 1fr;
+			gap: var(--space-4);
+		}
+
+		.tip-card {
+			min-height: 20rem;
+			padding: var(--space-9) var(--space-6);
+		}
+
+		.tip-card:nth-child(even) .tip-card__star--yellow {
+			left: 83.66%;
+			top: 23.82%;
+		}
+	}
+</style>

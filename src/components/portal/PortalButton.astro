@@ -1,0 +1,164 @@
+---
+/**
+ * PortalButton — botones del portal del estudiante
+ * --------------------------------------------------------------------------
+ * Figma: componente "Button" usado en el portal (ej. "Ya transferí" 2070:431,
+ * "Volver" 2071:433, "Continuar" 2026:180, "Subir archivo" 2223:400).
+ *
+ * ¿Por qué no se usa ui/Button? En el portal los botones tienen 12px de radio,
+ * texto azul muy oscuro (#002546) y, en los de acción, el ícono a la
+ * IZQUIERDA del texto; además tienen anchos fijos en el diseño.
+ *
+ * Variantes (variant):
+ *   "primary" → amarillo de marca ("Ya transferí", "Continuar"…)
+ *   "muted"   → celeste grisáceo ("Volver" en la pantalla de pago)
+ *   "outline" → blanco con borde gris ("Volver" en "Mi proceso")
+ *   "action"  → blanco con borde e ícono azules ("Subir archivo", "Descargar…")
+ *
+ * Si recibe `href` se renderiza como <a>; si no, como <button>.
+ *
+ * Uso:
+ *   <PortalButton width={200} type="submit">Continuar</PortalButton>   ← ancho mínimo 200px
+ *   <PortalButton variant="action" icon="download" href="…">Descargar PDF</PortalButton>
+ */
+import type { HTMLAttributes } from 'astro/types';
+import Icon, { type IconName } from '@components/ui/Icon.astro';
+
+type Variant = 'primary' | 'muted' | 'outline' | 'action';
+
+interface Props extends Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'type'> {
+	href?: string;
+	type?: 'button' | 'submit' | 'reset';
+	variant?: Variant;
+	/** Ícono a la izquierda del texto (24px) */
+	icon?: IconName;
+	/** Ancho de Figma en px (se usa como ancho mínimo; nunca supera el 100%) */
+	width?: number;
+	/** Ocupa todo el ancho disponible */
+	block?: boolean;
+	class?: string;
+}
+
+const {
+	href,
+	type = 'button',
+	variant = 'primary',
+	icon,
+	width,
+	block = false,
+	class: className,
+	style,
+	...attrs
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const widthStyle = width ? `--portal-btn-width: ${width / 16}rem;` : '';
+---
+
+<Tag
+	href={href}
+	type={href ? undefined : type}
+	class:list={[
+		'portal-btn',
+		`portal-btn--${variant}`,
+		{ 'portal-btn--fixed': width, 'portal-btn--block': block },
+		className,
+	]}
+	style={`${widthStyle}${style ?? ''}` || undefined}
+	{...attrs}
+>
+	{icon && <Icon name={icon} size={24} class="portal-btn__icon" />}
+	<span class="portal-btn__label">
+		<slot />
+	</span>
+</Tag>
+
+<style>
+	.portal-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem; /* 10px entre ícono y texto */
+		min-height: 3.75rem; /* 60px */
+		padding: var(--space-3) var(--space-4); /* 12px 16px */
+		border: 1px solid transparent;
+		border-radius: var(--radius-md);
+		color: var(--portal-text-button);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		text-align: center;
+		white-space: nowrap;
+		cursor: pointer;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.portal-btn:active {
+		transform: scale(0.98);
+	}
+
+	.portal-btn:disabled,
+	.portal-btn[aria-disabled='true'] {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+
+	/* Ancho de Figma como mínimo: Poppins es algo más ancha que Aeonik (fuente del diseño) */
+	.portal-btn--fixed {
+		min-width: min(var(--portal-btn-width), 100%);
+	}
+
+	.portal-btn--block {
+		width: 100%;
+	}
+
+	.portal-btn__icon {
+		flex-shrink: 0;
+	}
+
+	/* ----- Variantes ----- */
+	.portal-btn--primary {
+		background-color: var(--color-yellow);
+	}
+
+	.portal-btn--primary:hover {
+		background-color: color-mix(in srgb, var(--color-yellow) 88%, var(--color-black));
+	}
+
+	.portal-btn--muted {
+		background-color: var(--portal-button-muted);
+	}
+
+	.portal-btn--muted:hover {
+		background-color: color-mix(in srgb, var(--portal-button-muted) 85%, var(--color-blue-title));
+	}
+
+	.portal-btn--outline {
+		border-color: var(--portal-button-outline);
+		background-color: var(--portal-surface);
+	}
+
+	.portal-btn--outline:hover {
+		border-color: var(--portal-text-button);
+	}
+
+	.portal-btn--action {
+		border-color: var(--color-blue-title);
+		background-color: var(--portal-surface);
+		color: var(--color-blue-title);
+	}
+
+	.portal-btn--action:hover {
+		background-color: var(--portal-tint);
+	}
+
+	@media (max-width: 640px) {
+		.portal-btn {
+			white-space: normal;
+		}
+	}
+</style>

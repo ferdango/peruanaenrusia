@@ -3,11 +3,363 @@
  * HomeIntro — "Te acompañamos en cada paso de tu camino hacia tu meta"
  * --------------------------------------------------------------------------
  * Figma: Home › "Frame 628097" (1317:194)
+ *   · Encabezado: título + párrafo (889:264)
+ *   · Tarjetas (1317:193):
+ *       1. "Sobre mí" (1317:190): fondo rosado, símbolo de la marca en rojo y
+ *          foto recortada de la fundadora.
+ *       2. "Te acompañamos…" (1388:4139): foto con la onda naranja de la
+ *          marca que pasa POR DETRÁS de la persona (una segunda copia de la
+ *          foto, recortada con una máscara, se dibuja encima de la onda).
+ * Móvil: Figma UI Mobile › "Frame 628065" (1005:1039): tarjetas apiladas,
+ * solo con el botón ▶ centrado.
  *
- * TODO (en construcción): implementar según el diseño.
+ * El arte de las tarjetas se dibuja con las medidas exactas de Figma
+ * expresadas en "píxeles de diseño" (--u) que escalan con el ancho de cada
+ * tarjeta (container queries), así la composición nunca se descuadra.
+ *
+ * VIDEOS: mientras no existan los videos, el botón ▶ abre el canal de
+ * YouTube de la marca (src/data/site.ts → socials).
+ *
+ * Uso: <HomeIntro /> (página de inicio, después del hero).
  */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import { site } from '@data/site';
+import aboutCutout from '@assets/images/home/intro-about-me-cutout.png';
+import storyPhoto from '@assets/images/home/intro-accompaniment-photo.jpg';
+import SymbolShape from '@assets/graphics/shapes/symbol-shape-red.svg';
+import WaveOrange from '@assets/graphics/waves/wave-orange-intro.svg';
+import FrontMask from '@assets/graphics/shapes/intro-photo-front-mask.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Te acompañamos en cada paso de tu camino hacia tu meta',
+	text: 'Somos estudiantes peruanos becados en Rusia, que han ganado la beca, estudian y trabajan allá, sabemos todos los pasos a pasar y los errores que no debes cometer.',
+	aboutCard: {
+		label: 'Sobre mí',
+		playLabel: 'Ver el video «Sobre mí» en YouTube',
+	},
+	storyCard: {
+		title: 'Te acompañamos en cada paso de tu camino hacia tu meta',
+		label: 'Sobre mí',
+		playLabel: 'Ver el video «Te acompañamos en cada paso» en YouTube',
+	},
+};
+
+const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
+
+/** Máscara que recorta la "copia delantera" de la foto (hombros sobre la onda) */
+const frontMaskUrl = FrontMask.src;
+
+/** Misma configuración para las dos capas de la foto → el navegador la descarga una sola vez */
+const storyPhotoProps = {
+	src: storyPhoto,
+	alt: '',
+	widths: [640, 1200, 1800],
+	sizes: '(max-width: 640px) 145vw, (max-width: 1512px) 80vw, 1182px',
+};
 ---
 
-<section class="section container" id="acompanamiento" aria-label="Te acompañamos en cada paso de tu camino hacia tu meta">
-	<!-- Te acompañamos en cada paso de tu camino hacia tu meta -->
+<section class="home-intro section" id="acompanamiento" aria-labelledby="home-intro-title">
+	<div class="home-intro__inner container">
+		<header class="home-intro__header">
+			<h2 id="home-intro-title" class="home-intro__title">
+				{content.title}
+			</h2>
+			<p class="home-intro__text">{content.text}</p>
+		</header>
+
+		<div class="home-intro__cards">
+			<!-- Tarjeta 1: "Sobre mí" -->
+			<article class="intro-card intro-card--about">
+				<div class="intro-card__art" aria-hidden="true">
+					<SymbolShape class="intro-card__symbol" />
+					<Image src={aboutCutout} alt="" width={1080} class="intro-card__cutout" />
+				</div>
+
+				<a
+					href={youtubeChannel}
+					class="intro-card__play"
+					target="_blank"
+					rel="noopener"
+					aria-label={content.aboutCard.playLabel}
+				>
+					<Icon name="play" size={16} />
+				</a>
+
+				<p class="intro-card__label intro-card__label--strong">{content.aboutCard.label}</p>
+			</article>
+
+			<!-- Tarjeta 2: foto + onda naranja -->
+			<article class="intro-card intro-card--story" style={`--front-mask: url('${frontMaskUrl}')`}>
+				<div class="intro-card__art" aria-hidden="true">
+					<Image {...storyPhotoProps} class="intro-card__photo" />
+					<WaveOrange class="intro-card__wave" />
+					<Image {...storyPhotoProps} class="intro-card__photo intro-card__photo--front" />
+				</div>
+
+				<a
+					href={youtubeChannel}
+					class="intro-card__play"
+					target="_blank"
+					rel="noopener"
+					aria-label={content.storyCard.playLabel}
+				>
+					<Icon name="play" size={16} />
+				</a>
+
+				<div class="intro-card__text">
+					<p class="intro-card__title">{content.storyCard.title}</p>
+					<p class="intro-card__label">{content.storyCard.label}</p>
+				</div>
+			</article>
+		</div>
+	</div>
 </section>
+
+<style>
+	.home-intro {
+		background-color: var(--surface-dark);
+		color: var(--text-on-dark);
+	}
+
+	.home-intro__inner {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-8); /* 48px */
+	}
+
+	/* ----- Encabezado: título (801px) + párrafo ----- */
+	.home-intro__header {
+		display: flex;
+		align-items: center;
+		gap: var(--space-8);
+	}
+
+	.home-intro__title {
+		flex: 0 1 50.0625rem; /* 801px */
+		font-size: var(--font-size-h1);
+		line-height: 1.1667; /* 56px */
+	}
+
+	.home-intro__text {
+		flex: 1;
+		line-height: 1.75rem; /* 28px */
+		color: color-mix(in srgb, var(--color-white) 90%, transparent);
+	}
+
+	/* ----- Tarjetas: columnas proporcionales (555 : 769 px en Figma) ----- */
+	.home-intro__cards {
+		display: grid;
+		grid-template-columns: 555fr 769fr;
+		gap: 1.75rem; /* 28px */
+	}
+
+	.intro-card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: space-between;
+		border-radius: var(--radius-2xl); /* 40px */
+		overflow: clip;
+		container-type: inline-size;
+	}
+
+	.intro-card--about {
+		/* 1 "px de diseño" = ancho de la tarjeta / 555 */
+		--u: calc(100cqw / 555);
+
+		aspect-ratio: 555 / 556.159;
+		padding: var(--space-6) var(--space-7); /* 32px 40px */
+		background-color: var(--color-pink-light);
+	}
+
+	.intro-card--story {
+		/* 1 "px de diseño" = ancho de la tarjeta / 769 */
+		--u: calc(100cqw / 769);
+
+		aspect-ratio: 769 / 556;
+		padding: var(--space-7) var(--space-6); /* 40px 32px */
+		background-color: var(--surface-dark-raised);
+	}
+
+	/* ----- Arte de fondo (posiciones de Figma) ----- */
+	.intro-card__art {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	.intro-card__art > :global(*) {
+		position: absolute;
+		max-width: none;
+	}
+
+	.intro-card__symbol {
+		left: calc(-22.03 * var(--u));
+		top: calc(83.98 * var(--u));
+		width: calc(597.635 * var(--u));
+		height: calc(381.575 * var(--u));
+	}
+
+	.intro-card__cutout {
+		left: calc(-300.09 * var(--u));
+		top: calc(-508.65 * var(--u));
+		width: calc(1167.933 * var(--u));
+		height: calc(1459.917 * var(--u));
+		object-fit: cover;
+	}
+
+	.intro-card__photo {
+		left: calc(-83 * var(--u));
+		top: calc(-37.08 * var(--u));
+		width: calc(1182 * var(--u));
+		height: calc(593 * var(--u));
+		object-fit: cover;
+	}
+
+	/* Onda naranja: rotada y sesgada como en Figma (gira sobre su centro) */
+	.intro-card__wave {
+		left: calc(-14.16 * var(--u));
+		top: calc(-29.1 * var(--u));
+		width: calc(851.525 * var(--u));
+		height: calc(471.048 * var(--u));
+		transform: rotate(21.2deg) skewX(8.54deg);
+	}
+
+	/* Copia de la foto recortada: los hombros de la persona tapan la onda */
+	.intro-card__photo--front {
+		-webkit-mask-image: var(--front-mask);
+		mask-image: var(--front-mask);
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: calc(415.5 * var(--u)) calc(303 * var(--u));
+		mask-position: calc(415.5 * var(--u)) calc(303 * var(--u));
+		-webkit-mask-size: calc(382.5 * var(--u)) calc(123.5 * var(--u));
+		mask-size: calc(382.5 * var(--u)) calc(123.5 * var(--u));
+	}
+
+	/* ----- Botón ▶ (círculo de 56px + anillo translúcido exterior de 12px) ----- */
+	.intro-card__play {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 3.5rem; /* 56px */
+		height: 3.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-white);
+		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.intro-card__play :global(svg) {
+		flex-shrink: 0;
+	}
+
+	/* Toda la tarjeta es clicable (el enlace se "estira" sobre ella) */
+	.intro-card__play::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+
+	.intro-card:hover .intro-card__play {
+		transform: scale(1.08);
+	}
+
+	/* Foco de teclado: anillo celeste por fuera del anillo translúcido */
+	.intro-card__play:focus-visible {
+		box-shadow:
+			0 0 0 12px rgb(244 244 244 / 0.32),
+			0 0 0 15px var(--color-skyblue);
+	}
+
+	/* ----- Textos ----- */
+	.intro-card__label {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5rem; /* 24px */
+		color: var(--text-on-dark-soft);
+	}
+
+	.intro-card__label--strong {
+		font-weight: var(--font-weight-bold);
+		color: var(--text-on-dark);
+	}
+
+	.intro-card__text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5); /* 24px */
+		max-width: 26.25rem; /* 420px */
+	}
+
+	.intro-card__title {
+		font-size: 2.25rem; /* 36px */
+		font-weight: var(--font-weight-bold);
+		line-height: 2.5rem; /* 40px */
+		color: var(--text-on-dark);
+	}
+
+	/* ===== Tablet: encabezado apilado; tarjetas solo con el botón ▶ ===== */
+	@media (max-width: 1100px) {
+		.home-intro__header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-4);
+		}
+
+		.home-intro__title {
+			flex-basis: auto;
+		}
+
+		.intro-card {
+			align-items: center;
+			justify-content: center;
+		}
+
+		.intro-card__label,
+		.intro-card__text {
+			display: none;
+		}
+	}
+
+	/* ===== Móvil (Figma 1005:1039): tarjetas apiladas ===== */
+	@media (max-width: 640px) {
+		.home-intro {
+			padding-block: var(--space-8); /* 48px */
+		}
+
+		.home-intro__inner {
+			gap: 1.75rem; /* 28px */
+		}
+
+		.home-intro__title {
+			line-height: 1.125; /* 36px */
+		}
+
+		.home-intro__cards {
+			grid-template-columns: 100%;
+			gap: var(--space-3); /* 12px */
+			/* En el diseño las tarjetas quedan a 12px del borde de la pantalla */
+			margin-inline: calc(-1 * var(--space-1));
+		}
+
+		.intro-card {
+			border-radius: var(--radius-lg); /* 24px */
+		}
+
+		.intro-card--about {
+			aspect-ratio: 336 / 321;
+		}
+
+		.intro-card--story {
+			aspect-ratio: 336 / 234.5;
+		}
+	}
+</style>

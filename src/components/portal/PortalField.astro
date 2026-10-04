@@ -1,0 +1,211 @@
+---
+/**
+ * PortalField — campo de formulario del portal (texto, fecha o lista)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › "Tus datos personales"
+ * (campos 2026:149, 2026:158…) y "MacBook Pro 14' - 7" › selector de banco
+ * (2256:601), que muestra el estado "con valor".
+ *
+ * Etiqueta flotante accesible: cuando el campo está vacío la etiqueta ocupa
+ * el lugar del texto (como en Figma); al escribir o elegir una opción sube y
+ * se achica (12px, azul), igual que el selector de banco del diseño.
+ * El texto de ayuda se enlaza con `aria-describedby`.
+ *
+ * Uso:
+ *   <PortalField id="pd-names" name="firstNames" label="Nombres completos"
+ *       help="Tal como figuran en su documento de identidad." autocomplete="given-name" />
+ *
+ *   <PortalField id="pd-level" name="educationLevel" label="Grado de estudios"
+ *       options={['Secundaria completa', 'Universitario']} />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	id: string;
+	name: string;
+	label: string;
+	/** Texto de ayuda bajo el campo */
+	help?: string;
+	/** Tipo de campo de texto (si hay `options` se usa una lista <select>) */
+	type?: 'text' | 'date' | 'email' | 'tel';
+	/** Opciones de la lista. Si se indica, el campo es un <select> */
+	options?: string[];
+	/** Valor inicial (texto) u opción elegida (lista) */
+	value?: string;
+	required?: boolean;
+	autocomplete?: string;
+	inputmode?: 'text' | 'numeric' | 'email' | 'tel';
+	class?: string;
+}
+
+const {
+	id,
+	name,
+	label,
+	help,
+	type = 'text',
+	options,
+	value,
+	required = true,
+	autocomplete,
+	inputmode,
+	class: className,
+} = Astro.props;
+
+const helpId = help ? `${id}-help` : undefined;
+---
+
+<div class:list={['portal-field', className]}>
+	<div class:list={['portal-field__control', { 'portal-field__control--select': options }]}>
+		{options ? (
+			<select
+				id={id}
+				name={name}
+				class="portal-field__input"
+				required={required}
+				autocomplete={autocomplete}
+				aria-describedby={helpId}
+			>
+				<option value="" disabled selected={!value} hidden />
+				{options.map((option) => (
+					<option value={option} selected={option === value}>
+						{option}
+					</option>
+				))}
+			</select>
+		) : (
+			<input
+				id={id}
+				name={name}
+				type={type}
+				class="portal-field__input"
+				value={value}
+				placeholder=" "
+				required={required}
+				autocomplete={autocomplete}
+				inputmode={inputmode}
+				aria-describedby={helpId}
+			/>
+		)}
+		<label for={id} class="portal-field__label">
+			{label}
+		</label>
+		{options && <Icon name="chevron-down" size={16} class="portal-field__chevron" />}
+	</div>
+	{help && (
+		<p id={helpId} class="portal-field__help">
+			{help}
+		</p>
+	)}
+</div>
+
+<style>
+	.portal-field {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		min-width: 0;
+	}
+
+	.portal-field__control {
+		position: relative;
+		height: 3.75rem; /* 60px */
+		border: 1px solid var(--portal-field-border);
+		border-radius: var(--radius-md);
+		background-color: var(--portal-surface);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-base) var(--ease-out);
+	}
+
+	.portal-field__control:hover {
+		border-color: var(--color-blue-title);
+	}
+
+	.portal-field__control:focus-within {
+		border-color: var(--color-blue-title);
+		box-shadow: var(--focus-ring);
+	}
+
+	.portal-field__input {
+		width: 100%;
+		height: 100%;
+		padding: var(--space-4) var(--space-5); /* 16px 24px */
+		border: 0;
+		border-radius: inherit;
+		background: transparent;
+		color: var(--text-on-light);
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		letter-spacing: 0.02em; /* 0.32px */
+		appearance: none;
+	}
+
+	.portal-field__input:focus-visible {
+		outline: none;
+		box-shadow: none;
+	}
+
+	.portal-field__control--select .portal-field__input {
+		padding-inline-end: 3.5rem;
+		cursor: pointer;
+	}
+
+	/* ----- Etiqueta: en reposo ocupa el lugar del texto (placeholder) ----- */
+	.portal-field__label {
+		position: absolute;
+		top: 50%;
+		left: var(--space-5);
+		right: var(--space-5);
+		overflow: hidden;
+		color: var(--portal-placeholder);
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		letter-spacing: 0.02em;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		pointer-events: none;
+		transform: translateY(-50%);
+		transition:
+			top var(--duration-base) var(--ease-out),
+			font-size var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			transform var(--duration-base) var(--ease-out);
+	}
+
+	/* ----- Etiqueta flotante: campo con foco o con valor ----- */
+	.portal-field__input:focus + .portal-field__label,
+	input.portal-field__input:not(:placeholder-shown) + .portal-field__label,
+	select.portal-field__input:valid + .portal-field__label {
+		top: var(--space-2);
+		color: var(--color-blue-title);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.125rem; /* 18px */
+		letter-spacing: 0;
+		transform: none;
+	}
+
+	input.portal-field__input:focus,
+	input.portal-field__input:not(:placeholder-shown),
+	select.portal-field__input:valid,
+	select.portal-field__input:focus {
+		padding-top: 1.75rem; /* 28px: deja sitio a la etiqueta */
+		padding-bottom: var(--space-2);
+	}
+
+	.portal-field__chevron {
+		position: absolute;
+		top: 50%;
+		right: var(--space-5);
+		color: var(--text-on-light);
+		pointer-events: none;
+		transform: translateY(-50%);
+	}
+
+	.portal-field__help {
+		color: var(--portal-text-help);
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+</style>

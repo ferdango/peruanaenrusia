@@ -1,0 +1,110 @@
+---
+/**
+ * RelatedPostCard
+ * --------------------------------------------------------------------------
+ * Tarjeta horizontal compacta (280 × 170 px) de "Temas relacionados": foto a
+ * la izquierda y, a la derecha, categoría, título y fecha
+ * (Figma: UI Mobile › "Single blog" 1096:13). Toda la tarjeta es clicable.
+ *
+ * Uso:
+ *   <RelatedPostCard post={post} />
+ */
+import { Image } from 'astro:assets';
+
+import type { BlogPost } from '@data/blog';
+import { detailRoutes } from '@data/navigation';
+import { formatShortDate } from '@utils/format';
+
+interface Props {
+	post: BlogPost;
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const { post, headingLevel: Heading = 'h3', class: className } = Astro.props;
+---
+
+<article class:list={['related-card', className]}>
+	<Image src={post.image} alt="" widths={[120, 240]} sizes="120px" class="related-card__image" />
+
+	<div class="related-card__body">
+		<p class="related-card__category">{post.category}</p>
+		<Heading class="related-card__title">
+			<a href={detailRoutes.blogPost(post.slug)} class="related-card__link">
+				{post.title}
+			</a>
+		</Heading>
+		<p class="related-card__date">
+			<time datetime={post.date}>{formatShortDate(post.date)}</time>
+		</p>
+	</div>
+</article>
+
+<style>
+	.related-card {
+		position: relative;
+		display: grid;
+		grid-template-columns: 7.5rem 1fr; /* foto de 120px */
+		width: var(--related-card-width, 17.5rem); /* 280px */
+		height: 10.625rem; /* 170px */
+		border-radius: var(--radius-lg);
+		overflow: clip;
+		background-color: var(--surface-dark-pill);
+		color: var(--text-on-dark);
+	}
+
+	.related-card__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.related-card__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		min-width: 0;
+		padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+	}
+
+	.related-card__category {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--color-yellow);
+	}
+
+	/* Título: hasta 4 líneas, luego "…" */
+	.related-card__title {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 4;
+		line-clamp: 4;
+		overflow: clip;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+	}
+
+	.related-card__date {
+		margin-top: auto;
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		color: var(--text-on-dark-muted);
+	}
+
+	/* Toda la tarjeta es clicable */
+	.related-card__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+
+	.related-card__link:focus-visible {
+		box-shadow: none;
+	}
+
+	.related-card:focus-within {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+</style>

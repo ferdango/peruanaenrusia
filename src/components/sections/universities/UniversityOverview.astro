@@ -1,0 +1,189 @@
+---
+/**
+ * UniversityOverview — "De un vistazo"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628447"
+ * (3333:271, resumen), "Frame 628426" (3322:144, fotos) y "Frame 628444"
+ * (3333:268, descripción + "La universidad cuenta con:").
+ *
+ * Muestra solo los datos disponibles de la universidad. Si no tiene contenido
+ * de ficha (solo nombre y foto), muestra un aviso con un enlace a WhatsApp.
+ *
+ * Uso: <UniversityOverview id="de-un-vistazo" university={university} />
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import UniversityStarList from './UniversityStarList.astro';
+import { whatsappUrl } from '@data/site';
+import type { University } from '@data/universities';
+
+interface Props {
+	/** id del ancla (lo usa la píldora de navegación) */
+	id: string;
+	university: University;
+}
+
+const { id, university } = Astro.props;
+const { summary, gallery = [], description = [], highlights = [] } = university;
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'De un vistazo',
+	highlightsLead: 'La universidad cuenta con:',
+	fallback:
+		'Estamos preparando la ficha completa de esta universidad. Escríbenos y te contamos todo sobre sus carreras, becas y requisitos.',
+	fallbackCta: 'Escríbenos por WhatsApp',
+};
+
+const hasBody = description.length > 0 || highlights.length > 0;
+const isFallback = !hasBody && gallery.length === 0;
+---
+
+<section id={id} class="university-overview" aria-labelledby={`${id}-title`}>
+	<h2 id={`${id}-title`} class="visually-hidden">
+		{content.title}
+	</h2>
+
+	{summary && <p class="university-overview__intro">{summary}</p>}
+
+	{gallery.length > 0 && (
+		<div class="university-overview__gallery">
+			{gallery.map((photo) => (
+				<Image
+					src={photo.src}
+					alt={photo.alt}
+					widths={[480, 640, 1250]}
+					sizes="(max-width: 640px) 100vw, 625px"
+					class="university-overview__photo"
+				/>
+			))}
+		</div>
+	)}
+
+	{hasBody && (
+		<div class="university-overview__body">
+			{description.map((paragraph) => (
+				<p class="university-overview__text">{paragraph}</p>
+			))}
+
+			{highlights.length > 0 && (
+				<div class="university-overview__highlights">
+					<p class="university-overview__lead">{content.highlightsLead}</p>
+					<UniversityStarList items={highlights} />
+				</div>
+			)}
+		</div>
+	)}
+
+	{isFallback && (
+		<div class="university-overview__fallback">
+			<p class="university-overview__text">{content.fallback}</p>
+			<Button href={whatsappUrl} tone="blue" size="md" target="_blank" rel="noopener">
+				{content.fallbackCta}
+			</Button>
+		</div>
+	)}
+</section>
+
+<style>
+	.university-overview {
+		/* Deja espacio a la píldora fija al saltar a esta sección */
+		scroll-margin-top: calc(4.75rem + var(--space-4));
+		color: var(--color-black);
+	}
+
+	/* ----- Resumen (primer párrafo) ----- */
+	.university-overview__intro {
+		/* 64px desde la foto (la píldora ocupa 38.5px de ese espacio) */
+		padding: 1.65625rem var(--space-7) 0; /* 26.5px 40px */
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.5; /* 36px */
+	}
+
+	/* ----- Dos fotos a todo el ancho de la hoja ----- */
+	.university-overview__gallery {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-4); /* 16px */
+		margin-top: var(--space-9); /* 64px */
+	}
+
+	.university-overview__photo {
+		width: 100%;
+		height: 34.3125rem; /* 549px */
+		object-fit: cover;
+	}
+
+	/* ----- Descripción + "La universidad cuenta con:" ----- */
+	.university-overview__body {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5625rem; /* 41px */
+		margin-top: var(--space-6);
+		padding: var(--space-6) var(--space-7); /* 32px 40px */
+	}
+
+	.university-overview__text {
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.5; /* 36px */
+	}
+
+	.university-overview__highlights {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.university-overview__lead {
+		font-size: var(--font-size-h4);
+		line-height: 1.33; /* 32px */
+	}
+
+	/* ----- Universidad sin ficha completa ----- */
+	.university-overview__fallback {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+		padding: var(--space-8) var(--space-7) 0;
+	}
+
+	/* Si hay resumen, el aviso va justo debajo */
+	.university-overview__intro + .university-overview__fallback {
+		padding-top: var(--space-5);
+	}
+
+	@media (max-width: 1100px) {
+		.university-overview__photo {
+			height: auto;
+			aspect-ratio: 625 / 549;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.university-overview__intro {
+			padding: var(--space-6) var(--space-4) 0;
+		}
+
+		.university-overview__gallery {
+			grid-template-columns: 1fr;
+			gap: var(--space-2);
+			margin-top: var(--space-7);
+		}
+
+		.university-overview__body {
+			gap: var(--space-6);
+			margin-top: var(--space-3);
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.university-overview__fallback {
+			padding-inline: var(--space-4);
+		}
+
+		.university-overview__fallback :global(.btn) {
+			width: 100%;
+		}
+	}
+</style>

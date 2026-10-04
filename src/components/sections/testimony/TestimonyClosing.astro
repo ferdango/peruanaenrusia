@@ -1,0 +1,270 @@
+---
+/**
+ * TestimonyClosing — Video + cita final del estudiante
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628321" (1734:2246)
+ * + onda roja (1732:2116). Móvil: UI Mobile › 1758:3915 / 1758:3662.
+ *
+ * Izquierda: miniatura vertical del video con botón ▶. Derecha: la cita
+ * (`closing.quote`) y un párrafo (`closing.text`). La onda roja de la marca
+ * cruza la sección por detrás del video.
+ *
+ * VIDEO: igual que "Conoce mi historia": abre `testimonial.video.url` o, si no
+ * hay URL, el canal de YouTube de la marca.
+ *
+ * Uso: <TestimonyClosing testimonial={testimonial} />
+ */
+import { Image } from 'astro:assets';
+
+import Logo from '@components/brand/Logo.astro';
+import Icon from '@components/ui/Icon.astro';
+import WaveRed from '@assets/graphics/waves/wave-red-closing.svg';
+import { site } from '@data/site';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	testimonial: Testimonial;
+}
+
+const { testimonial } = Astro.props;
+const { closing } = testimonial;
+
+// ----- Contenido de la sección -----
+const content = {
+	playLabel: `Ver el video de ${testimonial.name} en YouTube`,
+};
+
+const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
+const poster = testimonial.video?.poster;
+const videoHref = testimonial.video?.url ?? youtubeChannel;
+---
+
+{closing && (
+	<section class="testimony-closing" aria-label={`Mensaje final de ${testimonial.name}`}>
+		<div class="testimony-closing__decor" aria-hidden="true">
+			<div class="testimony-closing__wave">
+				<WaveRed />
+			</div>
+		</div>
+
+		<div class="testimony-closing__inner">
+			{poster && (
+				<div class="testimony-closing__media">
+					<Image
+						src={poster.src}
+						alt={poster.alt}
+						widths={[640, 1100, 1600, 2000]}
+						sizes="(max-width: 640px) 240vw, 1100px"
+						class="testimony-closing__image"
+					/>
+					<a
+						href={videoHref}
+						class="testimony-closing__play"
+						target="_blank"
+						rel="noopener"
+						aria-label={content.playLabel}
+					>
+						<Icon name="play" size={32} />
+					</a>
+				</div>
+			)}
+
+			<div class="testimony-closing__text">
+				<Logo variant="symbol" color="brand" width={58} class="testimony-closing__symbol" />
+				<blockquote class="testimony-closing__quote">
+					<p>“{closing.quote}”</p>
+				</blockquote>
+				<p class="testimony-closing__paragraph">{closing.text}</p>
+			</div>
+		</div>
+	</section>
+)}
+
+<style>
+	.testimony-closing {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		padding: var(--space-10) var(--gutter); /* 80px */
+		background-color: var(--color-white);
+		color: var(--text-on-light);
+	}
+
+	/* ----- Onda roja: lienzo de 1512px centrado (coordenadas de Figma) ----- */
+	.testimony-closing__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		z-index: -1;
+		width: 1512px;
+		height: 100%;
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.testimony-closing__wave {
+		position: absolute;
+		top: 33.875rem; /* 542px */
+		left: -129px;
+	}
+
+	.testimony-closing__wave :global(svg) {
+		max-width: none;
+	}
+
+	/* ----- Video (580 × 640) + texto (537px) con 80px de separación ----- */
+	.testimony-closing__inner {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		gap: var(--space-10);
+	}
+
+	.testimony-closing__media {
+		position: relative;
+		flex: 0 1 36.25rem; /* 580px */
+		aspect-ratio: 580 / 640;
+		border-radius: var(--radius-xl); /* 32px */
+		overflow: clip;
+		box-shadow: 0 4px 24px rgb(23 26 26 / 0.16);
+	}
+
+	/* Encuadre de Figma (en % de la tarjeta) */
+	.testimony-closing__image {
+		position: absolute;
+		top: -1.94%;
+		left: -34.68%;
+		width: 188.76%;
+		max-width: none;
+		height: auto;
+	}
+
+	/* Botón ▶: círculo de 69px + anillo translúcido de 24px */
+	.testimony-closing__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		display: grid;
+		place-items: center;
+		width: 4.315rem; /* 69px */
+		height: 4.315rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-white);
+		box-shadow: 0 0 0 1.527rem rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+		transform: translate(-50%, -50%);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.testimony-closing__play:hover {
+		transform: translate(-50%, -50%) scale(1.08);
+	}
+
+	/* ----- Texto ----- */
+	.testimony-closing__text {
+		display: flex;
+		flex: 0 1 33.5625rem; /* 537px */
+		flex-direction: column;
+		gap: 2.25rem; /* 36px */
+	}
+
+	/* El símbolo de la marca solo aparece en el diseño móvil */
+	.testimony-closing__text :global(.testimony-closing__symbol) {
+		display: none;
+	}
+
+	.testimony-closing__quote {
+		font-size: var(--font-size-h2); /* 40px */
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2; /* 48px */
+		color: var(--color-blue-title);
+		text-box: trim-both cap alphabetic;
+	}
+
+	.testimony-closing__paragraph {
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.5; /* 36px */
+		color: color-mix(in srgb, var(--text-on-light) 86%, transparent);
+		text-box: trim-both cap alphabetic;
+	}
+
+	/* ----- Tablet ----- */
+	@media (max-width: 1100px) {
+		.testimony-closing__inner {
+			gap: var(--space-7);
+		}
+
+		.testimony-closing__paragraph {
+			font-size: var(--font-size-lg);
+		}
+	}
+
+	/* ----- Móvil: video a todo el ancho, luego símbolo + cita + párrafo ----- */
+	@media (max-width: 640px) {
+		.testimony-closing {
+			padding: 0 0 var(--space-8);
+		}
+
+		.testimony-closing__inner {
+			flex-direction: column;
+			align-items: stretch;
+			gap: var(--space-6);
+		}
+
+		.testimony-closing__media {
+			flex-basis: auto;
+			aspect-ratio: 360 / 724;
+			border-radius: 0;
+			box-shadow: none;
+		}
+
+		.testimony-closing__image {
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			object-position: 60% center;
+		}
+
+		/* La onda roja cruza la parte baja del video */
+		.testimony-closing__decor {
+			left: 0;
+			z-index: 1;
+			width: 100%;
+			height: auto;
+			aspect-ratio: 360 / 724;
+			transform: none;
+		}
+
+		.testimony-closing__wave {
+			top: 78%;
+			left: -60%;
+			width: 200%;
+		}
+
+		.testimony-closing__wave :global(svg) {
+			width: 100%;
+			height: auto;
+		}
+
+		.testimony-closing__text {
+			flex-basis: auto;
+			gap: var(--space-6);
+			padding-inline: var(--space-4);
+		}
+
+		.testimony-closing__text :global(.testimony-closing__symbol) {
+			display: block;
+		}
+
+		.testimony-closing__quote {
+			font-size: 1.75rem;
+			line-height: 1.2;
+		}
+
+		.testimony-closing__paragraph {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+	}
+</style>

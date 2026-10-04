@@ -1,0 +1,120 @@
+---
+/**
+ * BlogPostVideo — Publicación de video del blog
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Single Article Video" (1698:165): onda roja (2178:122)
+ * y bloque central (1698:229) con "← VideoBlogs", título, autor y fecha y el
+ * video grande con el botón ▶.
+ *
+ * El video se reproduce desde YouTube si el video tiene `youtubeId`; si no,
+ * el botón ▶ abre el canal de YouTube de la marca (ver VideoPlayer).
+ * Los datos salen de src/data/videos.ts.
+ *
+ * Uso (en src/pages/blog/[slug].astro):
+ *   <BlogPostVideo video={video} />
+ */
+import PostHeader from '@components/blog/PostHeader.astro';
+import VideoPlayer from '@components/blog/VideoPlayer.astro';
+import WaveRed from '@assets/graphics/waves/wave-red-blog.svg';
+import { videoCategory } from '@data/blog';
+import type { Video } from '@data/videos';
+
+interface Props {
+	video: Video;
+}
+
+const { video } = Astro.props;
+---
+
+<article class="blog-video" aria-labelledby="blog-video-title">
+	<!-- Onda roja de la marca (decorativa) -->
+	<div class="blog-video__decor" aria-hidden="true">
+		<WaveRed class="blog-video__wave" />
+	</div>
+
+	<div class="blog-video__inner">
+		<PostHeader
+			category={videoCategory}
+			title={video.title}
+			titleId="blog-video-title"
+			author={video.author}
+			date={video.date}
+			lead={video.description}
+			align="center"
+			class="blog-video__header"
+		/>
+
+		<VideoPlayer
+			title={video.title}
+			thumbnail={video.thumbnail}
+			youtubeId={video.youtubeId}
+			class="blog-video__player"
+		/>
+	</div>
+</article>
+
+<style>
+	.blog-video {
+		position: relative;
+		overflow-x: clip; /* recorta la onda a los lados sin crear scroll */
+	}
+
+	/* ----- Decoración: lienzo de 1512px centrado (coordenadas de Figma) ----- */
+	.blog-video__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 1512px;
+		height: 23.75rem;
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.blog-video :global(.blog-video__wave) {
+		position: absolute;
+		left: -170.28px;
+		top: -8.56px;
+		max-width: none;
+		transform: rotate(164deg) scale(1.1);
+	}
+
+	/* ----- Bloque central: texto de 1024px y video de 1024 × 580 ----- */
+	.blog-video__inner {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7);
+		width: min(64rem, 100% - 2 * var(--gutter));
+		margin-inline: auto;
+		padding-block: 15rem 6.75rem; /* 240px · 108px */
+	}
+
+	.blog-video :global(.blog-video__header) {
+		max-width: 56rem; /* el título ocupa 2 líneas como en el diseño */
+		margin-inline: auto;
+	}
+
+	/* ----- Tablet ----- */
+	@media (max-width: 1100px) {
+		.blog-video__inner {
+			padding-top: 12.5rem;
+		}
+	}
+
+	/* ----- Móvil: sin onda y video a todo el ancho ----- */
+	@media (max-width: 640px) {
+		.blog-video__decor {
+			display: none;
+		}
+
+		.blog-video__inner {
+			gap: var(--space-5);
+			padding-block: var(--space-4) var(--space-8);
+		}
+
+		.blog-video :global(.blog-video__player) {
+			margin-inline: calc(-1 * var(--gutter));
+			border-radius: 0;
+		}
+	}
+</style>

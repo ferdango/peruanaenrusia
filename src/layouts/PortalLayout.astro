@@ -1,0 +1,89 @@
+---
+/**
+ * PortalLayout
+ * --------------------------------------------------------------------------
+ * Layout del portal del estudiante ("Mi proceso", pagos…).
+ * Figma: UI Desktop › frames "MacBook Pro 14' - 7 / 8 / 9 / 10 / 12".
+ *
+ * Incluye: fondo celeste del portal, header con el saludo del estudiante y,
+ * opcionalmente, el stepper "Registro → Pago → Mi Proceso".
+ * A diferencia de SiteLayout, NO tiene footer, menú lateral ni WhatsApp
+ * flotante, y por defecto las páginas no se indexan (`noindex`).
+ *
+ * Uso en una página (src/pages/portal/…):
+ *
+ *   ---
+ *   import PortalLayout from '@layouts/PortalLayout.astro';
+ *   ---
+ *   <PortalLayout title="Pago" currentStep="payment">
+ *       <h1 class="visually-hidden">Pago</h1>
+ *       <MiSeccion />
+ *   </PortalLayout>
+ *
+ * Variables CSS propias del portal (definidas aquí, disponibles en todos los
+ * componentes de src/components/portal/): --portal-bg, --portal-surface,
+ * --portal-tint, --portal-border… Ver el bloque `.portal-body` más abajo.
+ */
+import BaseLayout, { type Props as BaseProps } from './BaseLayout.astro';
+import PortalHeader from '@components/portal/PortalHeader.astro';
+import PortalStepper from '@components/portal/PortalStepper.astro';
+import type { PortalStepId } from '@data/portal';
+
+interface Props extends BaseProps {
+	/** Paso actual del stepper. Si se omite, no se muestra el stepper */
+	currentStep?: PortalStepId;
+}
+
+const { currentStep, noindex = true, bodyClass, ...baseProps } = Astro.props;
+---
+
+<BaseLayout {...baseProps} noindex={noindex} bodyClass={['portal-body', bodyClass].filter(Boolean).join(' ')}>
+	<slot name="head" slot="head" />
+
+	<PortalHeader />
+
+	<main id="contenido" class="portal-main">
+		{currentStep && <PortalStepper current={currentStep} />}
+		<slot />
+	</main>
+
+	<!-- Avisos para lectores de pantalla (ej. "Copiado", archivo seleccionado) -->
+	<div class="visually-hidden" aria-live="polite" data-portal-announcer></div>
+</BaseLayout>
+
+<style>
+	/* ----- Variables del portal (colores de Figma sin token global) ----- */
+	:global(.portal-body) {
+		--portal-bg: #daeef5; /* Fondo celeste de las pantallas del portal */
+		--portal-surface: var(--surface-white); /* Tarjetas y header */
+		--portal-tint: rgb(212 222 251 / 0.24); /* Píldoras, zona de carga, avisos */
+		--portal-row: #f4f6fa; /* Filas de documentos y recuadro "¿Eres menor de edad?" */
+		--portal-border: rgb(23 26 26 / 0.2); /* Selector de banco y botón de cambio de moneda */
+		--portal-field-border: rgb(23 26 26 / 0.4); /* Campos del formulario */
+		--portal-placeholder: rgb(23 26 26 / 0.64); /* Etiqueta en reposo de los campos */
+		--portal-text-soft: rgb(23 26 26 / 0.88); /* Textos secundarios */
+		--portal-text-help: #464949; /* Textos de ayuda bajo los campos */
+		--portal-text-button: #002546; /* Texto de los botones del portal */
+		--portal-button-muted: #c7dde5; /* Botón "Volver" (pago) */
+		--portal-button-outline: rgb(0 37 70 / 0.5); /* Borde del botón "Volver" (Mi proceso) */
+		--portal-step-pending: #add0f0; /* Stepper: pasos pendientes */
+		--portal-whatsapp: #63d082; /* Píldora de WhatsApp */
+		--portal-radius-field: 1rem; /* 16px · campos y recuadros */
+		--portal-header-radius: 4rem; /* 64px · esquinas inferiores del header */
+
+		background-color: var(--portal-bg);
+		color: var(--text-on-light);
+	}
+
+	.portal-main {
+		display: flex;
+		flex-direction: column;
+		padding: 2.75rem var(--gutter) var(--space-10); /* 44px arriba (stepper), 80px abajo */
+	}
+
+	@media (max-width: 640px) {
+		.portal-main {
+			padding-top: var(--space-6);
+		}
+	}
+</style>

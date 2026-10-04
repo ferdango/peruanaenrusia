@@ -21,16 +21,24 @@ const content = {
 
 <section class="home-stories section" id="historias" aria-labelledby="home-stories-title">
 	<header class="home-stories__header container">
-		<h2 id="home-stories-title" class="home-stories__title">{content.title}</h2>
-		<Button href={routes.blog} size="sm" class="home-stories__cta">{content.cta}</Button>
+		<h2 id="home-stories-title" class="home-stories__title">
+			{content.title}
+		</h2>
+		<Button href={routes.blog} size="sm" class="home-stories__cta">
+			{content.cta}
+		</Button>
 	</header>
 
 	<Carousel label={content.title} gap={12}>
-		{videos.map((video) => <VideoCard video={video} />)}
+		{videos.map((video) => (
+			<VideoCard video={video} />
+		))}
 	</Carousel>
 
 	<div class="home-stories__mobile-cta container">
-		<Button href={routes.blog} size="md">{content.mobileCta}</Button>
+		<Button href={routes.blog} size="md">
+			{content.mobileCta}
+		</Button>
 	</div>
 </section>
 

@@ -1,0 +1,208 @@
+---
+/**
+ * StepCard — tarjeta de un paso del proceso ("Mi proceso")
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 12" › lista de pasos (2113:44) y
+ * "MacBook Pro 14' - 8" › tarjetas de cada paso (2026:137).
+ *
+ * Cabecera común: número del paso en un círculo, título (+ bajada opcional)
+ * y la etiqueta de estado (StatusBadge). El contenido va en el <slot />.
+ *
+ * Variantes:
+ *   variant="summary" → fila compacta del resumen (MBP12). El contenido se
+ *                       alinea con el título (sangría de 56px). Los pasos
+ *                       "Más adelante" se muestran con fondo gris.
+ *   variant="detail"  → tarjeta completa con formulario, documentos o
+ *                       mensajes del estado (MBP8).
+ *
+ * Uso:
+ *   <StepCard number={2} title="Tus documentos" status="done" variant="summary">
+ *       <p>8/8 documentos enviados</p>
+ *   </StepCard>
+ */
+import StatusBadge from './StatusBadge.astro';
+import type { StepStatus } from '@data/portal';
+
+interface Props {
+	number: number;
+	title: string;
+	/** Bajada corta bajo el título */
+	description?: string;
+	status: StepStatus;
+	variant?: 'summary' | 'detail';
+	/** Nivel del título (h2 por defecto) */
+	headingLevel?: 2 | 3;
+	/** id del elemento (ancla para enlazar al paso) */
+	id?: string;
+	/** Separación (px) entre la cabecera y el contenido (variante detail) */
+	headerGap?: 32 | 40;
+	/** Separación (px) entre los bloques del contenido (variante detail) */
+	bodyGap?: 32 | 40;
+	class?: string;
+}
+
+const {
+	number,
+	title,
+	description,
+	status,
+	variant = 'detail',
+	headingLevel = 2,
+	id,
+	headerGap = 32,
+	bodyGap = 32,
+	class: className,
+} = Astro.props;
+
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const titleId = `${id ?? `step-${number}-${status}`}-title`;
+const hasBody = Astro.slots.has('default');
+const isMuted = variant === 'summary' && status === 'upcoming';
+---
+
+<article
+	id={id}
+	class:list={[
+		'step-card',
+		`step-card--${variant}`,
+		{
+			'step-card--muted': isMuted,
+			'step-card--header-gap-lg': headerGap === 40,
+			'step-card--body-gap-lg': bodyGap === 40,
+		},
+		className,
+	]}
+	aria-labelledby={titleId}
+>
+	<header class="step-card__header">
+		<span class="step-card__number" aria-hidden="true">
+			{number}
+		</span>
+		<div class="step-card__heading">
+			<Heading id={titleId} class="step-card__title">
+				<span class="visually-hidden">Paso {number}:</span>
+				{title}
+			</Heading>
+			{description && <p class="step-card__description">{description}</p>}
+		</div>
+		<StatusBadge status={status} />
+	</header>
+
+	{hasBody && (
+		<div class="step-card__body">
+			<slot />
+		</div>
+	)}
+</article>
+
+<style>
+	.step-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		width: 100%;
+		padding: var(--space-6) var(--space-5); /* 32px 24px */
+		border-radius: var(--radius-lg);
+		background-color: var(--portal-surface);
+		color: var(--text-on-light);
+	}
+
+	.step-card--muted {
+		background-color: var(--color-white);
+	}
+
+	/* ----- Cabecera: número + título + estado ----- */
+	.step-card__header {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+
+	.step-card__number {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 2.5rem; /* 40px */
+		height: 2.5rem;
+		border: 1px solid var(--color-blue-title);
+		border-radius: var(--radius-pill);
+		color: var(--color-blue-title);
+		font-size: 1.25rem; /* 20px */
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5rem;
+	}
+
+	.step-card__heading {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: var(--space-1);
+		min-width: 0;
+	}
+
+	.step-card__title {
+		color: var(--color-blue-title);
+		font-size: 1.25rem; /* 20px */
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+		text-wrap: pretty;
+	}
+
+	.step-card__description {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+
+	/* ----- Contenido ----- */
+	.step-card--summary .step-card__body {
+		padding-inline-start: 3.5rem; /* 40px círculo + 16px de separación */
+	}
+
+	.step-card--detail {
+		gap: var(--space-6); /* 32px */
+		padding: var(--space-6) 2.25rem; /* 32px 36px */
+	}
+
+	.step-card--detail .step-card__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6); /* 32px */
+	}
+
+	.step-card--header-gap-lg {
+		gap: var(--space-7); /* 40px */
+	}
+
+	.step-card--detail.step-card--body-gap-lg .step-card__body {
+		gap: var(--space-7); /* 40px */
+	}
+
+	@media (max-width: 640px) {
+		.step-card,
+		.step-card--detail {
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.step-card__header {
+			flex-wrap: wrap;
+			gap: var(--space-3);
+		}
+
+		.step-card__heading {
+			flex-basis: calc(100% - 2.5rem - var(--space-3));
+		}
+
+		/* La etiqueta pasa debajo del título, alineada con él */
+		.step-card__header :global(.status-badge) {
+			margin-inline-start: calc(2.5rem + var(--space-3));
+		}
+
+		.step-card--summary .step-card__body {
+			padding-inline-start: calc(2.5rem + var(--space-3));
+		}
+
+		.step-card__title {
+			font-size: var(--font-size-lg);
+		}
+	}
+</style>

@@ -1,0 +1,170 @@
+---
+/**
+ * FeaturedPostCard
+ * --------------------------------------------------------------------------
+ * Tarjeta horizontal (480 × 320 px) de una publicación del blog: foto con
+ * degradado, título y fecha. Si la publicación es un video, muestra además
+ * el botón ▶ en el centro y el ícono de YouTube a la derecha (Figma: Blog ›
+ * "Novedades", 1711:406 › 1711:372; sin video: 1711:377).
+ *
+ * Toda la tarjeta es clicable y lleva a /blog/{slug}/.
+ *
+ * Tamaño: define --featured-card-width desde la sección que la usa (el alto
+ * se calcula con la proporción 3:2 del diseño).
+ *
+ * Uso:
+ *   <FeaturedPostCard post={post} />
+ */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import type { BlogPost } from '@data/blog';
+import { detailRoutes } from '@data/navigation';
+import { formatDate } from '@utils/format';
+
+interface Props {
+	post: BlogPost;
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const { post, headingLevel: Heading = 'h3', class: className } = Astro.props;
+const isVideo = post.type === 'video';
+---
+
+<article class:list={['featured-card', { 'featured-card--video': isVideo }, className]}>
+	<div class="featured-card__media">
+		<Image src={post.image} alt="" widths={[480, 960]} sizes="480px" class="featured-card__image" />
+		{isVideo && (
+			<span class="featured-card__play" aria-hidden="true">
+				<Icon name="play" size={24} />
+			</span>
+		)}
+	</div>
+
+	<div class="featured-card__body">
+		<div class="featured-card__text">
+			<Heading class="featured-card__title">
+				<a href={detailRoutes.blogPost(post.slug)} class="featured-card__link">
+					{isVideo && <span class="visually-hidden">Video: </span>}
+					{post.title}
+				</a>
+			</Heading>
+			<p class="featured-card__date">
+				<time datetime={post.date}>{formatDate(post.date)}</time>
+			</p>
+		</div>
+		{isVideo && <Icon name="youtube-play" size={32} class="featured-card__platform" />}
+	</div>
+</article>
+
+<style>
+	.featured-card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		width: var(--featured-card-width, 30rem); /* 480px */
+		aspect-ratio: 3 / 2; /* 480 × 320 */
+		border-radius: var(--radius-xl);
+		overflow: clip;
+		color: var(--text-on-dark);
+	}
+
+	/* ----- Foto + degradado + botón ▶ ----- */
+	.featured-card__media {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+
+	.featured-card__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	/* Degradado: los 240px inferiores se funden con el fondo oscuro */
+	.featured-card__media::after {
+		content: '';
+		position: absolute;
+		inset: 25% 0 0;
+		background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
+	}
+
+	.featured-card__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 3rem; /* 48px */
+		height: 3rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		/* Anillo translúcido de 12px alrededor del botón */
+		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+		transform: translate(-50%, -50%);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.featured-card:hover .featured-card__image {
+		transform: scale(1.04);
+	}
+
+	.featured-card:hover .featured-card__play {
+		transform: translate(-50%, -50%) scale(1.1);
+	}
+
+	/* ----- Texto + ícono de YouTube ----- */
+	.featured-card__body {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+		padding: var(--space-4) var(--space-5) var(--space-5);
+	}
+
+	.featured-card__text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.featured-card__title {
+		font-size: var(--font-size-h3);
+		font-weight: var(--font-weight-regular);
+		line-height: 1.15; /* 32px */
+	}
+
+	.featured-card__date {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(244 244 244 / 0.75);
+	}
+
+	.featured-card :global(.featured-card__platform) {
+		flex-shrink: 0;
+	}
+
+	/* Toda la tarjeta es clicable (el enlace se "estira" sobre ella) */
+	.featured-card__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+	}
+
+	.featured-card__link:focus-visible {
+		box-shadow: none;
+	}
+
+	.featured-card:focus-within {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: -3px;
+	}
+</style>

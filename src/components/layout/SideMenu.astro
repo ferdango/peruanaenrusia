@@ -31,23 +31,21 @@ const currentPath = Astro.url.pathname;
 		<div class="side-menu__body">
 			<nav aria-label="Menú del sitio">
 				<ul role="list" class="side-menu__list">
-					{
-						sideNav.map((link) => {
-							const active = isActiveLink(link, currentPath);
-							return (
-								<li>
-									<a
-										href={link.href}
-										class:list={['side-menu__link', { 'is-active': active }]}
-										aria-current={active ? 'page' : undefined}
-										data-dialog-close-on-nav
-									>
-										{link.label}
-									</a>
-								</li>
-							);
-						})
-					}
+					{sideNav.map((link) => {
+						const active = isActiveLink(link, currentPath);
+						return (
+							<li>
+								<a
+									href={link.href}
+									class:list={['side-menu__link', { 'is-active': active }]}
+									aria-current={active ? 'page' : undefined}
+									data-dialog-close-on-nav
+								>
+									{link.label}
+								</a>
+							</li>
+						);
+					})}
 					<li>
 						<button type="button" class="side-menu__link" data-dialog-open="auth-modal">
 							Inicia sesión
@@ -62,7 +60,9 @@ const currentPath = Astro.url.pathname;
 						<Image src={flagPe} alt="" width={24} height={24} class="side-menu__flag" />
 						{site.contact.phone}
 					</a>
-					<a class="side-menu__email" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+					<a class="side-menu__email" href={`mailto:${site.contact.email}`}>
+						{site.contact.email}
+					</a>
 				</div>
 
 				<Button href={whatsappUrl} variant="light" size="md" block target="_blank" rel="noopener">
@@ -126,7 +126,7 @@ const currentPath = Astro.url.pathname;
 		gap: var(--space-4);
 		height: 100%;
 		padding-block: var(--space-4) var(--space-7);
-		overflow: hidden;
+		overflow: clip;
 		background: linear-gradient(to bottom, var(--color-blue), #004996);
 	}
 

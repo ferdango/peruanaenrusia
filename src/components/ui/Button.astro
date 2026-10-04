@@ -63,10 +63,19 @@ const iconSize = size === 'sm' ? 16 : 32;
 <Tag
 	href={href}
 	type={href ? undefined : type}
-	class:list={['btn', `btn--${variant}`, `btn--tone-${tone}`, `btn--${size}`, { 'btn--block': block }, className]}
+	class:list={[
+		'btn',
+		`btn--${variant}`,
+		`btn--tone-${tone}`,
+		`btn--${size}`,
+		{ 'btn--block': block },
+		className,
+	]}
 	{...attrs}
 >
-	<span class="btn__label"><slot /></span>
+	<span class="btn__label">
+		<slot />
+	</span>
 	{icon && <Icon name={icon} size={iconSize} class="btn__icon" />}
 </Tag>
 

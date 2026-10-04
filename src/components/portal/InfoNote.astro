@@ -1,0 +1,66 @@
+---
+/**
+ * InfoNote — recuadro informativo celeste con ícono "i" y lista de puntos
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › "No aceptamos:" (2036:318) y
+ * "MacBook Pro 14' - 8" › "Antes de enviar:" (2225:494).
+ *
+ * Uso:
+ *   <InfoNote title="No aceptamos:" items={payment.notAccepted} />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	title: string;
+	items: string[];
+	class?: string;
+}
+
+const { title, items, class: className } = Astro.props;
+---
+
+<aside class:list={['info-note', className]}>
+	<p class="info-note__title">
+		<Icon name="info" size={20} class="info-note__icon" />
+		{title}
+	</p>
+	<ul class="info-note__list">
+		{items.map((item) => (
+			<li>{item}</li>
+		))}
+	</ul>
+</aside>
+
+<style>
+	.info-note {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+		width: 100%;
+		padding: var(--space-4) var(--space-3); /* 16px 12px */
+		border-radius: var(--portal-radius-field);
+		background-color: var(--portal-tint);
+		color: var(--color-blue-title);
+	}
+
+	.info-note__title {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2); /* 8px */
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.25rem;
+	}
+
+	.info-note__icon {
+		flex-shrink: 0;
+	}
+
+	.info-note__list {
+		margin: 0;
+		padding-inline-start: 1.125rem; /* 18px: viñetas como en Figma */
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		list-style: disc;
+	}
+</style>

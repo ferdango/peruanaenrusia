@@ -1,0 +1,37 @@
+---
+/**
+ * Portada del blog ( /blog/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14" - 6" (1519:383). El archivo de Figma
+ * no tiene una versión móvil del blog: en móvil se adaptan las secciones
+ * siguiendo el estilo del resto de páginas móviles.
+ *
+ * Secciones (src/components/sections/blog/):
+ *   1. BlogHero        → "Nuestro Blog"
+ *   2. BlogNews        → "Novedades" (publicaciones destacadas)
+ *   3. BlogVideoblogs  → "Videoblogs" (#videoblogs, todos los videos)
+ *   4. BlogClassics    → "Clásicos" (artículos de texto)
+ *
+ * Contenido: src/data/videos.ts y src/data/articles.ts.
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import BlogHero from '@components/sections/blog/BlogHero.astro';
+import BlogNews from '@components/sections/blog/BlogNews.astro';
+import BlogVideoblogs from '@components/sections/blog/BlogVideoblogs.astro';
+import BlogClassics from '@components/sections/blog/BlogClassics.astro';
+
+// ----- Metadatos de la página -----
+const meta = {
+	title: 'Blog',
+	description:
+		'Videoblogs, charlas informativas y artículos para estudiar en Rusia: historias, consejos y todo lo que necesitas saber antes de viajar.',
+};
+---
+
+<SiteLayout title={meta.title} description={meta.description}>
+	<BlogHero />
+	<BlogNews />
+	<BlogVideoblogs />
+	<BlogClassics />
+</SiteLayout>

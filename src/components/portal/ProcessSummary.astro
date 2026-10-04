@@ -1,0 +1,74 @@
+---
+/**
+ * ProcessSummary — resumen de "Mi proceso" (los 5 pasos y su estado)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 12" › lista de pasos (2113:44).
+ *
+ * Cada fila es un StepCard en variante "summary". Los pasos 1 y 2 muestran
+ * un resumen debajo del título (datos personales y documentos enviados).
+ * Los pasos, estados y textos salen de src/data/portal.ts.
+ *
+ * Uso:
+ *   <ProcessSummary />
+ */
+import StepCard from './StepCard.astro';
+import { documentsSummary, personalDataSummary, processSteps, type ProcessStepId } from '@data/portal';
+
+/** Líneas de resumen que se muestran bajo algunos pasos */
+const details: Partial<Record<ProcessStepId, string[]>> = {
+	'personal-data': personalDataSummary,
+	documents: [documentsSummary],
+};
+---
+
+<ol class="process-summary" role="list">
+	{processSteps.map((step) => {
+		const lines = details[step.id];
+		const cardProps = {
+			number: step.number,
+			title: step.title,
+			description: step.description,
+			status: step.status,
+			variant: 'summary' as const,
+			id: `paso-${step.number}`,
+		};
+
+		return (
+			<li>
+				{lines ? (
+					<StepCard {...cardProps}>
+						<ul class="process-summary__details" role="list">
+							{lines.map((line) => (
+								<li>{line}</li>
+							))}
+						</ul>
+					</StepCard>
+				) : (
+					<StepCard {...cardProps} />
+				)}
+			</li>
+		);
+	})}
+</ol>
+
+<style>
+	.process-summary {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		width: 100%;
+		max-width: 40rem; /* 640px */
+		margin: var(--space-6) auto 0; /* 32px bajo el stepper */
+		padding: 0;
+		list-style: none;
+	}
+
+	.process-summary__details {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--font-size-md);
+		font-style: italic;
+		line-height: 1.5;
+	}
+</style>

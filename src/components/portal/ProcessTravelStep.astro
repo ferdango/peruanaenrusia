@@ -1,0 +1,64 @@
+---
+/**
+ * ProcessTravelStep — paso 5 "Viaje a Rusia"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › tarjeta 2026:233: ilustración
+ * del avión y filas con "Descargar tickets" / "Descargar PDF".
+ *
+ * Archivos y textos: src/data/portal.ts (travelFiles).
+ *
+ * Uso:
+ *   <ProcessTravelStep />
+ */
+import DocumentRow from './DocumentRow.astro';
+import StepCard from './StepCard.astro';
+import StepIllustration from './StepIllustration.astro';
+import { getProcessStep, travelFiles, type StepStatus } from '@data/portal';
+
+interface Props {
+	/** Estado de la etiqueta (en Figma: "Más adelante") */
+	status?: StepStatus;
+}
+
+const { status = 'upcoming' } = Astro.props;
+const step = getProcessStep('travel');
+---
+
+<StepCard
+	number={step.number}
+	title={step.title}
+	description={step.description}
+	status={status}
+	headerGap={40}
+	bodyGap={40}
+>
+	<StepIllustration name="travel" />
+
+	<div class="travel-step__files">
+		{travelFiles.map((file) => (
+			<DocumentRow
+				id={`travel-${file.id}`}
+				title={file.title}
+				description={file.description}
+				action="download"
+				actionLabel={file.actionLabel}
+				href={file.href}
+				actionWidth={215}
+				class="travel-step__row"
+			/>
+		))}
+	</div>
+</StepCard>
+
+<style>
+	.travel-step__files {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+	}
+
+	/* En Figma el bloque de texto de estas filas mide 265px */
+	.travel-step__files :global(.travel-step__row .document-row__text) {
+		max-width: 16.5625rem;
+	}
+</style>

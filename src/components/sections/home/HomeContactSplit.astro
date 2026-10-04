@@ -1,13 +1,456 @@
 ---
 /**
- * HomeContactSplit — "Reserva tu llamada gratuita / Resuelve tus dudas con nosotros"
+ * HomeContactSplit — "Reserva tu llamada gratuita" + "Resuelve tus dudas con nosotros"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628075" (1388:5181)
+ * Figma: Home › "Frame 628075" (1388:5181) → filas 1388:5182 y 1388:5198.
+ * Móvil: UI Mobile › Home › 1735:2821… ("Reserva tu llamada") y 1735:2842…
+ * ("Resuelve tus dudas con nosotros").
  *
- * TODO (en construcción): implementar según el diseño.
+ * Dos bloques partidos en mitades: un panel de color (título, texto y botón
+ * "Reservar ahora", que abre WhatsApp) y una foto cruzada por una onda plana
+ * de la marca. En móvil la foto va arriba y el panel debajo.
+ *
+ * La onda pasa POR DETRÁS de las personas: igual que en Figma, la foto se
+ * repite encima de la onda, recortada con una máscara con la silueta
+ * (`.contact-split__front` + src/assets/graphics/shapes/cutout-*.svg).
+ *
+ * Todas las capas de la foto se ubican en % de un "lienzo" con la proporción
+ * del diseño (756 × 840 en desktop) que cubre la mitad de la fila; así foto,
+ * onda y recorte siguen alineados en cualquier ancho de pantalla.
+ *
+ * Uso: <HomeContactSplit /> (anclas #reserva-tu-llamada y #resuelve-tus-dudas)
  */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+import Button from '@components/ui/Button.astro';
+import { whatsappUrl } from '@data/site';
+import bookCallPhoto from '@assets/images/home/contact-book-call.jpg';
+import solveDoubtsPhoto from '@assets/images/home/contact-solve-doubts.jpg';
+import WaveBookCall from '@assets/graphics/waves/wave-blue-book-call.svg';
+import WaveSolveDoubts from '@assets/graphics/waves/wave-red-solve-doubts.svg';
+import WaveMobile from '@assets/graphics/waves/wave-contact-mobile.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	bookCall: {
+		title: 'Reserva tu llamada gratuita',
+		/** En móvil el diseño usa un título más corto */
+		mobileTitle: 'Reserva tu llamada',
+		text: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+		cta: 'Reservar ahora',
+		photoAlt: 'Estudiante revisando su celular en el pasillo de la universidad',
+	},
+	solveDoubts: {
+		title: 'Resuelve tus dudas con nosotros',
+		text: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+		cta: 'Reservar ahora',
+		photoAlt: 'Estudiante conversando con una asesora en una oficina',
+	},
+	/** Texto extra para lectores de pantalla en los botones */
+	ctaHint: ' por WhatsApp (se abre en una pestaña nueva)',
+};
+
+interface ContactRow {
+	id: string;
+	/** Modificador BEM: define colores y la composición de la foto (ver estilos) */
+	modifier: 'book' | 'doubts';
+	title: string;
+	mobileTitle?: string;
+	text: string;
+	cta: string;
+	photo: ImageMetadata;
+	photoAlt: string;
+	/** Ancho con el que se dibuja la foto (es más ancha que su recuadro) */
+	photoSizes: string;
+	Wave: typeof WaveBookCall;
+}
+
+const rows: ContactRow[] = [
+	{
+		id: 'reserva-tu-llamada',
+		modifier: 'book',
+		...content.bookCall,
+		photo: bookCallPhoto,
+		photoSizes: '(max-width: 640px) 165vw, 1548px',
+		Wave: WaveBookCall,
+	},
+	{
+		id: 'resuelve-tus-dudas',
+		modifier: 'doubts',
+		...content.solveDoubts,
+		photo: solveDoubtsPhoto,
+		photoSizes: '(max-width: 640px) 284vw, 1598px',
+		Wave: WaveSolveDoubts,
+	},
+];
+
+const photoWidths = [600, 1000, 1600, 2000];
 ---
 
-<section class="section container" id="reserva-tu-llamada" aria-label="Reserva tu llamada gratuita / Resuelve tus dudas con nosotros">
-	<!-- Reserva tu llamada gratuita / Resuelve tus dudas con nosotros -->
-</section>
+<div class="contact-split">
+	{rows.map((row) => {
+		const { Wave } = row;
+		return (
+			<section
+				class:list={['contact-split__row', `contact-split__row--${row.modifier}`]}
+				id={row.id}
+				aria-labelledby={`${row.id}-title`}
+			>
+				<!-- Panel de color con el texto -->
+				<div class="contact-split__panel">
+					<h2 id={`${row.id}-title`} class="contact-split__title">
+						{row.mobileTitle ? (
+							<>
+								<span class="contact-split__title-full">{row.title}</span>
+								<span class="contact-split__title-short">{row.mobileTitle}</span>
+							</>
+						) : (
+							row.title
+						)}
+					</h2>
+
+					<div class="contact-split__body">
+						<p class="contact-split__text">{row.text}</p>
+						<Button href={whatsappUrl} target="_blank" rel="noopener" class="contact-split__cta">
+							{row.cta}
+							<span class="visually-hidden">{content.ctaHint}</span>
+						</Button>
+					</div>
+				</div>
+
+				<!-- Foto + onda de la marca -->
+				<div class="contact-split__media">
+					<div class="contact-split__art">
+						<Image
+							src={row.photo}
+							alt={row.photoAlt}
+							widths={photoWidths}
+							sizes={row.photoSizes}
+							class="contact-split__photo"
+						/>
+						<Wave class="contact-split__wave contact-split__wave--desktop" aria-hidden="true" />
+						<WaveMobile
+							class="contact-split__wave contact-split__wave--mobile"
+							aria-hidden="true"
+						/>
+
+						<!-- Copia de la foto recortada con la silueta: tapa la onda donde pasa por detrás -->
+						<div class="contact-split__front" aria-hidden="true">
+							<Image
+								src={row.photo}
+								alt=""
+								widths={photoWidths}
+								sizes={row.photoSizes}
+								class="contact-split__photo"
+							/>
+						</div>
+					</div>
+				</div>
+			</section>
+		);
+	})}
+</div>
+
+<style>
+	/* ==========================================================================
+	   Fila: panel de texto + foto (dos mitades de 756 × 840px en desktop)
+	   ========================================================================== */
+	.contact-split__row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		height: 52.5rem; /* 840px */
+	}
+
+	/* ----- Panel de color ----- */
+	.contact-split__panel {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-7);
+		padding: var(--space-10);
+		color: var(--color-white);
+	}
+
+	.contact-split__row--book .contact-split__panel {
+		/* En pantallas más anchas que el diseño, alinea el texto con el resto de la página */
+		padding-inline-start: max(var(--space-10), calc((100vw - var(--container-max)) / 2));
+		background-color: var(--color-blue-2);
+	}
+
+	.contact-split__row--doubts .contact-split__panel {
+		background-color: var(--color-red);
+	}
+
+	.contact-split__title {
+		font-size: clamp(2.5rem, 1rem + 4.3vw, 4rem); /* 64px en desktop */
+		line-height: 1;
+		color: var(--color-pure-white);
+	}
+
+	.contact-split__row--book .contact-split__title {
+		max-width: 23.125rem; /* 370px */
+	}
+
+	.contact-split__title-short {
+		display: none;
+	}
+
+	.contact-split__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.75rem; /* 28px */
+	}
+
+	.contact-split__text {
+		max-width: 27rem; /* 432px */
+		font-size: var(--font-size-lg);
+		line-height: 2rem; /* 32px */
+	}
+
+	/* Botón de 260px con el texto y la "rayita" en los extremos */
+	.contact-split :global(.contact-split__cta) {
+		width: 16.25rem;
+		justify-content: space-between;
+	}
+
+	/* ==========================================================================
+	   Foto: lienzo con la proporción del diseño que cubre la mitad de la fila.
+	   Las capas usan variables (en %) definidas por fila y por tamaño de pantalla.
+	   ========================================================================== */
+	.contact-split__row--doubts .contact-split__media {
+		order: -1; /* foto a la izquierda */
+	}
+
+	.contact-split__media {
+		position: relative;
+		overflow: clip;
+		container-type: size;
+	}
+
+	.contact-split__art {
+		/* Proporción del lienzo (ancho / alto): 756 / 840 en desktop */
+		--art-ratio: 0.9;
+
+		position: absolute;
+		top: 0;
+		left: 50%;
+		/* "cover": llena el recuadro sin deformarse (recorta los lados o la parte de abajo) */
+		width: max(100cqw, 100cqh * var(--art-ratio));
+		aspect-ratio: var(--art-ratio);
+		transform: translateX(-50%);
+	}
+
+	.contact-split__photo {
+		position: absolute;
+		top: var(--photo-y);
+		left: var(--photo-x);
+		width: var(--photo-w);
+		max-width: none;
+		height: var(--photo-h);
+		object-fit: cover;
+		transform: var(--photo-transform, none);
+	}
+
+	.contact-split__wave {
+		position: absolute;
+		max-width: none;
+		pointer-events: none;
+	}
+
+	.contact-split__wave--mobile {
+		display: none;
+	}
+
+	/* Copia de la foto recortada con la silueta (encima de la onda) */
+	.contact-split__front {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	/* ----- Fila 1: "Reserva tu llamada gratuita" (foto espejada, Figma 1388:5191) ----- */
+	.contact-split__row--book {
+		--photo-x: -40.476%; /* -306px */
+		--photo-y: -23.69%; /* -199px */
+		--photo-w: 204.77%; /* 1548px */
+		--photo-h: 135.936%; /* 1142px */
+		--photo-transform: scaleX(-1);
+	}
+
+	.contact-split__row--book .contact-split__wave--desktop {
+		top: 4.532%;
+		left: -37.184%;
+		width: 153.429%; /* 1160px */
+		height: 87.753%; /* 737px */
+		/* Matriz de Figma: rotación + espejo + inclinación (columnas de largo 1) */
+		transform: rotate(-142.95deg) scale(-1, 0.9099) skewX(-22.53deg);
+	}
+
+	.contact-split__row--book .contact-split__front {
+		-webkit-mask: url('../../../assets/graphics/shapes/cutout-book-call.svg') 12.59% 64.012% / 54.299%
+			42.44% no-repeat;
+		mask: url('../../../assets/graphics/shapes/cutout-book-call.svg') 12.59% 64.012% / 54.299% 42.44%
+			no-repeat;
+	}
+
+	/* ----- Fila 2: "Resuelve tus dudas con nosotros" (Figma 1388:5199) ----- */
+	.contact-split__row--doubts {
+		--photo-x: -51.19%; /* -387px */
+		--photo-y: -11.071%; /* -93px */
+		--photo-w: 211.376%; /* 1598px */
+		--photo-h: 117.262%; /* 985px */
+	}
+
+	.contact-split__row--doubts .contact-split__wave--desktop {
+		top: 7.126%;
+		left: -22.477%;
+		width: 143.488%; /* 1085px */
+		height: 71.438%; /* 600px */
+		transform: rotate(21.2deg) scale(1, 0.99) skewX(8.54deg);
+	}
+
+	.contact-split__row--doubts .contact-split__front {
+		-webkit-mask: url('../../../assets/graphics/shapes/cutout-solve-doubts.svg') 0% 52.224% / 40.476%
+			27.738% no-repeat;
+		mask: url('../../../assets/graphics/shapes/cutout-solve-doubts.svg') 0% 52.224% / 40.476% 27.738%
+			no-repeat;
+	}
+
+	/* ==========================================================================
+	   Tablet
+	   ========================================================================== */
+	@media (max-width: 1100px) {
+		.contact-split__row {
+			height: auto;
+			min-height: 40rem; /* 640px */
+		}
+
+		.contact-split__panel,
+		.contact-split__row--book .contact-split__panel {
+			gap: var(--space-6);
+			padding: var(--space-8);
+		}
+	}
+
+	/* ==========================================================================
+	   Móvil (Figma móvil): foto arriba y panel centrado debajo
+	   ========================================================================== */
+	@media (max-width: 640px) {
+		.contact-split__row {
+			grid-template-columns: 100%;
+			min-height: 0;
+		}
+
+		.contact-split__media,
+		.contact-split__row--doubts .contact-split__media {
+			order: -1;
+		}
+
+		/* ----- Panel ----- */
+		.contact-split__panel,
+		.contact-split__row--book .contact-split__panel {
+			align-items: center;
+			gap: 1.25rem; /* 20px */
+			padding: var(--space-7) var(--space-4); /* 40px 16px */
+			text-align: center;
+		}
+
+		.contact-split__title,
+		.contact-split__row--book .contact-split__title {
+			max-width: none;
+			font-size: 2rem; /* 32px */
+		}
+
+		.contact-split__row--doubts .contact-split__title {
+			line-height: 1.4;
+		}
+
+		.contact-split__title-full {
+			display: none;
+		}
+
+		.contact-split__title-short {
+			display: inline;
+		}
+
+		.contact-split__body {
+			align-items: center;
+			gap: var(--space-6); /* 32px */
+		}
+
+		.contact-split__row--doubts .contact-split__text {
+			font-size: var(--font-size-md);
+			line-height: 1.75rem; /* 28px */
+		}
+
+		/* ----- Foto: el lienzo es el propio recuadro (360 × 437 y 360 × 404) ----- */
+		.contact-split__wave--desktop {
+			display: none;
+		}
+
+		.contact-split__wave--mobile {
+			display: block;
+			width: 189.833%; /* 683px */
+		}
+
+		.contact-split__row--book .contact-split__media {
+			aspect-ratio: 360 / 437;
+		}
+
+		.contact-split__row--book .contact-split__art {
+			--art-ratio: 0.8238;
+		}
+
+		.contact-split__row--book {
+			--photo-x: -32.286%;
+			--photo-y: 0%;
+			--photo-w: 164.572%;
+			--photo-h: 100%;
+		}
+
+		.contact-split__row--book .contact-split__wave--mobile {
+			top: 52.939%;
+			left: -6.028%;
+			height: 55.221%; /* 241px */
+			color: var(--color-blue);
+			transform: rotate(121.2deg) scale(0.98);
+		}
+
+		/* En móvil la onda azul no pasa por detrás de la persona */
+		.contact-split__row--book .contact-split__front {
+			display: none;
+		}
+
+		.contact-split__row--doubts .contact-split__media {
+			aspect-ratio: 360 / 404;
+		}
+
+		.contact-split__row--doubts .contact-split__art {
+			--art-ratio: 0.8911;
+		}
+
+		.contact-split__row--doubts {
+			--photo-x: -46.369%; /* -167px */
+			--photo-y: -31.436%; /* -127px */
+			--photo-w: 283.889%; /* 1022px */
+			--photo-h: 155.941%; /* 630px */
+		}
+
+		.contact-split__row--doubts .contact-split__wave--mobile {
+			top: 71.533%;
+			left: -8.269%;
+			height: 59.731%; /* 241px */
+			color: var(--color-red);
+			transform: rotate(-157.36deg) scale(-1, 1) skewX(-0.72deg);
+		}
+
+		.contact-split__row--doubts .contact-split__front {
+			-webkit-mask: url('../../../assets/graphics/shapes/cutout-solve-doubts-mobile.svg') 28.303%
+				55.237% / 64.393% 18.892% no-repeat;
+			mask: url('../../../assets/graphics/shapes/cutout-solve-doubts-mobile.svg') 28.303% 55.237% /
+				64.393% 18.892% no-repeat;
+		}
+	}
+</style>

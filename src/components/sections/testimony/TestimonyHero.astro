@@ -1,0 +1,262 @@
+---
+/**
+ * TestimonyHero — Portada del caso de éxito
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › rectángulo azul (1732:2082),
+ * ondas y estrellas "Mask group" (1732:2083), foto "Mask group" (1732:2089),
+ * texto (1732:2094 · 1825:240) y flecha "Frame 24" (1835:256).
+ * Móvil: UI Mobile › 1758:3816 (la foto va arriba y el texto debajo).
+ *
+ * Izquierda: fondo azul con la frase del estudiante (h1 de la página), su
+ * nombre y carrera, y el botón "Mi historia" (baja al paso a paso).
+ * Derecha: foto. Abajo al centro: flecha para bajar a la siguiente sección.
+ *
+ * Uso:
+ *   <TestimonyHero testimonial={testimonial} storyHref="#mi-historia" nextHref="#conoce-mi-historia" />
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import HeroWaves from '@assets/graphics/waves/testimony-hero-waves.svg';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	testimonial: Testimonial;
+	/** Ancla del botón "Mi historia" */
+	storyHref: string;
+	/** Ancla de la flecha "bajar" */
+	nextHref: string;
+}
+
+const { testimonial, storyHref, nextHref } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	titlePrefix: `Caso de éxito de ${testimonial.name}:`,
+	cta: 'Mi historia',
+	scrollLabel: 'Bajar a la siguiente sección',
+};
+
+const headline = testimonial.headline ?? testimonial.quote;
+const portrait = testimonial.portrait ?? { src: testimonial.avatar, alt: `Foto de ${testimonial.name}` };
+---
+
+<section class="testimony-hero" aria-labelledby="testimony-hero-title">
+	<!-- Ondas planas y estrellas de la marca (decorativas) -->
+	<div class="testimony-hero__decor" aria-hidden="true">
+		<HeroWaves />
+	</div>
+
+	<div class="testimony-hero__content">
+		<h1 id="testimony-hero-title" class="testimony-hero__quote">
+			<span class="visually-hidden">{content.titlePrefix} </span>“{headline}”
+		</h1>
+
+		<p class="testimony-hero__author">
+			<strong class="testimony-hero__name">{testimonial.name}</strong>
+			<span class="testimony-hero__role">{testimonial.role}</span>
+		</p>
+
+		<Button href={storyHref} class="testimony-hero__cta">
+			{content.cta}
+		</Button>
+	</div>
+
+	<div class="testimony-hero__media">
+		<Image
+			src={portrait.src}
+			alt={portrait.alt}
+			widths={[480, 760, 1100, 1500]}
+			sizes="(max-width: 640px) 100vw, 50vw"
+			loading="eager"
+			fetchpriority="high"
+			class="testimony-hero__photo"
+		/>
+	</div>
+
+	<a href={nextHref} class="testimony-hero__scroll" aria-label={content.scrollLabel}>
+		<Icon name="arrow-right" size={24} />
+	</a>
+</section>
+
+<style>
+	.testimony-hero {
+		position: relative;
+		isolation: isolate;
+		display: grid;
+		/* 783px de panel azul + 729px de foto (Figma, 1512px) */
+		grid-template-columns: minmax(0, 783fr) minmax(0, 729fr);
+		min-height: min(56.5vw, 53.375rem); /* 854px */
+		overflow: clip;
+		background-color: var(--color-blue-2);
+		color: var(--color-white);
+	}
+
+	/* ----- Ondas y estrellas: lienzo de 1512 × 854 px anclado abajo a la izquierda ----- */
+	.testimony-hero__decor {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		z-index: 0;
+		width: 1512px;
+		height: 854px;
+		transform-origin: bottom left;
+		pointer-events: none;
+	}
+
+	.testimony-hero__decor :global(svg) {
+		max-width: none;
+	}
+
+	/* ----- Texto (panel azul) ----- */
+	.testimony-hero__content {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-7); /* 40px */
+		padding: 6.5rem var(--space-9) var(--space-10); /* 104px 64px */
+	}
+
+	.testimony-hero__quote {
+		max-width: 41.25rem; /* 660px */
+		font-size: clamp(2.5rem, 0.9rem + 4.6vw, 5.25rem); /* 84px */
+		font-weight: var(--font-weight-bold);
+		line-height: 0.98;
+		color: var(--color-white);
+		text-wrap: pretty;
+	}
+
+	.testimony-hero__author {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		max-width: 16rem;
+	}
+
+	.testimony-hero__name {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+	}
+
+	.testimony-hero__role {
+		font-size: var(--font-size-sm);
+		line-height: 1.3rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	/* Botón "Mi historia": 260px, texto y "rayita" en los extremos */
+	.testimony-hero :global(.testimony-hero__cta) {
+		width: 16.25rem;
+		justify-content: space-between;
+	}
+
+	/* ----- Foto ----- */
+	.testimony-hero__media {
+		position: relative;
+		z-index: 1;
+	}
+
+	.testimony-hero__photo {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* ----- Flecha "bajar" (círculo de 64px centrado, 40px sobre el borde) ----- */
+	.testimony-hero__scroll {
+		position: absolute;
+		bottom: var(--space-7);
+		left: 50%;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		width: 4rem;
+		height: 4rem;
+		border: 1px solid var(--border-on-dark-strong);
+		border-radius: var(--radius-pill);
+		color: var(--color-white);
+		transform: translateX(-50%);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.testimony-hero__scroll :global(svg) {
+		transform: rotate(90deg);
+	}
+
+	.testimony-hero__scroll:hover {
+		border-color: var(--color-white);
+		background-color: rgb(244 244 244 / 0.12);
+	}
+
+	/* ----- Tablet ----- */
+	@media (max-width: 1100px) {
+		.testimony-hero {
+			min-height: 40rem;
+		}
+
+		.testimony-hero__decor {
+			transform: scale(0.7);
+		}
+
+		.testimony-hero__content {
+			padding: var(--space-9) var(--space-7) var(--space-10);
+		}
+	}
+
+	/* ----- Móvil: foto arriba, texto abajo (Figma móvil) ----- */
+	@media (max-width: 640px) {
+		.testimony-hero {
+			grid-template-columns: 100%;
+			min-height: 0;
+		}
+
+		.testimony-hero__media {
+			order: -1;
+			aspect-ratio: 360 / 482;
+		}
+
+		/* En móvil la onda roja cruza la parte baja de la foto */
+		.testimony-hero__decor {
+			top: calc(133.9vw - 22.75rem);
+			bottom: auto;
+			left: -3.75rem;
+			z-index: 2;
+			transform: scale(0.4);
+			transform-origin: top left;
+		}
+
+		.testimony-hero__content {
+			gap: var(--space-3);
+			padding: var(--space-6) var(--space-4) var(--space-7);
+		}
+
+		.testimony-hero__quote {
+			font-size: 1.5rem;
+			line-height: 1.17;
+		}
+
+		.testimony-hero__name {
+			font-size: var(--font-size-sm);
+			line-height: 1.25rem;
+		}
+
+		.testimony-hero__role {
+			font-size: 0.8125rem;
+			line-height: 1.25rem;
+		}
+
+		/* El diseño móvil no muestra el botón ni la flecha */
+		.testimony-hero :global(.testimony-hero__cta),
+		.testimony-hero__scroll {
+			display: none;
+		}
+	}
+</style>

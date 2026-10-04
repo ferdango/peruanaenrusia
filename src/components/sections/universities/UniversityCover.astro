@@ -1,0 +1,58 @@
+---
+/**
+ * UniversityCover — Foto de portada de la ficha de universidad
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › "Rectangle 201" (3312:96).
+ *
+ * Foto a todo el ancho de la hoja (1266 × 615 px en desktop). Usa `cover`
+ * de la universidad o, si no existe, su foto principal (`image`).
+ *
+ * Uso: <UniversityCover university={university} />
+ */
+import { Image } from 'astro:assets';
+
+import type { University } from '@data/universities';
+
+interface Props {
+	university: University;
+}
+
+const { university } = Astro.props;
+
+const cover = university.cover ?? { src: university.image, alt: `Foto de la ${university.name}` };
+---
+
+<figure class="university-cover">
+	<Image
+		src={cover.src}
+		alt={cover.alt}
+		widths={[640, 1266, 2000]}
+		sizes="(max-width: 1266px) 100vw, 1266px"
+		loading="eager"
+		fetchpriority="high"
+		class="university-cover__image"
+	/>
+</figure>
+
+<style>
+	.university-cover {
+		margin-top: var(--space-6); /* 32px bajo la cabecera */
+	}
+
+	.university-cover__image {
+		width: 100%;
+		height: auto;
+		aspect-ratio: 1266 / 615;
+		object-fit: cover;
+	}
+
+	@media (max-width: 640px) {
+		.university-cover {
+			margin-top: var(--space-5);
+		}
+
+		.university-cover__image {
+			aspect-ratio: 4 / 3;
+		}
+	}
+</style>

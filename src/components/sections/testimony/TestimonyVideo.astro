@@ -1,0 +1,226 @@
+---
+/**
+ * TestimonyVideo — "Conoce mi historia"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628320" (1734:2245).
+ * Móvil: UI Mobile › 1758:3823 (el título va arriba del video).
+ *
+ * Tarjeta de video a todo el ancho del contenido: miniatura, onda amarilla de
+ * la marca, botón ▶ y el título con el nombre del estudiante.
+ *
+ * VIDEO: el botón ▶ abre `testimonial.video.url` (YouTube). Si no hay URL,
+ * abre el canal de YouTube de la marca (src/data/site.ts).
+ *
+ * Uso: <TestimonyVideo id="conoce-mi-historia" testimonial={testimonial} />
+ */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import WaveYellow from '@assets/graphics/waves/wave-yellow-video.svg';
+import { site } from '@data/site';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	id: string;
+	testimonial: Testimonial;
+}
+
+const { id, testimonial } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Conoce mi historia',
+	playLabel: `Ver el video de ${testimonial.name} en YouTube`,
+};
+
+const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
+const poster = testimonial.video?.poster ?? testimonial.portrait;
+const videoHref = testimonial.video?.url ?? youtubeChannel;
+---
+
+{poster && (
+	<section id={id} class="testimony-video" aria-labelledby={`${id}-title`}>
+		<div class="testimony-video__card">
+			<div class="testimony-video__media">
+				<Image
+					src={poster.src}
+					alt={poster.alt}
+					widths={[480, 800, 1200, 1600, 2000]}
+					sizes="(max-width: 640px) 240vw, (max-width: 1512px) 115vw, 1550px"
+					class="testimony-video__image"
+				/>
+
+				<div class="testimony-video__wave" aria-hidden="true">
+					<WaveYellow />
+				</div>
+
+				<a
+					href={videoHref}
+					class="testimony-video__play"
+					target="_blank"
+					rel="noopener"
+					aria-label={content.playLabel}
+				>
+					<Icon name="play" size={28} />
+				</a>
+			</div>
+
+			<div class="testimony-video__caption">
+				<h2 id={`${id}-title`} class="testimony-video__title">
+					{content.title}
+				</h2>
+				<p class="testimony-video__name">{testimonial.name}</p>
+			</div>
+		</div>
+	</section>
+)}
+
+<style>
+	.testimony-video {
+		padding: var(--space-7) var(--gutter); /* 40px 80px */
+		background-color: var(--surface-white);
+		scroll-margin-top: var(--space-4);
+	}
+
+	/* Tarjeta: el texto se superpone abajo a la izquierda de la miniatura */
+	.testimony-video__card {
+		display: grid;
+		max-width: var(--container-max);
+		margin-inline: auto;
+	}
+
+	.testimony-video__media,
+	.testimony-video__caption {
+		grid-area: 1 / 1;
+	}
+
+	/* ----- Miniatura (1352 × 760 px, encuadre de Figma) ----- */
+	.testimony-video__media {
+		position: relative;
+		isolation: isolate;
+		aspect-ratio: 1352 / 760;
+		border-radius: var(--radius-xl); /* 32px */
+		overflow: clip;
+	}
+
+	.testimony-video__image {
+		position: absolute;
+		top: -21.69%;
+		left: -8.47%;
+		z-index: -1;
+		width: 114.66%;
+		max-width: none;
+		height: auto;
+	}
+
+	/* Onda amarilla de la marca (posición y giro de Figma, en % de la tarjeta) */
+	.testimony-video__wave {
+		position: absolute;
+		top: 44.61%;
+		left: -4.88%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 123.44%;
+		aspect-ratio: 1668.866 / 638.133;
+		color: var(--color-yellow);
+		pointer-events: none;
+	}
+
+	.testimony-video__wave :global(svg) {
+		flex: none;
+		width: 97.55%;
+		max-width: none;
+		height: auto;
+		transform: rotate(-8.91deg);
+	}
+
+	/* ----- Botón ▶ (círculo de 64px + anillo translúcido de 24px) ----- */
+	.testimony-video__play {
+		position: absolute;
+		top: 50%;
+		left: 51.63%;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 4rem;
+		height: 4rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-white);
+		box-shadow: 0 0 0 1.527rem rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+		transform: translate(-50%, -50%);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.testimony-video__play:hover {
+		transform: translate(-50%, -50%) scale(1.08);
+	}
+
+	/* ----- Título + nombre ----- */
+	.testimony-video__caption {
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-self: end;
+		justify-self: start;
+		gap: var(--space-2);
+		padding: var(--space-7); /* 40px */
+		color: var(--color-white);
+		pointer-events: none;
+	}
+
+	.testimony-video__title {
+		font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem); /* 36px */
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.11; /* 40px */
+	}
+
+	.testimony-video__name {
+		font-size: 1.25rem; /* 20px */
+		line-height: 1.5rem;
+	}
+
+	/* ----- Móvil: título arriba y video a todo el ancho (Figma móvil) ----- */
+	@media (max-width: 640px) {
+		.testimony-video {
+			padding: 0;
+		}
+
+		.testimony-video__caption {
+			grid-area: 1 / 1;
+			justify-self: center;
+			padding: var(--space-8) var(--space-4) var(--space-6);
+			color: var(--color-blue-title);
+			text-align: center;
+		}
+
+		.testimony-video__media {
+			grid-area: 2 / 1;
+			aspect-ratio: 360 / 530;
+			border-radius: 0;
+		}
+
+		.testimony-video__image {
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			object-position: 58% center;
+		}
+
+		/* El diseño móvil no muestra la onda en este video */
+		.testimony-video__wave {
+			display: none;
+		}
+
+		.testimony-video__title {
+			font-size: 1.75rem;
+			font-weight: var(--font-weight-bold);
+		}
+
+		.testimony-video__name {
+			display: none;
+		}
+	}
+</style>

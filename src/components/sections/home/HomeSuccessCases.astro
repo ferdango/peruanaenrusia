@@ -17,7 +17,8 @@ import { testimonials } from '@data/testimonials';
 // ----- Contenido de la sección -----
 const content = {
 	title: 'Nuestros casos de éxito',
-	subtitle: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+	subtitle:
+		'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
 };
 
 /** El muro del diseño muestra 8 tarjetas */
@@ -26,13 +27,17 @@ const visibleTestimonials = testimonials.slice(0, 8);
 
 <section class="home-cases section" id="casos-de-exito" aria-labelledby="home-cases-title">
 	<header class="home-cases__header container">
-		<h2 id="home-cases-title" class="home-cases__title">{content.title}</h2>
+		<h2 id="home-cases-title" class="home-cases__title">
+			{content.title}
+		</h2>
 		<p class="home-cases__subtitle">{content.subtitle}</p>
 	</header>
 
 	<div class="home-cases__wall">
 		<Carousel label={content.title} gap={16} class="home-cases__carousel">
-			{visibleTestimonials.map((testimonial) => <TestimonialCard testimonial={testimonial} />)}
+			{visibleTestimonials.map((testimonial) => (
+				<TestimonialCard testimonial={testimonial} />
+			))}
 		</Carousel>
 	</div>
 </section>

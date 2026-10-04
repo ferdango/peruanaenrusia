@@ -1,0 +1,131 @@
+---
+/**
+ * PaymentProofCard — tarjeta "¿Ya hiciste el pago?"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › tarjeta derecha (2256:614):
+ * zona para adjuntar la constancia (2256:610), correo para enviarla con botón
+ * de copiar (2256:611) y píldora de WhatsApp (2256:612).
+ *
+ * El correo y el WhatsApp salen de src/data/site.ts.
+ *
+ * Uso (dentro del formulario de pago):
+ *   <PaymentProofCard />
+ */
+import Icon from '@components/ui/Icon.astro';
+import CopyPill from './CopyPill.astro';
+import FileDropzone from './FileDropzone.astro';
+import { payment } from '@data/portal';
+import { site, whatsappUrl } from '@data/site';
+
+/** Número local para mostrar (sin el código de país 51), como en Figma */
+const whatsappNumber = site.contact.phoneRaw.replace(/^51/, '');
+
+// ----- Textos de la tarjeta -----
+const content = {
+	title: '¿Ya hiciste el pago?',
+	proofLabel: 'Adjunta tu constancia',
+	proofTitle: 'Subir o arrastrar imagen',
+	emailText: 'O envíanos la constancia por email (Opcional):',
+	copyEmailLabel: 'Copiar correo',
+	whatsappText: '¿Tienes dudas para transferir? Escríbenos al',
+	whatsappLabel: `Escríbenos por WhatsApp al ${whatsappNumber} (se abre en una pestaña nueva)`,
+};
+---
+
+<section class="payment-proof" aria-labelledby="payment-proof-title">
+	<h2 id="payment-proof-title" class="payment-proof__title">
+		{content.title}
+	</h2>
+
+	<div class="payment-proof__body">
+		<FileDropzone
+			id="payment-proof-file"
+			name="paymentProof"
+			label={content.proofLabel}
+			title={content.proofTitle}
+			hint={payment.proofFormatsLabel}
+			accept={payment.proofAccept}
+		/>
+
+		<div class="payment-proof__contact">
+			<p class="payment-proof__text">{content.emailText}</p>
+			<CopyPill value={site.contact.email} label={content.copyEmailLabel} />
+		</div>
+
+		<div class="payment-proof__contact">
+			<p class="payment-proof__text">{content.whatsappText}</p>
+			<a
+				class="payment-proof__whatsapp"
+				href={whatsappUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label={content.whatsappLabel}
+			>
+				{whatsappNumber}
+				<Icon name="whatsapp" size={24} />
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.payment-proof {
+		display: flex;
+		flex-direction: column;
+		gap: 2.25rem; /* 36px */
+		padding: 1.75rem; /* 28px */
+		border-radius: var(--radius-lg);
+		background-color: var(--portal-surface);
+	}
+
+	.payment-proof__title {
+		color: var(--color-blue-title);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+	}
+
+	.payment-proof__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4); /* 16px */
+	}
+
+	.payment-proof__contact {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-2); /* 8px */
+	}
+
+	.payment-proof__text {
+		color: var(--portal-text-soft);
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
+	}
+
+	.payment-proof__whatsapp {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		height: 2.5rem; /* 40px */
+		padding-inline: var(--space-4);
+		border-radius: var(--radius-pill);
+		background-color: var(--portal-whatsapp);
+		color: var(--surface-white);
+		font-size: var(--font-size-md);
+		line-height: 1rem;
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.payment-proof__whatsapp:hover {
+		background-color: color-mix(in srgb, var(--portal-whatsapp) 85%, var(--color-black));
+	}
+
+	@media (max-width: 640px) {
+		.payment-proof {
+			gap: var(--space-5);
+			padding: var(--space-5) var(--space-4);
+		}
+	}
+</style>

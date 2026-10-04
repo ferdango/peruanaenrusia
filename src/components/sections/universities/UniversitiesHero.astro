@@ -1,0 +1,182 @@
+---
+/**
+ * UniversitiesHero — "Casas de estudio"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83) › "Frame 23" (3260:147).
+ *
+ * Portada del listado de universidades: título principal (h1), bajada y los
+ * recursos gráficos de la marca (onda azul, onda naranja y dos estrellas de
+ * 4 puntas), dibujados en un lienzo de 1512px centrado (ancho de Figma).
+ *
+ * Uso: primera sección de src/pages/universidades/index.astro
+ *   <UniversitiesHero />
+ */
+import StarTall from '@assets/graphics/stars/star-sparkle-tall.svg';
+import Star from '@assets/graphics/stars/star-sparkle.svg';
+import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
+import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Casas de estudio',
+	subtitle: 'Todas las universidades que puedes aplicar, en un solo lugar',
+};
+---
+
+<section class="universities-hero" aria-labelledby="universities-hero-title">
+	<!-- Ondas planas y estrellas de la marca (decorativas) -->
+	<div class="universities-hero__decor" aria-hidden="true">
+		<div class="universities-hero__art universities-hero__art--wave-blue">
+			<WaveBlue />
+		</div>
+		<div class="universities-hero__art universities-hero__art--wave-orange">
+			<WaveOrange />
+		</div>
+		<div class="universities-hero__art universities-hero__art--star-skyblue">
+			<StarTall />
+		</div>
+		<div class="universities-hero__art universities-hero__art--star-yellow">
+			<Star />
+		</div>
+	</div>
+
+	<div class="universities-hero__content container">
+		<h1 id="universities-hero-title" class="universities-hero__title">
+			{content.title}
+		</h1>
+		<p class="universities-hero__subtitle">{content.subtitle}</p>
+	</div>
+</section>
+
+<style>
+	.universities-hero {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 23.75rem; /* 380px */
+		padding-block: var(--space-10);
+		overflow: clip;
+		background-color: var(--surface-dark);
+	}
+
+	/* ----- Texto centrado ----- */
+	.universities-hero__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		text-align: center;
+		color: var(--color-pure-white);
+	}
+
+	.universities-hero__title {
+		font-size: var(--font-size-display);
+		line-height: 1;
+	}
+
+	.universities-hero__subtitle {
+		max-width: 36rem; /* 576px */
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+	}
+
+	/* ----- Decoración: lienzo de 1512px centrado (coordenadas de Figma) ----- */
+	.universities-hero__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		z-index: -1;
+		width: 1512px;
+		height: 100%;
+		transform: translateX(-50%);
+		transform-origin: top center;
+		pointer-events: none;
+	}
+
+	.universities-hero__art {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.universities-hero__art :global(svg) {
+		flex: none;
+		max-width: none;
+	}
+
+	.universities-hero__art--wave-blue {
+		left: -1000px;
+		top: -180px;
+		width: 1882.919px;
+		height: 657.172px;
+	}
+
+	.universities-hero__art--wave-blue :global(svg) {
+		transform: rotate(171.79deg) scale(1, -1) skewX(4.69deg);
+	}
+
+	.universities-hero__art--wave-orange {
+		left: 753px;
+		top: -101px;
+		width: 1674.036px;
+		height: 789.549px;
+	}
+
+	.universities-hero__art--wave-orange :global(svg) {
+		transform: rotate(163.75deg) skewX(4.69deg);
+	}
+
+	.universities-hero__art--star-skyblue {
+		left: 315px;
+		top: 78px;
+		width: 31.616px;
+		height: 41.116px;
+		color: var(--color-skyblue);
+	}
+
+	.universities-hero__art--star-skyblue :global(svg) {
+		transform: rotate(16.91deg) scale(1, 0.99) skewX(8.11deg);
+	}
+
+	.universities-hero__art--star-yellow {
+		left: 1116px;
+		top: 308px;
+		width: 23.454px;
+		height: 28.141px;
+		color: var(--color-yellow);
+	}
+
+	.universities-hero__art--star-yellow :global(svg) {
+		transform: rotate(-27.65deg) scale(1, 0.99) skewX(-7.4deg);
+	}
+
+	/* ----- Tablet y móvil: el lienzo se reduce para que las ondas sigan visibles ----- */
+	@media (max-width: 1100px) {
+		.universities-hero {
+			min-height: 20rem;
+		}
+
+		.universities-hero__decor {
+			transform: translateX(-50%) scale(0.72);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.universities-hero {
+			min-height: 15rem;
+			padding-block: var(--space-9) var(--space-8);
+		}
+
+		.universities-hero__decor {
+			transform: translateX(-50%) scale(0.42);
+		}
+
+		.universities-hero__subtitle {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+	}
+</style>

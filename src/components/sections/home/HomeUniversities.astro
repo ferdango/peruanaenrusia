@@ -38,20 +38,22 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 	</div>
 
 	<header class="home-universities__header container">
-		<h2 id="home-universities-title" class="home-universities__title">{content.title}</h2>
+		<h2 id="home-universities-title" class="home-universities__title">
+			{content.title}
+		</h2>
 		<p class="home-universities__subtitle">{content.subtitle}</p>
 	</header>
 
 	<Carousel label={content.title} gap={24}>
-		{
-			featuredUniversities.map((university, index) => (
-				<UniversityCard university={university} accent={accents[index % accents.length]} />
-			))
-		}
+		{featuredUniversities.map((university, index) => (
+			<UniversityCard university={university} accent={accents[index % accents.length]} />
+		))}
 	</Carousel>
 
 	<div class="home-universities__mobile-cta container">
-		<Button href={routes.universities} size="md">{content.mobileCta}</Button>
+		<Button href={routes.universities} size="md">
+			{content.mobileCta}
+		</Button>
 	</div>
 </section>
 
@@ -60,7 +62,7 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-9);
-		overflow: hidden;
+		overflow: clip;
 		background-color: var(--surface-dark);
 		--carousel-controls-gap: 2.25rem;
 	}

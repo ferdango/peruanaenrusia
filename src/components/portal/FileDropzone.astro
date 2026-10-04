@@ -1,0 +1,156 @@
+---
+/**
+ * FileDropzone — zona para subir o arrastrar un archivo
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › "Adjunta tu constancia"
+ * (2256:610): título con ícono "i" + recuadro celeste de 160px de alto.
+ *
+ * Toda la zona es un <label> del <input type="file"> (oculto pero accesible
+ * con teclado): se puede hacer clic o soltar un archivo encima. El nombre del
+ * archivo elegido lo muestra src/scripts/portal-upload.ts.
+ *
+ * Uso:
+ *   <FileDropzone id="payment-proof" name="paymentProof" label="Adjunta tu constancia"
+ *       title="Subir o arrastrar imagen" hint="JPG, PNG o PDF" accept=".jpg,.png,.pdf" />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	id: string;
+	name: string;
+	/** Título sobre la zona (ej. "Adjunta tu constancia") */
+	label: string;
+	/** Texto principal de la zona (ej. "Subir o arrastrar imagen") */
+	title: string;
+	/** Formatos aceptados en texto (ej. "JPG, PNG o PDF") */
+	hint: string;
+	/** Formatos aceptados para el input (ej. ".jpg,.jpeg,.png,.pdf") */
+	accept: string;
+	class?: string;
+}
+
+const { id, name, label, title, hint, accept, class: className } = Astro.props;
+const labelId = `${id}-label`;
+const hintId = `${id}-hint`;
+const outputId = `${id}-output`;
+---
+
+<div class:list={['file-dropzone', className]} data-upload>
+	<p id={labelId} class="file-dropzone__label">
+		<Icon name="info" size={20} class="file-dropzone__label-icon" />
+		{label}
+	</p>
+
+	<input
+		id={id}
+		name={name}
+		type="file"
+		accept={accept}
+		class="file-dropzone__input visually-hidden"
+		aria-labelledby={labelId}
+		aria-describedby={`${hintId} ${outputId}`}
+		data-upload-input
+	/>
+	<label for={id} class="file-dropzone__area" data-upload-dropzone>
+		<Icon name="upload" size={36} class="file-dropzone__icon" />
+		<span class="file-dropzone__text">
+			<span class="file-dropzone__title">{title}</span>
+			<span id={hintId} class="file-dropzone__hint">
+				{hint}
+			</span>
+			<span id={outputId} class="file-dropzone__file" data-upload-output hidden></span>
+		</span>
+	</label>
+</div>
+
+<script>
+	import { initPortalUploads } from '@scripts/portal-upload';
+
+	initPortalUploads();
+</script>
+
+<style>
+	.file-dropzone {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+		width: 100%;
+	}
+
+	.file-dropzone__label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2); /* 8px */
+		color: var(--color-blue-title);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.25rem;
+	}
+
+	.file-dropzone__label-icon {
+		flex-shrink: 0;
+	}
+
+	/* ----- Zona celeste (clic o soltar) ----- */
+	.file-dropzone__area {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-3); /* 12px */
+		min-height: 10rem; /* 160px */
+		padding: var(--space-4);
+		border: 1px dashed transparent;
+		border-radius: var(--portal-radius-field);
+		background-color: var(--portal-tint);
+		cursor: pointer;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.file-dropzone__area:hover,
+	.file-dropzone__area[data-dragover] {
+		border-color: var(--color-blue-title);
+		background-color: rgb(212 222 251 / 0.5);
+	}
+
+	.file-dropzone__input:focus-visible + .file-dropzone__area {
+		box-shadow: var(--focus-ring);
+	}
+
+	.file-dropzone__icon {
+		flex-shrink: 0;
+		color: var(--color-blue-title);
+	}
+
+	.file-dropzone__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem; /* 2px */
+		width: 11rem; /* 176px */
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+
+	.file-dropzone__title {
+		color: var(--color-blue-title);
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.file-dropzone__file {
+		margin-top: var(--space-1);
+		color: var(--color-green);
+		font-weight: var(--font-weight-medium);
+		word-break: break-word;
+	}
+
+	.file-dropzone__file[data-state='error'] {
+		color: var(--color-red);
+	}
+
+	[data-upload-state='selected'] .file-dropzone__area {
+		border-color: var(--color-green);
+		border-style: solid;
+	}
+</style>

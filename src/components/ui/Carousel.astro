@@ -49,21 +49,19 @@ const { label, tone = 'light', gap = 24, controls = true, class: className } = A
 		<slot />
 	</div>
 
-	{
-		controls && (
-			<div class="carousel__controls" data-carousel-controls hidden>
-				<button class="carousel__arrow" type="button" data-carousel-prev aria-label="Anterior">
-					<Icon name="chevron-left" size={24} />
-				</button>
+	{controls && (
+		<div class="carousel__controls" data-carousel-controls hidden>
+			<button class="carousel__arrow" type="button" data-carousel-prev aria-label="Anterior">
+				<Icon name="chevron-left" size={24} />
+			</button>
 
-				<div class="carousel__dots" data-carousel-dots />
+			<div class="carousel__dots" data-carousel-dots />
 
-				<button class="carousel__arrow" type="button" data-carousel-next aria-label="Siguiente">
-					<Icon name="chevron-right" size={24} />
-				</button>
-			</div>
-		)
-	}
+			<button class="carousel__arrow" type="button" data-carousel-next aria-label="Siguiente">
+				<Icon name="chevron-right" size={24} />
+			</button>
+		</div>
+	)}
 </div>
 
 <script>
@@ -94,6 +92,8 @@ const { label, tone = 'light', gap = 24, controls = true, class: className } = A
 
 	/* ----- Pista con scroll horizontal ----- */
 	.carousel__track {
+		/* position: relative contiene a los hijos posicionados (evita scroll horizontal en la página) */
+		position: relative;
 		display: flex;
 		gap: var(--carousel-gap);
 		padding-inline: var(--carousel-inset);

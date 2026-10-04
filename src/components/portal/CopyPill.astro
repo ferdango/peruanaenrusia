@@ -1,0 +1,114 @@
+---
+/**
+ * CopyPill — píldora celeste con un dato y botón de copiar
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › número de cuenta (2035:304) y
+ * correo (2042:332).
+ *
+ * Todo el elemento es un botón: al hacer clic copia `value` y muestra el
+ * aviso "Copiado" (src/scripts/portal-copy.ts).
+ *
+ * Uso:
+ *   <CopyPill value="193-2414529-0-80" label="Copiar número de cuenta" />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	/** Texto que se muestra y se copia */
+	value: string;
+	/** Acción para lectores de pantalla (ej. "Copiar número de cuenta") */
+	label: string;
+	/** Ocupa todo el ancho disponible (contenido centrado) */
+	block?: boolean;
+	class?: string;
+}
+
+const { value, label, block = false, class: className } = Astro.props;
+---
+
+<button
+	type="button"
+	class:list={['copy-pill', { 'copy-pill--block': block }, className]}
+	data-copy={value}
+	aria-label={`${label}: ${value}`}
+	title={label}
+>
+	<span class="copy-pill__value">{value}</span>
+	<Icon name="copy" size={20} class="copy-pill__icon" />
+	<span class="copy-pill__feedback" data-copy-feedback aria-hidden="true">
+		Copiado
+	</span>
+</button>
+
+<script>
+	import { initPortalCopy } from '@scripts/portal-copy';
+
+	initPortalCopy();
+</script>
+
+<style>
+	.copy-pill {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2); /* 8px */
+		max-width: 100%;
+		height: 2.5rem; /* 40px */
+		padding-inline: var(--space-4); /* 16px */
+		border-radius: var(--radius-pill);
+		background-color: var(--portal-tint);
+		color: var(--color-blue-title);
+		font-size: var(--font-size-md);
+		line-height: 1rem;
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.copy-pill:hover {
+		background-color: rgb(212 222 251 / 0.6);
+	}
+
+	.copy-pill--block {
+		width: 100%;
+	}
+
+	.copy-pill__value {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.copy-pill__icon {
+		flex-shrink: 0;
+	}
+
+	/* ----- Aviso "Copiado" ----- */
+	.copy-pill__feedback {
+		position: absolute;
+		bottom: calc(100% + var(--space-2));
+		left: 50%;
+		padding: var(--space-1) var(--space-2);
+		border-radius: var(--radius-sm);
+		background-color: var(--color-blue-title);
+		color: var(--color-white);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.125rem;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transform: translate(-50%, 4px);
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			transform var(--duration-base) var(--ease-out);
+	}
+
+	.copy-pill[data-copied] .copy-pill__feedback {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+
+	.copy-pill[data-copied='false'] .copy-pill__feedback {
+		background-color: var(--color-red);
+	}
+</style>

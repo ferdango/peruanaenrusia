@@ -1,0 +1,158 @@
+---
+/**
+ * UniversitiesGrid — Listado de "Casas de estudio"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83) › "Frame 628319" (3260:309).
+ *
+ * Grilla de tarjetas UniversityCard con todas las universidades de
+ * src/data/universities.ts: 3 columnas en desktop, 2 en tablet y 1 en móvil.
+ * Los colores de las formas siguen el orden del diseño (se repiten si hay más).
+ *
+ * Botón "Ver más universidades": se muestran 9 tarjetas (como en el diseño) y
+ * cada clic muestra 9 más. Si hay 9 universidades o menos, el botón no aparece
+ * (no tendría nada que mostrar). Sin JavaScript se ven todas las tarjetas.
+ *
+ * Uso: <UniversitiesGrid /> (debajo de UniversitiesHero)
+ */
+import UniversityCard from '@components/cards/UniversityCard.astro';
+import Button from '@components/ui/Button.astro';
+import { universities, type UniversityAccent } from '@data/universities';
+
+// ----- Contenido de la sección -----
+const content = {
+	label: 'Listado de universidades',
+	more: 'Ver más universidades',
+};
+
+/** Colores de las formas de las tarjetas, en el orden del diseño */
+const accents: UniversityAccent[] = [
+	'yellow',
+	'green',
+	'skyblue',
+	'blue',
+	'skyblue',
+	'yellow',
+	'blue',
+	'skyblue',
+	'yellow',
+];
+
+/** Tarjetas visibles al cargar la página y en cada clic de "Ver más" */
+const pageSize = 9;
+const hasMore = universities.length > pageSize;
+---
+
+<section class="universities-grid" aria-label={content.label}>
+	<div class="container">
+		<ul class="universities-grid__list" role="list" data-universities-list data-page-size={pageSize}>
+			{universities.map((university, index) => (
+				<li class="universities-grid__item">
+					<UniversityCard
+						university={university}
+						accent={accents[index % accents.length]}
+						headingLevel="h2"
+					/>
+				</li>
+			))}
+		</ul>
+
+		{hasMore && (
+			<div class="universities-grid__more" data-universities-more hidden>
+				<Button size="lg" class="universities-grid__more-button">
+					{content.more}
+				</Button>
+			</div>
+		)}
+	</div>
+</section>
+
+<script>
+	/**
+	 * "Ver más universidades": oculta las tarjetas que exceden la primera
+	 * página y las muestra de a `data-page-size` en cada clic.
+	 */
+	document.querySelectorAll<HTMLElement>('[data-universities-list]').forEach((list) => {
+		const pageSize = Number(list.dataset.pageSize) || 9;
+		const items = Array.from(list.children) as HTMLElement[];
+		const more = list.parentElement?.querySelector<HTMLElement>('[data-universities-more]');
+		const button = more?.querySelector('button');
+
+		if (!more || !button || items.length <= pageSize) return;
+
+		let visibleCount = pageSize;
+
+		const render = () => {
+			items.forEach((item, index) => (item.hidden = index >= visibleCount));
+			more.hidden = visibleCount >= items.length;
+		};
+
+		button.addEventListener('click', () => {
+			const firstNewItem = items[visibleCount];
+			visibleCount += pageSize;
+			render();
+			// Accesibilidad: el foco pasa a la primera tarjeta nueva
+			firstNewItem?.querySelector<HTMLElement>('a')?.focus();
+		});
+
+		render();
+	});
+</script>
+
+<style>
+	.universities-grid {
+		position: relative;
+		z-index: 1;
+		/* Las tarjetas se superponen 18px a la portada (como en Figma) */
+		margin-top: -1.125rem;
+		padding-bottom: 6.125rem; /* 98px hasta el footer */
+	}
+
+	.universities-grid__list {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 26.25rem)); /* 420px */
+		justify-content: center;
+		gap: var(--space-6) var(--space-5); /* 32px filas · 24px columnas */
+	}
+
+	/* Las tarjetas ocupan todo el ancho de su celda */
+	.universities-grid :global(.university-card) {
+		--university-card-width: 100%;
+	}
+
+	/* ----- Botón "Ver más universidades" ----- */
+	.universities-grid__more {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--space-7); /* 40px */
+	}
+
+	.universities-grid__more[hidden] {
+		display: none;
+	}
+
+	.universities-grid :global(.universities-grid__more-button) {
+		min-width: 17.625rem; /* 282px */
+	}
+
+	@media (max-width: 1100px) {
+		.universities-grid__list {
+			grid-template-columns: repeat(2, minmax(0, 26.25rem));
+		}
+	}
+
+	@media (max-width: 640px) {
+		.universities-grid {
+			margin-top: 0;
+			padding-bottom: var(--space-9);
+		}
+
+		.universities-grid__list {
+			grid-template-columns: minmax(0, 26.25rem);
+			gap: var(--space-5);
+		}
+
+		.universities-grid :global(.universities-grid__more-button) {
+			width: 100%;
+		}
+	}
+</style>

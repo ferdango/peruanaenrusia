@@ -1,0 +1,96 @@
+---
+/**
+ * PaymentForm — pantalla de pago (formulario completo)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › contenido (2261:629):
+ * PaymentTransferCard a la izquierda; a la derecha PaymentProofCard y los
+ * botones "Volver" / "Ya transferí" (2071:437).
+ *
+ * "Ya transferí" envía el formulario (src/scripts/portal-forms.ts → TODO API)
+ * y lleva a /portal/pago/enviado/. "Volver" regresa a la página anterior.
+ * En pantallas angostas las dos columnas se apilan.
+ *
+ * Uso:
+ *   <PaymentForm />
+ */
+import PaymentProofCard from './PaymentProofCard.astro';
+import PaymentTransferCard from './PaymentTransferCard.astro';
+import PortalButton from './PortalButton.astro';
+import { routes } from '@data/navigation';
+import { portalRoutes } from '@data/portal';
+
+// ----- Textos -----
+const content = {
+	back: 'Volver',
+	submit: 'Ya transferí',
+};
+---
+
+<form
+	class="payment-form"
+	action={portalRoutes.paymentSent}
+	method="post"
+	enctype="multipart/form-data"
+	data-portal-form
+	data-redirect={portalRoutes.paymentSent}
+>
+	<PaymentTransferCard />
+
+	<div class="payment-form__side">
+		<PaymentProofCard />
+
+		<div class="payment-form__actions">
+			<PortalButton variant="muted" width={160} data-portal-back data-fallback={routes.home}>
+				{content.back}
+			</PortalButton>
+			<PortalButton type="submit" class="payment-form__submit">
+				{content.submit}
+			</PortalButton>
+		</div>
+	</div>
+</form>
+
+<script>
+	import { initPortalForms } from '@scripts/portal-forms';
+
+	initPortalForms();
+</script>
+
+<style>
+	.payment-form {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: center;
+		gap: var(--space-5); /* 24px */
+		margin-top: 2.8125rem; /* 45px bajo el stepper */
+	}
+
+	/* Dos columnas de 420px; se apilan cuando no caben juntas */
+	.payment-form > :global(.payment-transfer),
+	.payment-form__side {
+		flex: 1 1 22.5rem;
+		max-width: 26.25rem; /* 420px */
+	}
+
+	.payment-form__side {
+		display: flex;
+		flex-direction: column;
+		gap: 1.75rem; /* 28px */
+	}
+
+	.payment-form__actions {
+		display: flex;
+		gap: var(--space-2); /* 8px */
+	}
+
+	.payment-form__actions :global(.payment-form__submit) {
+		flex: 1;
+	}
+
+	@media (max-width: 640px) {
+		.payment-form {
+			margin-top: var(--space-6);
+		}
+	}
+</style>

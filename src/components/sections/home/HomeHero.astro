@@ -42,33 +42,35 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 				loading="eager"
 				fetchpriority="high"
 			/>
-			{videoSrc && <video class="home-hero__video" src={videoSrc} playsinline preload="none" data-hero-video />}
+			{videoSrc && (
+				<video class="home-hero__video" src={videoSrc} playsinline preload="none" data-hero-video />
+			)}
 		</div>
 
 		<!-- Botón ▶ grande -->
-		{
-			videoSrc ? (
-				<button type="button" class="home-hero__play" data-hero-play aria-label="Reproducir video">
-					<Icon name="play" size={108} />
-				</button>
-			) : (
-				<a
-					href={youtubeChannel}
-					class="home-hero__play"
-					target="_blank"
-					rel="noopener"
-					aria-label="Ver video en YouTube"
-				>
-					<Icon name="play" size={108} />
-				</a>
-			)
-		}
+		{videoSrc ? (
+			<button type="button" class="home-hero__play" data-hero-play aria-label="Reproducir video">
+				<Icon name="play" size={108} />
+			</button>
+		) : (
+			<a
+				href={youtubeChannel}
+				class="home-hero__play"
+				target="_blank"
+				rel="noopener"
+				aria-label="Ver video en YouTube"
+			>
+				<Icon name="play" size={108} />
+			</a>
+		)}
 
 		<!-- Texto (portada) -->
 		<div class="home-hero__content">
 			<h1 class="home-hero__title">{content.title}</h1>
 			<p class="home-hero__subtitle">{content.subtitle}</p>
-			<Button class="home-hero__cta" data-dialog-open="auth-modal">{content.cta}</Button>
+			<Button class="home-hero__cta" data-dialog-open="auth-modal">
+				{content.cta}
+			</Button>
 		</div>
 
 		<!-- Controles (visibles mientras el video se reproduce) -->
@@ -79,10 +81,17 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 						<Icon name="pause" size={32} class="hero-control__icon-pause" />
 						<Icon name="play" size={24} class="hero-control__icon-play" />
 					</span>
-					<span class="hero-control__label" data-label-pause="Pausa" data-label-play="Reproducir">Pausa</span>
+					<span class="hero-control__label" data-label-pause="Pausa" data-label-play="Reproducir">
+						Pausa
+					</span>
 				</button>
 
-				<button type="button" class="hero-control hero-control--mute" data-hero-mute aria-pressed="false">
+				<button
+					type="button"
+					class="hero-control hero-control--mute"
+					data-hero-mute
+					aria-pressed="false"
+				>
 					<span class="hero-control__circle">
 						<Icon name="volume-mute" size={28} class="hero-control__icon-muted" />
 						<Icon name="volume" size={28} class="hero-control__icon-sound" />
@@ -91,7 +100,9 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 				</button>
 			</div>
 
-			<Button size="md" class="home-hero__cta" data-dialog-open="auth-modal">{content.cta}</Button>
+			<Button size="md" class="home-hero__cta" data-dialog-open="auth-modal">
+				{content.cta}
+			</Button>
 		</div>
 	</div>
 </section>
@@ -115,7 +126,9 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 			hero.classList.toggle('is-playing', isPlaying);
 			hero.classList.toggle('is-paused', !isPlaying && !video.ended && video.currentTime > 0);
 			if (toggleLabel) {
-				toggleLabel.textContent = isPlaying ? toggleLabel.dataset.labelPause! : toggleLabel.dataset.labelPlay!;
+				toggleLabel.textContent = isPlaying
+					? toggleLabel.dataset.labelPause!
+					: toggleLabel.dataset.labelPlay!;
 			}
 		};
 
@@ -155,11 +168,13 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 		align-items: center;
 		justify-content: space-between;
 		max-width: var(--container-max);
-		aspect-ratio: 1352 / 775;
+		/* 775px de alto en desktop; crece si el contenido lo necesita (tablet) */
+		min-height: clamp(30rem, 51.25vw, 48.4375rem);
 		margin-inline: auto;
-		padding: clamp(5rem, 11.9vw, 11.25rem) var(--space-10) 1.75rem;
+		padding: clamp(4rem, 11.9vw, 11.25rem) clamp(var(--space-5), 5.3vw, var(--space-10)) 1.75rem;
+		gap: var(--space-6);
 		border-radius: var(--radius-xl);
-		overflow: hidden;
+		overflow: clip;
 	}
 
 	/* ----- Póster / video a pantalla completa dentro de la tarjeta ----- */
@@ -334,8 +349,9 @@ const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?
 		.home-hero__card {
 			display: grid;
 			grid-template-columns: 100%;
-			aspect-ratio: auto;
+			min-height: 0;
 			padding: 0;
+			gap: 0;
 			border-radius: 0;
 		}
 

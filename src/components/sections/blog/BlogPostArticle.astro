@@ -1,0 +1,281 @@
+---
+/**
+ * BlogPostArticle — Artículo de texto del blog
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Single Article Text" (1584:671): onda naranja
+ * (1839:288), dos estrellas (1839:289 y 1839:290) y el artículo (1790:4323)
+ * · UI Mobile › "Single blog" (1096:13).
+ *
+ * Contenido: categoría "←", título, autor y fecha, bajada, foto, columna
+ * "Compartir" (fija al hacer scroll) y el cuerpo del artículo con sus
+ * subtítulos. Los datos salen de src/data/articles.ts.
+ *
+ * Uso (en src/pages/blog/[slug].astro):
+ *   <BlogPostArticle article={article} />
+ */
+import { Image } from 'astro:assets';
+
+import PostHeader from '@components/blog/PostHeader.astro';
+import ShareLinks from '@components/blog/ShareLinks.astro';
+import Button from '@components/ui/Button.astro';
+import StarTall from '@assets/graphics/stars/star-sparkle-tall.svg';
+import Star from '@assets/graphics/stars/star-sparkle.svg';
+import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+import type { Article } from '@data/articles';
+import { routes } from '@data/navigation';
+
+interface Props {
+	article: Article;
+}
+
+const { article } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	// Texto del botón tal como aparece en el diseño
+	back: 'Ver todos los centros',
+};
+
+/** URL pública de la página (para los botones de compartir) */
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<article class="blog-article" aria-labelledby="blog-article-title">
+	<!-- Onda naranja y estrellas de la marca (decorativas) -->
+	<div class="blog-article__decor" aria-hidden="true">
+		<WaveOrange class="blog-article__wave" />
+		<div class="blog-article__star blog-article__star--skyblue">
+			<StarTall />
+		</div>
+		<div class="blog-article__star blog-article__star--yellow">
+			<Star />
+		</div>
+	</div>
+
+	<div class="blog-article__inner">
+		<PostHeader
+			category={{ label: article.category, href: routes.blog }}
+			title={article.title}
+			titleId="blog-article-title"
+			author={article.author}
+			date={article.date}
+			lead={article.excerpt}
+		/>
+
+		<Image
+			src={article.image}
+			alt={article.imageAlt}
+			widths={[400, 768, 1440]}
+			sizes="(max-width: 640px) 100vw, 768px"
+			class="blog-article__image"
+			loading="eager"
+		/>
+
+		<div class="blog-article__layout">
+			<ShareLinks url={pageUrl} title={article.title} class="blog-article__share" />
+
+			<div class="blog-article__content">
+				<div class="blog-article__body">
+					{article.body.map((block) => {
+						if (block.type === 'heading') return <h2>{block.text}</h2>;
+						if (block.type === 'list')
+							return (
+								<ul>
+									{block.items.map((item) => (
+										<li>{item}</li>
+									))}
+								</ul>
+							);
+						return <p>{block.text}</p>;
+					})}
+				</div>
+
+				<Button href={routes.blog} size="sm" class="blog-article__back">
+					{content.back}
+				</Button>
+			</div>
+		</div>
+	</div>
+</article>
+
+<style>
+	.blog-article {
+		position: relative;
+		overflow-x: clip; /* recorta la onda a los lados sin crear scroll */
+	}
+
+	/* ----- Decoración: lienzo de 1512px centrado (coordenadas de Figma) ----- */
+	.blog-article__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 1512px;
+		height: 23.75rem;
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.blog-article__decor :global(svg) {
+		max-width: none;
+	}
+
+	.blog-article :global(.blog-article__wave) {
+		position: absolute;
+		left: -77.21px;
+		top: -36.71px;
+		transform: rotate(163.75deg) skewX(4.69deg);
+	}
+
+	.blog-article__star {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.blog-article__star :global(svg) {
+		flex: none;
+	}
+
+	.blog-article__star--skyblue {
+		left: 141px;
+		top: 61px;
+		width: 31.616px;
+		height: 41.116px;
+		color: var(--color-skyblue);
+	}
+
+	.blog-article__star--skyblue :global(svg) {
+		transform: rotate(16.91deg) scale(1, 0.99) skewX(8.11deg);
+	}
+
+	.blog-article__star--yellow {
+		left: 1006px;
+		top: 145px;
+		width: 23.454px;
+		height: 28.141px;
+		color: var(--color-yellow);
+	}
+
+	.blog-article__star--yellow :global(svg) {
+		transform: rotate(-27.65deg) scale(1, 0.99) skewX(-7.4deg);
+	}
+
+	/* ----- Columna central de 768px ----- */
+	.blog-article__inner {
+		position: relative;
+		width: min(48rem, 100% - 2 * var(--gutter));
+		margin-inline: auto;
+		padding-top: 15rem; /* 240px: el título empieza bajo la onda */
+	}
+
+	.blog-article :global(.blog-article__image) {
+		width: 100%;
+		height: 26.25rem; /* 420px */
+		margin-top: var(--space-7);
+		border-radius: var(--radius-xl);
+		object-fit: cover;
+	}
+
+	/* ----- Compartir (66px) + texto (661px) ----- */
+	.blog-article__layout {
+		display: grid;
+		grid-template-columns: 4.125rem minmax(0, 1fr);
+		align-items: start;
+		gap: var(--space-7);
+		padding-block: var(--space-7) 6.75rem; /* 40px · 108px */
+	}
+
+	.blog-article :global(.blog-article__share) {
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-6));
+	}
+
+	.blog-article__content {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: var(--space-7);
+	}
+
+	/* ----- Cuerpo del artículo (texto que viene de los datos) ----- */
+	.blog-article__body {
+		align-self: stretch;
+		font-size: var(--font-size-h4);
+		line-height: 2.25rem; /* 36px */
+		color: var(--text-on-dark-soft);
+	}
+
+	.blog-article__body h2 {
+		margin-top: var(--space-7);
+		margin-bottom: var(--space-3);
+		font-size: 2rem; /* 32px */
+		font-weight: var(--font-weight-bold);
+		line-height: 2.25rem;
+		color: var(--color-white);
+	}
+
+	.blog-article__body > :first-child {
+		margin-top: 0;
+	}
+
+	.blog-article__body ul {
+		padding-left: 1.25em;
+	}
+
+	/* ----- Tablet ----- */
+	@media (max-width: 1100px) {
+		.blog-article__inner {
+			padding-top: 12.5rem;
+		}
+	}
+
+	/* ----- Móvil (Figma 1096:13): sin onda, foto a todo el ancho ----- */
+	@media (max-width: 640px) {
+		.blog-article__decor {
+			display: none;
+		}
+
+		.blog-article__inner {
+			padding-top: var(--space-4);
+		}
+
+		.blog-article :global(.blog-article__image) {
+			width: calc(100% + 2 * var(--gutter));
+			max-width: none;
+			height: auto;
+			aspect-ratio: 360 / 420;
+			margin-top: var(--space-5);
+			margin-inline: calc(-1 * var(--gutter));
+			border-radius: 0;
+		}
+
+		.blog-article__layout {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-6);
+			padding-block: var(--space-6) var(--space-8);
+		}
+
+		/* "Compartir" pasa debajo del texto, en fila */
+		.blog-article :global(.blog-article__share) {
+			position: static;
+			order: 1;
+		}
+
+		.blog-article__body {
+			font-size: var(--font-size-lg);
+			line-height: 2rem; /* 32px */
+		}
+
+		.blog-article__body h2 {
+			margin-top: var(--space-6);
+			font-size: 1.25rem; /* 20px */
+			line-height: 1.75rem;
+		}
+
+		/* En móvil el diseño no muestra este botón (se usa "Temas relacionados") */
+		.blog-article :global(.blog-article__back) {
+			display: none;
+		}
+	}
+</style>

@@ -48,7 +48,9 @@ const {
 	<div class="video-card__body">
 		<Icon name="youtube-play" size={24} class="video-card__platform" />
 		<Heading class="video-card__title">
-			<a href={href} class="video-card__link">{video.title}</a>
+			<a href={href} class="video-card__link">
+				{video.title}
+			</a>
 		</Heading>
 		<p class="video-card__date">
 			<time datetime={video.date}>{formatDate(video.date)}</time>
@@ -66,7 +68,7 @@ const {
 		height: var(--video-card-height, 27.5rem); /* 440px */
 		border: 1px solid var(--border-on-dark);
 		border-radius: var(--radius-xl);
-		overflow: hidden;
+		overflow: clip;
 		background-color: var(--surface-dark);
 		color: var(--text-on-dark);
 	}

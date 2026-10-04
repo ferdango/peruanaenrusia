@@ -1,0 +1,173 @@
+---
+/**
+ * CommunityJoinCard — Tarjeta roja "Únete a Peruana en Rusia:"
+ * --------------------------------------------------------------------------
+ * Figma: Home › "Frame 628458" › tarjeta (4045:144) · UI Mobile › Home ›
+ * "Frame 628120" (1433:1638).
+ *
+ * Invita a seguir las redes sociales (enlaces de src/data/site.ts) y muestra
+ * el símbolo de la marca en grande, recortado por el borde de la tarjeta.
+ *
+ * Se usa en dos lugares de la Home y solo uno se ve en cada tamaño de
+ * pantalla, para respetar el orden de cada diseño:
+ *   - Desktop/tablet: flota sobre la grilla de HomeCommunityGrid.
+ *   - Móvil: va debajo del carrusel de HomeCommunityGallery.
+ *
+ * Uso:
+ *   <CommunityJoinCard class="mi-seccion__join" />
+ */
+import Logo from '@components/brand/Logo.astro';
+import Icon from '@components/ui/Icon.astro';
+import { site } from '@data/site';
+
+interface Props {
+	/** Nivel del título según la jerarquía de la página */
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const { headingLevel: Heading = 'h3', class: className } = Astro.props;
+
+// ----- Contenido de la tarjeta -----
+const content = {
+	title: 'Únete a Peruana en Rusia:',
+	text: 'Sigue nuestras redes sociales y entérate de todas las novedades',
+};
+---
+
+<div class:list={['join-card', className]}>
+	<!-- Símbolo de la marca (decorativo) -->
+	<div class="join-card__symbol" aria-hidden="true">
+		<Logo variant="symbol" color="mono" width={369} />
+	</div>
+
+	<Heading class="join-card__title">{content.title}</Heading>
+	<p class="join-card__text">{content.text}</p>
+
+	<ul role="list" class="join-card__socials">
+		{site.socials.map((social) => (
+			<li>
+				<a
+					href={social.href}
+					class="join-card__social"
+					target="_blank"
+					rel="noopener"
+					aria-label={social.label}
+				>
+					<Icon name={social.icon} size={24} />
+				</a>
+			</li>
+		))}
+	</ul>
+</div>
+
+<style>
+	.join-card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+		width: 31.125rem; /* 498px */
+		min-height: 16.1875rem; /* 259px */
+		/* En Figma la tarjeta mide 259px y los íconos invaden 13px el padding inferior */
+		padding: 1.75rem var(--space-5) 0.9375rem; /* 28px 24px 15px */
+		border-radius: 1.75rem; /* 28px */
+		overflow: clip;
+		background-color: var(--color-red);
+		color: var(--color-pure-white);
+	}
+
+	/* ----- Símbolo: 369 × 236px, recortado por el borde derecho ----- */
+	.join-card__symbol {
+		position: absolute;
+		top: 0.75rem; /* 12px */
+		left: 20.0625rem; /* 321px */
+		z-index: -1;
+		width: 23.0625rem; /* 369px */
+		/* Rosado muy claro del símbolo en Figma (#FFF4F4) */
+		color: #fff4f4;
+		pointer-events: none;
+	}
+
+	.join-card__symbol :global(svg) {
+		width: 100%;
+		height: auto;
+	}
+
+	/* ----- Texto ----- */
+	.join-card__title {
+		max-width: 18.0625rem; /* 289px */
+		font-size: var(--font-size-h3);
+		font-weight: var(--font-weight-bold);
+		line-height: 2rem; /* 32px */
+	}
+
+	.join-card__text {
+		max-width: 19.125rem; /* 306px */
+		font-size: var(--font-size-md);
+		line-height: 1.5rem; /* 24px */
+	}
+
+	/* ----- Redes sociales: círculos de 56px ----- */
+	.join-card__socials {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		max-width: 16.5625rem; /* 265px → 4 en una fila */
+		margin: 0;
+		padding: 0;
+	}
+
+	.join-card__social {
+		display: grid;
+		place-items: center;
+		width: 3.5rem; /* 56px */
+		height: 3.5rem;
+		border: 1px solid var(--border-on-dark-strong);
+		border-radius: var(--radius-pill);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.join-card__social:hover {
+		border-color: currentColor;
+		background-color: color-mix(in srgb, currentColor 12%, transparent);
+	}
+
+	.join-card__social:focus-visible {
+		border-radius: var(--radius-pill);
+	}
+
+	/* ----- Móvil (Figma móvil 1433:1638): ancho completo, sin bordes redondeados ----- */
+	@media (max-width: 640px) {
+		.join-card {
+			gap: var(--space-3);
+			width: 100%;
+			min-height: 0;
+			padding: var(--space-7) 0.9375rem; /* 40px 15px */
+			border-radius: 0;
+		}
+
+		.join-card__symbol {
+			top: 9.3125rem; /* 149px */
+			left: 14.9375rem; /* 239px */
+			width: 15.375rem; /* 246px */
+		}
+
+		.join-card__title {
+			font-size: 2rem; /* 32px */
+			line-height: 2.25rem; /* 36px */
+		}
+
+		.join-card__text {
+			max-width: 12.9375rem; /* 207px */
+		}
+
+		.join-card__socials {
+			max-width: 10.5625rem; /* 169px → 2 por fila */
+		}
+	}
+</style>

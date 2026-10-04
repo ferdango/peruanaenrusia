@@ -1,0 +1,74 @@
+---
+/**
+ * /portal/mi-proceso/detalle/ — detalle de los pasos del proceso
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" (2026:135), contenido 2026:137.
+ *
+ * IMPORTANTE (para desarrolladores): esta página reproduce el frame de Figma
+ * tal cual, con TODAS las tarjetas de cada paso en sus distintos estados una
+ * debajo de otra. Sirve como REFERENCIA DE ESTADOS: en el portal real cada
+ * paso se mostrará una sola vez, en el estado que indique la API.
+ *
+ *   Paso 1 · Tus datos personales  → formulario (Terminado)
+ *   Paso 2 · Tus documentos        → En curso · En validación · Terminado
+ *   Paso 3 · Contrato              → En curso · En validación · Terminado
+ *   Paso 4 · Visado del estudiante → En curso · En validación · Terminado
+ *   Paso 5 · Viaje a Rusia         → descargas (Más adelante)
+ *
+ * Nota: en Figma las tarjetas de los pasos 3 y 4 muestran siempre la etiqueta
+ * "Más adelante"; aquí cada estado lleva su etiqueta (como en el paso 2).
+ */
+import PortalLayout from '@layouts/PortalLayout.astro';
+import PersonalDataForm from '@components/portal/PersonalDataForm.astro';
+import ProcessDocumentsStep from '@components/portal/ProcessDocumentsStep.astro';
+import ProcessTravelStep from '@components/portal/ProcessTravelStep.astro';
+import ProcessUploadStep from '@components/portal/ProcessUploadStep.astro';
+import StepCard from '@components/portal/StepCard.astro';
+import { getProcessStep } from '@data/portal';
+
+const personalData = getProcessStep('personal-data');
+const states = ['in-progress', 'in-review', 'done'] as const;
+---
+
+<PortalLayout
+	title="Mi proceso: detalle"
+	description="Completa cada paso de tu proceso para estudiar en Rusia."
+	currentStep="process"
+>
+	<h1 class="visually-hidden">Mi proceso: detalle de cada paso</h1>
+
+	<div class="process-detail">
+		<StepCard number={personalData.number} title={personalData.title} status={personalData.status}>
+			<PersonalDataForm />
+		</StepCard>
+
+		{states.map((state) => (
+			<ProcessDocumentsStep state={state} />
+		))}
+		{states.map((state) => (
+			<ProcessUploadStep stepId="contract" state={state} />
+		))}
+		{states.map((state) => (
+			<ProcessUploadStep stepId="visa" state={state} />
+		))}
+
+		<ProcessTravelStep />
+	</div>
+</PortalLayout>
+
+<style>
+	.process-detail {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4); /* 16px */
+		width: 100%;
+		max-width: 40rem; /* 640px */
+		margin: 2.75rem auto 0; /* 44px bajo el stepper */
+	}
+
+	@media (max-width: 640px) {
+		.process-detail {
+			margin-top: var(--space-6);
+		}
+	}
+</style>

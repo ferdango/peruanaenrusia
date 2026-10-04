@@ -1,0 +1,222 @@
+---
+/**
+ * PersonalDataForm — formulario "Tus datos personales" (paso 1)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › tarjeta del paso 1 (2026:138):
+ * campos (2026:146) + botón "Continuar" (2026:180).
+ *
+ * Campos con etiqueta flotante (PortalField) y texto de ayuda enlazado con
+ * aria-describedby. Al enviar se usa la validación nativa del navegador y
+ * luego src/scripts/portal-forms.ts (ahí va la llamada a la API).
+ * Las opciones de las listas salen de src/data/portal.ts.
+ *
+ * Uso (dentro de un StepCard):
+ *   <PersonalDataForm />
+ */
+import PortalButton from './PortalButton.astro';
+import PortalField from './PortalField.astro';
+import { careers, documentTypes, educationLevels, portalRoutes } from '@data/portal';
+
+// ----- Textos del formulario -----
+// Nota: en Figma varios textos de ayuda están repetidos por error; aquí cada
+// campo tiene una ayuda acorde (TODO: confirmar textos con el equipo).
+const content = {
+	firstNames: { label: 'Nombres completos', help: 'Tal como figuran en su documento.' },
+	lastNames: { label: 'Apellidos completos', help: 'Tal como figuran en su documento.' },
+	documentType: {
+		label: 'Tipo de documento',
+		help: 'Elija el tipo de documento de identidad que usará para identificarse.',
+	},
+	documentNumber: { label: 'Número de documento', help: 'Número de su documento de identidad.' },
+	birthDate: { label: 'Fecha de nacimiento', help: 'Tal como figura en su documento.' },
+	educationLevel: { label: 'Grado de estudios', help: 'Último grado de estudios alcanzado.' },
+	career: { label: 'Carrera de interés', help: 'Elija la carrera que le gustaría estudiar en Rusia.' },
+	minorQuestion: '¿Eres menor de edad?',
+	yes: 'Sí',
+	no: 'No',
+	submit: 'Continuar',
+};
+---
+
+<form class="personal-data-form" data-portal-form data-redirect={portalRoutes.process}>
+	<div class="personal-data-form__fields">
+		<PortalField
+			id="pd-first-names"
+			name="firstNames"
+			autocomplete="given-name"
+			label={content.firstNames.label}
+			help={content.firstNames.help}
+		/>
+		<PortalField
+			id="pd-last-names"
+			name="lastNames"
+			autocomplete="family-name"
+			label={content.lastNames.label}
+			help={content.lastNames.help}
+		/>
+		<PortalField
+			id="pd-document-type"
+			name="documentType"
+			label={content.documentType.label}
+			help={content.documentType.help}
+			options={documentTypes}
+			value={documentTypes[0]}
+		/>
+		<PortalField
+			id="pd-document-number"
+			name="documentNumber"
+			inputmode="numeric"
+			label={content.documentNumber.label}
+			help={content.documentNumber.help}
+		/>
+		<PortalField
+			id="pd-birth-date"
+			name="birthDate"
+			type="date"
+			autocomplete="bday"
+			label={content.birthDate.label}
+			help={content.birthDate.help}
+		/>
+		<PortalField
+			id="pd-education-level"
+			name="educationLevel"
+			label={content.educationLevel.label}
+			help={content.educationLevel.help}
+			options={educationLevels}
+		/>
+
+		<div class="personal-data-form__minor" role="radiogroup" aria-labelledby="pd-minor-label">
+			<p id="pd-minor-label" class="personal-data-form__question">
+				{content.minorQuestion}
+			</p>
+			<div class="personal-data-form__options">
+				<label class="portal-radio">
+					<input class="portal-radio__input" type="radio" name="isMinor" value="yes" />
+					<span>{content.yes}</span>
+				</label>
+				<label class="portal-radio">
+					<input class="portal-radio__input" type="radio" name="isMinor" value="no" checked />
+					<span>{content.no}</span>
+				</label>
+			</div>
+		</div>
+
+		<PortalField
+			id="pd-career"
+			name="career"
+			label={content.career.label}
+			help={content.career.help}
+			options={careers}
+			class="personal-data-form__wide"
+		/>
+	</div>
+
+	<PortalButton type="submit" width={200}>
+		{content.submit}
+	</PortalButton>
+</form>
+
+<script>
+	import { initPortalForms } from '@scripts/portal-forms';
+
+	initPortalForms();
+</script>
+
+<style>
+	.personal-data-form {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-7); /* 40px */
+	}
+
+	.personal-data-form__fields {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-4) var(--space-5); /* 16px 24px */
+		width: 100%;
+	}
+
+	.personal-data-form__fields :global(.personal-data-form__wide),
+	.personal-data-form__minor {
+		grid-column: 1 / -1;
+	}
+
+	/* ----- "¿Eres menor de edad?" ----- */
+	.personal-data-form__minor {
+		display: flex;
+		align-items: center;
+		gap: var(--space-7); /* 40px */
+		padding: var(--space-5); /* 24px */
+		border-radius: var(--portal-radius-field);
+		background-color: var(--portal-row);
+	}
+
+	.personal-data-form__question {
+		flex: 1;
+		color: var(--color-blue-title);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+	}
+
+	.personal-data-form__options {
+		display: flex;
+		align-items: center;
+		gap: var(--space-8); /* 48px */
+	}
+
+	.portal-radio {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3); /* 12px */
+		color: var(--color-blue-title);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		cursor: pointer;
+	}
+
+	/* Círculo de 28px con borde de 1.6px; marcado: punto de 16px (Figma) */
+	.portal-radio__input {
+		flex-shrink: 0;
+		width: 1.75rem;
+		height: 1.75rem;
+		margin: 0;
+		border: 1.6px solid var(--color-blue-title);
+		border-radius: var(--radius-pill);
+		background: transparent;
+		appearance: none;
+		cursor: pointer;
+	}
+
+	.portal-radio__input:checked {
+		background: radial-gradient(
+			circle,
+			var(--color-blue-title) 0 0.5rem,
+			transparent calc(0.5rem + 0.5px)
+		);
+	}
+
+	.portal-radio__input:focus-visible {
+		box-shadow: var(--focus-ring);
+		border-radius: var(--radius-pill);
+	}
+
+	@media (max-width: 640px) {
+		.personal-data-form__fields {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.personal-data-form__minor {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-3);
+			padding: var(--space-4);
+		}
+
+		.personal-data-form__options {
+			gap: var(--space-6);
+		}
+	}
+</style>

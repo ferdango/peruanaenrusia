@@ -24,34 +24,30 @@ const year = new Date().getFullYear();
 
 			<nav aria-label="Enlaces del pie de página">
 				<ul role="list" class="site-footer__nav">
-					{
-						footerNav.map((link) => (
-							<li>
-								<a href={link.href} class="site-footer__link">
-									{link.label}
-								</a>
-							</li>
-						))
-					}
+					{footerNav.map((link) => (
+						<li>
+							<a href={link.href} class="site-footer__link">
+								{link.label}
+							</a>
+						</li>
+					))}
 				</ul>
 			</nav>
 
 			<ul role="list" class="site-footer__socials">
-				{
-					site.socials.map((social) => (
-						<li>
-							<a
-								href={social.href}
-								class="site-footer__social"
-								target="_blank"
-								rel="noopener"
-								aria-label={social.label}
-							>
-								<Icon name={social.icon} size={24} />
-							</a>
-						</li>
-					))
-				}
+				{site.socials.map((social) => (
+					<li>
+						<a
+							href={social.href}
+							class="site-footer__social"
+							target="_blank"
+							rel="noopener"
+							aria-label={social.label}
+						>
+							<Icon name={social.icon} size={24} />
+						</a>
+					</li>
+				))}
 			</ul>
 		</div>
 

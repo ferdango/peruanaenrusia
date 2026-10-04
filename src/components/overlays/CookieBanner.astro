@@ -2,8 +2,181 @@
 /**
  * CookieBanner — aviso de cookies
  * --------------------------------------------------------------------------
- * TODO (en construcción): implementar el diseño de Figma "Modal Cookies".
+ * Figma: UI Desktop › "Modal Cookies" (4045:169): tarjeta clara con ícono de
+ * galleta, texto, enlace a la política y botones "Aceptar" / "Rechazar".
+ *
+ * - Fijo abajo a la izquierda en desktop; en móvil ocupa el ancho de la
+ *   pantalla (menos los márgenes). Queda sobre el contenido y el botón de
+ *   WhatsApp, pero debajo de los modales.
+ * - Se renderiza oculto (`hidden`) y src/scripts/cookie-consent.ts lo muestra
+ *   solo si la persona aún no eligió. La elección se guarda en localStorage
+ *   ("peru-cookie-consent" = "accepted" | "rejected").
+ *
+ * Nota de contenido: el texto de Figma mencionaba "PayPal" (texto de
+ * ejemplo); se cambió por "nuestros socios".
+ *
+ * Uso: ya está incluido en SiteLayout.
+ *   <CookieBanner />
  */
+import Icon from '@components/ui/Icon.astro';
+import { routes } from '@data/navigation';
+
+const content = {
+	label: 'Aviso de cookies',
+	text: 'Si aceptas las cookies, las usaremos para mejorar y personalizar tu experiencia y para permitir que nuestros socios te muestren anuncios personalizados cuando visites otros sitios web.',
+	link: 'Administrar las cookies y obtener más información',
+	accept: 'Aceptar',
+	reject: 'Rechazar',
+};
 ---
 
-<!-- Aviso de cookies: pendiente de implementación -->
+<section class="cookie-banner" aria-label={content.label} data-cookie-banner hidden>
+	<div class="cookie-banner__content">
+		<Icon name="cookie" size={56} class="cookie-banner__icon" />
+		<p class="cookie-banner__text">
+			{content.text}{' '}
+			<a class="cookie-banner__link" href={routes.legal}>
+				{content.link}
+			</a>
+		</p>
+	</div>
+
+	<div class="cookie-banner__actions">
+		<button type="button" class="cookie-banner__button" data-cookie-consent="accepted">
+			{content.accept}
+		</button>
+		<button type="button" class="cookie-banner__button" data-cookie-consent="rejected">
+			{content.reject}
+		</button>
+	</div>
+</section>
+
+<script>
+	import { initCookieBanner } from '@scripts/cookie-consent';
+	initCookieBanner();
+</script>
+
+<style>
+	.cookie-banner {
+		--cookie-banner-bg: #f8f8f8; /* Figma · "white 2" */
+
+		position: fixed;
+		/* Mismo margen que el botón flotante de WhatsApp (que va a la derecha) */
+		bottom: clamp(1rem, 2.6vw, 2.5rem);
+		left: clamp(1rem, 2.6vw, 2.5rem);
+		/* Sobre el botón de WhatsApp; los modales (<dialog>) siempre quedan encima */
+		z-index: calc(var(--z-floating) + 1);
+		display: flex;
+		flex-direction: column;
+		gap: 1.75rem; /* 28px */
+		width: 21.625rem; /* 346px */
+		max-width: calc(100vw - 2 * var(--space-4));
+		padding: var(--space-5) 1.75rem; /* 24px 28px */
+		border-radius: 1.75rem; /* 28px */
+		background-color: var(--cookie-banner-bg);
+		color: var(--text-on-light);
+		box-shadow: var(--shadow-float);
+		/* Entrada/salida (la clase .is-visible la pone el script) */
+		opacity: 0;
+		transform: translateY(16px);
+		pointer-events: none;
+		transition:
+			opacity var(--duration-slow) var(--ease-out),
+			transform var(--duration-slow) var(--ease-out);
+	}
+
+	.cookie-banner[hidden] {
+		display: none;
+	}
+
+	.cookie-banner.is-visible {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
+	}
+
+	.cookie-banner__content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4); /* 16px */
+	}
+
+	.cookie-banner__icon {
+		flex-shrink: 0;
+	}
+
+	/* Figma: ABeeZee 16/24 → Poppins Regular */
+	.cookie-banner__text {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+	}
+
+	.cookie-banner__link {
+		color: var(--color-blue);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.cookie-banner__link:hover {
+		color: var(--color-blue-title);
+	}
+
+	.cookie-banner__actions {
+		display: flex;
+		gap: var(--space-3); /* 12px */
+	}
+
+	/* Figma: botones de contorno tipo píldora, alto 56px, Poppins SemiBold 16 */
+	.cookie-banner__button {
+		display: flex;
+		flex: 1 1 0;
+		align-items: center;
+		justify-content: center;
+		min-width: 0;
+		min-height: 3.5rem;
+		padding: var(--space-2) var(--space-4);
+		border: 1px solid currentColor;
+		border-radius: var(--radius-pill);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.2;
+		color: var(--text-on-light);
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.cookie-banner__button:hover {
+		background-color: color-mix(in srgb, var(--color-black) 8%, transparent);
+	}
+
+	/* ----- Móvil: ancho de la pantalla menos márgenes, más compacto ----- */
+	@media (max-width: 640px) {
+		.cookie-banner {
+			right: var(--space-4);
+			bottom: var(--space-4);
+			left: var(--space-4);
+			gap: var(--space-4);
+			width: auto;
+			max-width: none;
+			padding: var(--space-5);
+			border-radius: var(--radius-lg);
+		}
+
+		.cookie-banner__content {
+			gap: var(--space-3);
+		}
+
+		.cookie-banner__icon {
+			width: 40px;
+			height: 40px;
+		}
+
+		.cookie-banner__text {
+			font-size: var(--font-size-sm);
+			line-height: 1.25rem;
+		}
+
+		.cookie-banner__button {
+			min-height: 3rem;
+		}
+	}
+</style>

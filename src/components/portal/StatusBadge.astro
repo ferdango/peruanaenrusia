@@ -1,0 +1,62 @@
+---
+/**
+ * StatusBadge — etiqueta de estado de un paso del proceso
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 12" › "Terminado" (2113:50) y
+ * "Más adelante" (2113:138); "MacBook Pro 14' - 8" › "En curso" / "En validación".
+ *
+ *   done        → "Terminado"     · fondo verde, texto claro
+ *   in-progress → "En curso"      · fondo azul, texto claro
+ *   in-review   → "En validación" · fondo gris, texto oscuro
+ *   upcoming    → "Más adelante"  · fondo gris, texto oscuro
+ *
+ * Los textos salen de src/data/portal.ts (stepStatusLabels).
+ *
+ * Uso:
+ *   <StatusBadge status="done" />
+ */
+import { stepStatusLabels, type StepStatus } from '@data/portal';
+
+interface Props {
+	status: StepStatus;
+	class?: string;
+}
+
+const { status, class: className } = Astro.props;
+---
+
+<span class:list={['status-badge', `status-badge--${status}`, className]}>
+	<span class="visually-hidden">Estado:</span>
+	{stepStatusLabels[status]}
+</span>
+
+<style>
+	.status-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		padding: var(--space-2) var(--space-3); /* 8px 12px */
+		border-radius: var(--radius-sm);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		white-space: nowrap;
+	}
+
+	.status-badge--done {
+		background-color: var(--color-green);
+		color: var(--color-white);
+	}
+
+	.status-badge--in-progress {
+		background-color: var(--color-blue-title);
+		color: var(--color-white);
+	}
+
+	.status-badge--in-review,
+	.status-badge--upcoming {
+		background-color: var(--color-white);
+		color: var(--text-on-light);
+	}
+</style>

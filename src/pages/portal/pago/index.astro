@@ -1,0 +1,20 @@
+---
+/**
+ * /portal/pago/ — pago de la inscripción
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" (1860:326).
+ * Datos de la transferencia, constancia de pago y botón "Ya transferí"
+ * (lleva a /portal/pago/enviado/).
+ */
+import PortalLayout from '@layouts/PortalLayout.astro';
+import PaymentForm from '@components/portal/PaymentForm.astro';
+---
+
+<PortalLayout
+	title="Pago"
+	description="Transfiere el pago de tu inscripción y adjunta la constancia."
+	currentStep="payment"
+>
+	<h1 class="visually-hidden">Pago de tu inscripción</h1>
+	<PaymentForm />
+</PortalLayout>

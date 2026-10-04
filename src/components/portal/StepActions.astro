@@ -1,0 +1,39 @@
+---
+/**
+ * StepActions — fila centrada de botones al final de una tarjeta de paso
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › "Volver" + "Enviar documentos"
+ * (2223:467), "Continuar" (2227:542).
+ *
+ * Uso:
+ *   <StepActions>
+ *       <PortalButton variant="outline" width={190}>Volver</PortalButton>
+ *       <PortalButton type="submit" width={200}>Enviar documentos</PortalButton>
+ *   </StepActions>
+ */
+---
+
+<div class="step-actions">
+	<slot />
+</div>
+
+<style>
+	.step-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-3); /* 12px */
+	}
+
+	@media (max-width: 640px) {
+		.step-actions {
+			flex-direction: column-reverse;
+			align-items: stretch;
+		}
+
+		.step-actions :global(.portal-btn) {
+			width: 100%;
+		}
+	}
+</style>

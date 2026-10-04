@@ -1,0 +1,114 @@
+---
+/**
+ * AuthField — campo de texto del modal de inicio de sesión / registro
+ * --------------------------------------------------------------------------
+ * Figma: "Modal Login" › campo "Correo (personal o del trabajo)" (1807:4502)
+ * y campo "Código" (1809:4546).
+ *
+ * Etiqueta + input + mensaje de error. El error se asocia al input con
+ * aria-describedby y se anuncia (aria-live). La validación usa los atributos
+ * nativos (required, type, pattern…) y los textos de `messages`, que se
+ * leen desde src/scripts/auth-flow.ts (data-msg-required / data-msg-invalid).
+ *
+ * Uso:
+ *   <AuthField
+ *       id="auth-login-email"
+ *       label="Correo (personal o del trabajo)"
+ *       name="email"
+ *       type="email"
+ *       required
+ *       messages={{ required: 'Ingresa tu correo.', invalid: 'Revisa el formato.' }}
+ *   />
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name'> {
+	id: string;
+	label: string;
+	name: string;
+	/** Mensajes de error: campo vacío y formato inválido */
+	messages: { required: string; invalid?: string };
+}
+
+const { id, label, name, messages, class: className, ...attrs } = Astro.props;
+const errorId = `${id}-error`;
+---
+
+<div class="auth-field" data-auth-field>
+	<label class="auth-field__label" for={id}>
+		{label}
+	</label>
+	<input
+		class:list={['auth-field__input', className]}
+		id={id}
+		name={name}
+		aria-describedby={errorId}
+		data-msg-required={messages.required}
+		data-msg-invalid={messages.invalid}
+		{...attrs}
+	/>
+	<p class="auth-field__error" id={errorId} aria-live="polite" data-auth-error></p>
+</div>
+
+<style>
+	.auth-field {
+		/* Rojo de marca oscurecido: contraste AA sobre el fondo claro del modal */
+		--auth-field-error: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Figma: Circular Std Medium 12/16 → Poppins Medium */
+	.auth-field__label {
+		margin-bottom: var(--space-1);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		line-height: 1rem;
+		color: var(--text-on-light);
+	}
+
+	/* Figma: borde 1px negro 40 %, alto 60px, padding 16px (borde interior), radio 12px */
+	.auth-field__input {
+		width: 100%;
+		height: 3.75rem;
+		padding: calc(var(--space-4) - 1px);
+		border: 1px solid color-mix(in srgb, var(--color-black) 40%, transparent);
+		border-radius: var(--radius-md);
+		background-color: transparent;
+		font-size: var(--font-size-md);
+		line-height: 1.25rem;
+		color: var(--text-on-light);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-base) var(--ease-out);
+	}
+
+	.auth-field__input::placeholder {
+		color: color-mix(in srgb, var(--color-black) 64%, transparent);
+		opacity: 1;
+	}
+
+	.auth-field__input:hover {
+		border-color: color-mix(in srgb, var(--color-black) 64%, transparent);
+	}
+
+	.auth-field__input:focus-visible {
+		border-color: var(--color-blue-title);
+	}
+
+	.auth-field__input[aria-invalid='true'] {
+		border-color: var(--auth-field-error);
+	}
+
+	/* Vacío no ocupa espacio (no mueve el diseño); con texto se separa del input */
+	.auth-field__error {
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		color: var(--auth-field-error);
+	}
+
+	.auth-field__error:not(:empty) {
+		margin-top: var(--space-2);
+	}
+</style>

@@ -17,9 +17,8 @@
  * (con fill/stroke="currentColor") y úsalo por su nombre. No hay que
  * registrarlo en ningún otro lugar.
  *
- * Íconos disponibles: account, arrow-right, book, chevron-left, chevron-right,
- * close, facebook, instagram, menu, minus, pause, play, quote, tiktok, volume,
- * volume-mute, youtube, youtube-play (+ los que se agreguen a la carpeta).
+ * Íconos disponibles: todos los archivos de src/assets/icons/ (account, arrow-right,
+ * chevron-left, close, copy, google, play, upload, whatsapp, youtube, …).
  */
 import type { HTMLAttributes } from 'astro/types';
 
@@ -30,7 +29,10 @@ const iconFiles = import.meta.glob<{ default: (props: Record<string, unknown>) =
 );
 
 const icons = Object.fromEntries(
-	Object.entries(iconFiles).map(([path, module]) => [path.split('/').pop()!.replace('.svg', ''), module.default]),
+	Object.entries(iconFiles).map(([path, module]) => [
+		path.split('/').pop()!.replace('.svg', ''),
+		module.default,
+	]),
 );
 
 /** Nombre de un ícono = nombre de su archivo en src/assets/icons/ (sin .svg) */

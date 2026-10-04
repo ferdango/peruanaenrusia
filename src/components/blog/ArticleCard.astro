@@ -1,0 +1,135 @@
+---
+/**
+ * ArticleCard
+ * --------------------------------------------------------------------------
+ * Tarjeta de artículo del blog: foto cuadrada que se funde con el fondo
+ * oscuro, título y fecha (Figma: Blog › "Clásicos", 1715:588 › 1715:511).
+ * Toda la tarjeta es clicable y lleva a /blog/{slug}/.
+ *
+ * Ocupa el ancho de su contenedor (320px en la grilla de 4 columnas); la
+ * foto es siempre cuadrada y el texto termina 40px debajo de ella.
+ *
+ * Uso:
+ *   <ArticleCard article={article} />
+ */
+import { Image } from 'astro:assets';
+
+import type { Article } from '@data/articles';
+import { detailRoutes } from '@data/navigation';
+import { formatDate } from '@utils/format';
+
+interface Props {
+	article: Article;
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const { article, headingLevel: Heading = 'h3', class: className } = Astro.props;
+---
+
+<article class:list={['article-card', className]}>
+	<div class="article-card__media">
+		<Image
+			src={article.image}
+			alt=""
+			widths={[320, 640]}
+			sizes="(max-width: 640px) 80vw, 320px"
+			class="article-card__image"
+		/>
+	</div>
+
+	<div class="article-card__body">
+		<Heading class="article-card__title">
+			<a href={detailRoutes.blogPost(article.slug)} class="article-card__link">
+				{article.title}
+			</a>
+		</Heading>
+		<p class="article-card__date">
+			<time datetime={article.date}>{formatDate(article.date)}</time>
+		</p>
+	</div>
+</article>
+
+<style>
+	/* Foto y texto comparten la misma celda de la grilla (el texto encima) */
+	.article-card {
+		position: relative;
+		display: grid;
+		width: var(--article-card-width, 100%);
+		padding-bottom: 2.5rem; /* el texto baja 40px por debajo de la foto */
+		border-radius: var(--radius-xl);
+		color: var(--text-on-dark);
+	}
+
+	.article-card__media,
+	.article-card__body {
+		grid-area: 1 / 1;
+	}
+
+	/* ----- Foto cuadrada con degradado inferior ----- */
+	.article-card__media {
+		position: relative;
+		aspect-ratio: 1;
+		border-radius: var(--radius-xl);
+		overflow: clip;
+	}
+
+	.article-card__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	/* Degradado: los 240px inferiores (de 320) se funden con el fondo */
+	.article-card__media::after {
+		content: '';
+		position: absolute;
+		inset: 25% 0 0;
+		background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
+	}
+
+	.article-card:hover .article-card__image {
+		transform: scale(1.04);
+	}
+
+	/* ----- Texto: alineado abajo y desplazado 40px bajo la foto ----- */
+	.article-card__body {
+		z-index: 1;
+		align-self: end;
+		display: flex;
+		flex-direction: column;
+		margin-bottom: -2.5rem;
+		padding: var(--space-4) var(--space-5) var(--space-5);
+	}
+
+	.article-card__title {
+		font-size: var(--font-size-h4);
+		font-weight: var(--font-weight-regular);
+		line-height: 1.33; /* 32px */
+	}
+
+	.article-card__date {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(244 244 244 / 0.75);
+	}
+
+	/* Toda la tarjeta es clicable */
+	.article-card__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+	}
+
+	.article-card__link:focus-visible {
+		box-shadow: none;
+	}
+
+	.article-card:focus-within {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+</style>

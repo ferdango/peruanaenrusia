@@ -1,0 +1,151 @@
+---
+/**
+ * ProcessDocumentsStep — paso 2 "Tus documentos" en sus tres estados
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8":
+ *   state="in-progress" → 2223:366 · lista de documentos para subir, notas
+ *                         "Antes de enviar" y botones Volver / Enviar documentos.
+ *   state="in-review"   → 2026:181 · mensaje "están siendo revisados".
+ *   state="done"        → 2227:504 · "Tus documentos están listos" con botón
+ *                         "Descargar documentos" y "Continuar".
+ *
+ * Documentos y textos: src/data/portal.ts.
+ *
+ * Uso:
+ *   <ProcessDocumentsStep state="in-progress" />
+ */
+import DocumentRow from './DocumentRow.astro';
+import InfoNote from './InfoNote.astro';
+import PortalButton from './PortalButton.astro';
+import StepActions from './StepActions.astro';
+import StepCard from './StepCard.astro';
+import StepIllustration from './StepIllustration.astro';
+import StepMessage from './StepMessage.astro';
+import {
+	documentsNotes,
+	getProcessStep,
+	notarizedDocuments,
+	portalRoutes,
+	requiredDocuments,
+	reviewMessage,
+	stepMessages,
+} from '@data/portal';
+
+interface Props {
+	state: 'in-progress' | 'in-review' | 'done';
+}
+
+const { state } = Astro.props;
+const step = getProcessStep('documents');
+
+// ----- Textos -----
+const content = {
+	notesTitle: 'Antes de enviar:',
+	back: 'Volver',
+	submit: 'Enviar documentos',
+	continue: 'Continuar',
+};
+---
+
+<StepCard number={step.number} title={step.title} status={state} bodyGap={40}>
+	<StepIllustration name="documents" />
+
+	{state === 'in-progress' && (
+		<form class="documents-step" data-portal-form data-redirect={portalRoutes.process}>
+			<div class="documents-step__content">
+				<div class="documents-step__list">
+					{requiredDocuments.map((document) => (
+						<DocumentRow
+							id={`documents-${document.id}`}
+							title={document.title}
+							description={document.description}
+							download={document.download}
+						/>
+					))}
+				</div>
+				<InfoNote title={content.notesTitle} items={documentsNotes} />
+			</div>
+
+			<StepActions>
+				<PortalButton
+					variant="outline"
+					width={190}
+					data-portal-back
+					data-fallback={portalRoutes.process}
+				>
+					{content.back}
+				</PortalButton>
+				<PortalButton type="submit" width={200}>
+					{content.submit}
+				</PortalButton>
+			</StepActions>
+		</form>
+	)}
+
+	{state === 'in-review' && <StepMessage title={stepMessages.documents.review} text={reviewMessage} />}
+
+	{state === 'done' && (
+		<>
+			<div class="documents-step__ready">
+				<StepMessage title={stepMessages.documents.done} class="documents-step__ready-title" />
+				<DocumentRow
+					id="documents-notarized"
+					title={notarizedDocuments.title}
+					description={notarizedDocuments.description}
+					action="download"
+					actionLabel={notarizedDocuments.actionLabel}
+					href={notarizedDocuments.href}
+					class="documents-step__download"
+				/>
+			</div>
+			<StepActions>
+				<PortalButton href={portalRoutes.process} width={200}>
+					{content.continue}
+				</PortalButton>
+			</StepActions>
+		</>
+	)}
+</StepCard>
+
+<script>
+	import { initPortalForms } from '@scripts/portal-forms';
+
+	initPortalForms();
+</script>
+
+<style>
+	.documents-step {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7); /* 40px */
+	}
+
+	.documents-step__content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5); /* 24px */
+	}
+
+	.documents-step__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+	}
+
+	/* "Tus documentos están listos" + fila de descarga */
+	.documents-step__ready {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5); /* 24px */
+	}
+
+	.documents-step__ready :global(.documents-step__ready-title) {
+		max-width: none;
+		margin-bottom: 0;
+	}
+
+	/* En Figma el bloque de texto de esta fila mide 237px */
+	.documents-step__ready :global(.documents-step__download .document-row__text) {
+		max-width: 14.8125rem;
+	}
+</style>

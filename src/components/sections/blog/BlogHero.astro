@@ -1,0 +1,206 @@
+---
+/**
+ * BlogHero — "Nuestro Blog"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14" - 6" (1519:383) › "Frame 23" (1519:447)
+ * · UI Mobile › Blog (1081:188) › 1082:221.
+ *
+ * Portada del blog: título principal (h1), bajada y los recursos gráficos de
+ * la marca (onda azul, onda naranja y dos estrellas de 4 puntas), dibujados
+ * en un lienzo de 1512px centrado (ancho de Figma).
+ *
+ * La onda naranja baja hasta el borde superior de las tarjetas de
+ * "Novedades" (sección siguiente), como en el diseño.
+ *
+ * Uso: primera sección de src/pages/blog/index.astro
+ *   <BlogHero />
+ */
+import StarTall from '@assets/graphics/stars/star-sparkle-tall.svg';
+import Star from '@assets/graphics/stars/star-sparkle.svg';
+import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
+import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Nuestro Blog',
+	subtitle: '¿Siempre quisiste estudiar fuera del país? Ahora sí es posible',
+};
+---
+
+<section class="blog-hero" aria-labelledby="blog-hero-title">
+	<!-- Ondas planas y estrellas de la marca (decorativas) -->
+	<div class="blog-hero__decor" aria-hidden="true">
+		<div class="blog-hero__canvas">
+			<div class="blog-hero__art blog-hero__art--wave-blue">
+				<WaveBlue />
+			</div>
+			<div class="blog-hero__art blog-hero__art--wave-orange">
+				<WaveOrange />
+			</div>
+			<div class="blog-hero__art blog-hero__art--star-skyblue">
+				<StarTall />
+			</div>
+			<div class="blog-hero__art blog-hero__art--star-yellow">
+				<Star />
+			</div>
+		</div>
+	</div>
+
+	<div class="blog-hero__content container">
+		<h1 id="blog-hero-title" class="blog-hero__title">
+			{content.title}
+		</h1>
+		<p class="blog-hero__subtitle">{content.subtitle}</p>
+	</div>
+</section>
+
+<style>
+	/*
+	 * Medidas de Figma: el hero mide 380px de alto con el texto centrado
+	 * (128px arriba) y "Novedades" empieza 294px debajo del header, por eso
+	 * el padding inferior es de solo 42px (las secciones se superponen).
+	 */
+	.blog-hero {
+		position: relative;
+		padding-block: 8rem 2.625rem; /* 128px · 42px */
+	}
+
+	/* ----- Texto centrado ----- */
+	.blog-hero__content {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		text-align: center;
+		color: var(--color-pure-white);
+	}
+
+	.blog-hero__title {
+		font-size: var(--font-size-display);
+		line-height: 1;
+	}
+
+	.blog-hero__subtitle {
+		max-width: 36rem; /* 576px */
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+	}
+
+	/*
+	 * ----- Decoración -----
+	 * La capa ocupa todo el ancho y 414px de alto (hasta el borde superior de
+	 * las tarjetas de "Novedades"); lo que sobresale se recorta con `clip`.
+	 * Dentro, un lienzo de 1512px centrado usa las coordenadas de Figma.
+	 */
+	.blog-hero__decor {
+		position: absolute;
+		inset: 0 0 auto;
+		height: 25.875rem; /* 414px */
+		overflow: clip;
+		pointer-events: none;
+	}
+
+	.blog-hero__canvas {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 1512px;
+		height: 23.75rem; /* 380px: alto del hero en Figma */
+		transform: translateX(-50%);
+		transform-origin: top center;
+	}
+
+	.blog-hero__art {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.blog-hero__art :global(svg) {
+		flex: none;
+		max-width: none;
+	}
+
+	.blog-hero__art--wave-blue {
+		left: -1000px;
+		top: -180px;
+		width: 1882.919px;
+		height: 657.172px;
+	}
+
+	.blog-hero__art--wave-blue :global(svg) {
+		transform: rotate(171.79deg) scale(1, -1) skewX(4.69deg);
+	}
+
+	.blog-hero__art--wave-orange {
+		left: 753px;
+		top: -101px;
+		width: 1674.036px;
+		height: 789.549px;
+	}
+
+	.blog-hero__art--wave-orange :global(svg) {
+		transform: rotate(163.75deg) skewX(4.69deg);
+	}
+
+	.blog-hero__art--star-skyblue {
+		left: 315px;
+		top: 78px;
+		width: 31.616px;
+		height: 41.116px;
+		color: var(--color-skyblue);
+	}
+
+	.blog-hero__art--star-skyblue :global(svg) {
+		transform: rotate(16.91deg) scale(1, 0.99) skewX(8.11deg);
+	}
+
+	.blog-hero__art--star-yellow {
+		left: 1116px;
+		top: 308px;
+		width: 23.454px;
+		height: 28.141px;
+		color: var(--color-yellow);
+	}
+
+	.blog-hero__art--star-yellow :global(svg) {
+		transform: rotate(-27.65deg) scale(1, 0.99) skewX(-7.4deg);
+	}
+
+	/* ----- Tablet: el lienzo se reduce para que las ondas sigan visibles ----- */
+	@media (max-width: 1100px) {
+		.blog-hero {
+			padding-block: var(--space-10) var(--space-6);
+		}
+
+		.blog-hero__decor {
+			height: 100%;
+		}
+
+		.blog-hero__canvas {
+			transform: translateX(-50%) scale(0.72);
+		}
+	}
+
+	/* ----- Móvil (Figma 1082:221) ----- */
+	@media (max-width: 640px) {
+		.blog-hero {
+			padding-block: var(--space-9) var(--space-6);
+		}
+
+		.blog-hero__title {
+			font-size: 2.5rem; /* 40px */
+		}
+
+		.blog-hero__subtitle {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.blog-hero__canvas {
+			transform: translateX(-50%) scale(0.42);
+		}
+	}
+</style>

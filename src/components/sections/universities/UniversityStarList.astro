@@ -1,0 +1,69 @@
+---
+/**
+ * UniversityStarList — Lista con viñetas de estrella de 4 puntas
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › listas
+ * "La universidad cuenta con:" (3324:163) y rankings (3329:167).
+ *
+ * Cada ítem lleva la estrella azul de la marca como viñeta (decorativa).
+ *
+ * Uso: <UniversityStarList items={['43 facultades…', '15 institutos…']} />
+ */
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+interface Props {
+	items: string[];
+	class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<ul class:list={['star-list', className]} role="list">
+	{items.map((item) => (
+		<li class="star-list__item">
+			<Star class="star-list__icon" aria-hidden="true" />
+			<span>{item}</span>
+		</li>
+	))}
+</ul>
+
+<style>
+	.star-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4); /* 16px */
+		padding-left: 1.75rem; /* 28px de sangría */
+	}
+
+	.star-list__item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3); /* 12px */
+		font-size: var(--font-size-h4); /* 24px */
+		line-height: 1.33; /* 32px */
+	}
+
+	.star-list__icon {
+		flex: none;
+		color: var(--color-blue);
+	}
+
+	@media (max-width: 640px) {
+		.star-list {
+			gap: var(--space-3);
+			padding-left: 0;
+		}
+
+		.star-list__item {
+			align-items: flex-start;
+		}
+
+		.star-list__icon {
+			width: 1.125rem;
+			height: auto;
+			margin-top: 0.2em;
+			aspect-ratio: 1;
+		}
+	}
+</style>

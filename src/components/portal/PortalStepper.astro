@@ -1,0 +1,170 @@
+---
+/**
+ * PortalStepper — progreso "Registro → Pago → Mi Proceso"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 7" › stepper (2252:573, paso 2
+ * activo) y "MacBook Pro 14' - 12" › stepper (2267:701, paso 3 activo).
+ *
+ * Estados de cada paso (se calculan a partir de `current`):
+ *   done    → círculo azul con check (pasos anteriores)
+ *   active  → círculo azul con el número (paso actual)
+ *   pending → círculo vacío celeste claro (pasos siguientes)
+ * La línea que llega a un paso se pinta de celeste si ese paso ya se alcanzó.
+ *
+ * Los pasos y sus enlaces viven en src/data/portal.ts (portalSteps).
+ *
+ * Uso (ya lo incluye PortalLayout con la prop `currentStep`):
+ *   <PortalStepper current="payment" />
+ */
+import Icon from '@components/ui/Icon.astro';
+import { portalSteps, type PortalStepId } from '@data/portal';
+
+interface Props {
+	/** Paso actual */
+	current: PortalStepId;
+}
+
+const { current } = Astro.props;
+
+type StepState = 'done' | 'active' | 'pending';
+
+const currentIndex = portalSteps.findIndex((step) => step.id === current);
+
+/** Texto para lectores de pantalla según el estado */
+const stateLabels: Record<StepState, string> = {
+	done: 'completado',
+	active: 'paso actual',
+	pending: 'pendiente',
+};
+
+const steps = portalSteps.map((step, index) => ({
+	...step,
+	number: index + 1,
+	state: (index < currentIndex ? 'done' : index === currentIndex ? 'active' : 'pending') as StepState,
+}));
+---
+
+<nav class="portal-stepper" aria-label="Progreso de tu inscripción">
+	<ol class="portal-stepper__list" role="list">
+		{steps.map((step) => {
+			const Tag = step.href ? 'a' : 'span';
+			return (
+				<li class:list={['portal-stepper__item', `portal-stepper__item--${step.state}`]}>
+					<Tag
+						class="portal-stepper__step"
+						href={step.href}
+						aria-current={step.state === 'active' ? 'step' : undefined}
+					>
+						<span class="portal-stepper__circle" aria-hidden="true">
+							{step.state === 'done' ? <Icon name="check" size={24} /> : step.number}
+						</span>
+						<span class="portal-stepper__label">
+							{step.label}
+							<span class="visually-hidden">({stateLabels[step.state]})</span>
+						</span>
+					</Tag>
+				</li>
+			);
+		})}
+	</ol>
+</nav>
+
+<style>
+	.portal-stepper {
+		--stepper-column: 13rem; /* 208px entre centros de círculo (Figma) */
+		--stepper-circle: 3rem; /* 48px */
+		--stepper-line: 0.375rem; /* 6px */
+	}
+
+	.portal-stepper__list {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, var(--stepper-column)));
+		justify-content: center;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.portal-stepper__item {
+		--step-color: var(--color-blue-title);
+		--step-ring: var(--color-skyblue);
+		--step-fill: var(--color-blue-title);
+		--step-number: var(--color-white);
+
+		position: relative;
+		display: flex;
+		justify-content: center;
+	}
+
+	.portal-stepper__item--pending {
+		--step-color: var(--portal-step-pending);
+		--step-ring: var(--portal-step-pending);
+		--step-fill: transparent;
+		--step-number: var(--portal-step-pending);
+	}
+
+	/* Línea que une el círculo anterior con el actual */
+	.portal-stepper__item + .portal-stepper__item::before {
+		content: '';
+		position: absolute;
+		top: calc((var(--stepper-circle) - var(--stepper-line)) / 2);
+		left: calc(-50% + var(--stepper-circle) / 2);
+		right: calc(50% + var(--stepper-circle) / 2);
+		height: var(--stepper-line);
+		background-color: var(--step-ring);
+	}
+
+	.portal-stepper__step {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		color: var(--step-color);
+	}
+
+	.portal-stepper__circle {
+		display: grid;
+		place-items: center;
+		width: var(--stepper-circle);
+		height: var(--stepper-circle);
+		border: var(--stepper-line) solid var(--step-ring);
+		border-radius: var(--radius-pill);
+		background-color: var(--step-fill);
+		color: var(--step-number);
+		font-size: var(--font-size-h4);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+	}
+
+	.portal-stepper__label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+		text-align: center;
+		white-space: nowrap;
+	}
+
+	a.portal-stepper__step:hover .portal-stepper__label {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	@media (max-width: 640px) {
+		.portal-stepper {
+			--stepper-circle: 2.5rem; /* 40px */
+			--stepper-line: 0.25rem; /* 4px */
+		}
+
+		.portal-stepper__circle {
+			font-size: var(--font-size-lg);
+		}
+
+		.portal-stepper__circle :global(svg) {
+			width: 1.25rem;
+			height: 1.25rem;
+		}
+
+		.portal-stepper__label {
+			font-size: var(--font-size-xs);
+		}
+	}
+</style>

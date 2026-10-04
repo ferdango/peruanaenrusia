@@ -1,14 +1,209 @@
 ---
 /**
- * LanguageModal — selector de idioma y región
+ * LanguageModal — selector "Idioma y región"
  * --------------------------------------------------------------------------
- * TODO (en construcción): implementar el diseño de Figma "Modal Idiomas".
+ * Figma: UI Desktop › "Modal Idiomas" (4028:113): panel oscuro con las
+ * opciones de idioma y su bandera; la opción elegida tiene fondo más oscuro.
+ *
+ * - En desktop se muestra como un desplegable debajo de la píldora de idioma
+ *   del header; en móvil, centrado en la pantalla.
+ * - Al elegir una opción se guarda en localStorage ("peru-lang"), se
+ *   actualiza la píldora del header (bandera + ES/EN/RU) y se cierra.
+ *   Lógica en src/scripts/language.ts.
+ * - Las opciones salen de src/data/languages.ts.
+ *
+ * TODO (i18n): la traducción real del sitio está pendiente; por ahora solo
+ * se recuerda la preferencia (ver src/data/languages.ts).
  *
  * Se abre con cualquier elemento que tenga data-dialog-open="language-modal".
  */
+import { Image, getImage } from 'astro:assets';
+
+import { languages, defaultLanguage } from '@data/languages';
+
+const content = {
+	title: 'Idioma y región',
+};
+
+// Bandera de 24px para la píldora del header: mismos parámetros que usa
+// SiteHeader, así el script puede cambiarla sin descargar otra imagen.
+const options = await Promise.all(
+	languages.map(async (language) => ({
+		...language,
+		pillFlagSrc: (await getImage({ src: language.flag, width: 24, height: 24 })).src,
+	})),
+);
 ---
 
-<dialog id="language-modal" class="language-modal" aria-label="Idioma y región">
-	<p>Idioma y región</p>
-	<button type="button" data-dialog-close>Cerrar</button>
+<dialog
+	id="language-modal"
+	class="language-modal"
+	aria-labelledby="language-modal-title"
+	data-default-language={defaultLanguage}
+>
+	<div class="language-modal__panel">
+		<h2 id="language-modal-title" class="language-modal__title">
+			{content.title}
+		</h2>
+
+		<ul role="list" class="language-modal__list">
+			{options.map((language) => (
+				<li>
+					<button
+						type="button"
+						class="language-option"
+						aria-pressed={language.code === defaultLanguage ? 'true' : 'false'}
+						data-language-option={language.code}
+						data-language-short={language.short}
+						data-language-name={language.name}
+						data-language-flag={language.pillFlagSrc}
+					>
+						<span class="language-option__text">
+							<span
+								class="language-option__label"
+								lang={language.labelLang === 'es' ? undefined : language.labelLang}
+							>
+								{language.label}
+							</span>
+							<span class="language-option__region" lang={language.regionLang}>
+								{language.region}
+							</span>
+						</span>
+						<Image
+							src={language.flag}
+							alt=""
+							width={24}
+							height={24}
+							densities={[1, 2]}
+							loading="eager"
+							class="language-option__flag"
+						/>
+					</button>
+				</li>
+			))}
+		</ul>
+	</div>
 </dialog>
+
+<script>
+	import { initLanguageSelector } from '@scripts/language';
+	initLanguageSelector();
+</script>
+
+<style>
+	/* ----- <dialog>: desplegable bajo la píldora del header (posición desde el script) ----- */
+	.language-modal {
+		/* Colores de Figma sin token propio */
+		--language-modal-bg: #141d21; /* Fondo del panel */
+		--language-option-selected: #060b0d; /* Opción elegida */
+		--language-region: #c6caca; /* "gray": región bajo el idioma */
+
+		position: fixed;
+		inset: var(--language-modal-top, calc(var(--header-height) + var(--space-2))) auto auto
+			var(--language-modal-left, var(--gutter));
+		width: 20.5625rem; /* 329px */
+		max-width: calc(100vw - 2 * var(--space-4));
+		max-height: calc(100dvh - 2 * var(--space-4));
+		margin: 0;
+		padding: 0;
+		border: 0;
+		overflow: visible;
+		background: transparent;
+		color: var(--text-on-dark);
+	}
+
+	.language-modal::backdrop {
+		background: rgb(0 0 0 / 0.35);
+	}
+
+	.language-modal[open] .language-modal__panel {
+		animation: language-modal-in var(--duration-base) var(--ease-out);
+	}
+
+	@keyframes language-modal-in {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+	}
+
+	/* Figma: padding 20/16, gap 12, radio 24 */
+	.language-modal__panel {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		padding: 1.25rem var(--space-4);
+		border-radius: var(--radius-lg);
+		background-color: var(--language-modal-bg);
+		box-shadow: var(--shadow-float);
+	}
+
+	/* Figma: Poppins Bold 16/36, azul #199AF4 */
+	.language-modal__title {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 2.25rem;
+		letter-spacing: -0.165px;
+		color: var(--color-blue-3);
+	}
+
+	/* ----- Opción ----- */
+	.language-option {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-4);
+		width: 100%;
+		padding: var(--space-4);
+		border-radius: 1rem; /* 16px */
+		letter-spacing: -0.165px;
+		text-align: left;
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.language-option:hover {
+		background-color: color-mix(in srgb, var(--language-option-selected) 55%, transparent);
+	}
+
+	.language-option[aria-pressed='true'] {
+		background-color: var(--language-option-selected);
+	}
+
+	.language-option__text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Figma: Charlie Display Semibold 16/24 → Poppins SemiBold */
+	.language-option__label {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+		color: var(--color-white);
+	}
+
+	/* Figma: Charlie Display Regular 14/16 → Poppins Regular */
+	.language-option__region {
+		font-size: var(--font-size-sm);
+		line-height: 1rem;
+		color: var(--language-region);
+	}
+
+	/* Bandera de 24px a 22px del borde superior de la opción (Figma) */
+	.language-option__flag {
+		flex-shrink: 0;
+		width: 24px;
+		height: 24px;
+		margin-top: 6px;
+		border-radius: var(--radius-pill);
+	}
+
+	/* ----- Móvil: centrado en la pantalla ----- */
+	@media (max-width: 640px) {
+		.language-modal {
+			inset: 0;
+			height: fit-content;
+			margin: auto;
+		}
+	}
+</style>

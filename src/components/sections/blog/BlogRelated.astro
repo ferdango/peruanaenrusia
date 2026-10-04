@@ -1,0 +1,67 @@
+---
+/**
+ * BlogRelated — "Temas relacionados"
+ * --------------------------------------------------------------------------
+ * Figma: UI Mobile › "Single blog" (1096:13), al final del artículo.
+ * Carrusel con las publicaciones más recientes del blog (sin la actual).
+ *
+ * Según el diseño, esta sección solo aparece en móvil (en desktop el
+ * artículo termina con el botón "Ver todos los centros"). Para mostrarla
+ * también en desktop, elimina la regla `display: none` de abajo.
+ *
+ * Uso (en src/pages/blog/[slug].astro):
+ *   <BlogRelated currentSlug={post.slug} />
+ */
+import RelatedPostCard from '@components/blog/RelatedPostCard.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { getRelatedPosts } from '@data/blog';
+
+interface Props {
+	/** Slug de la publicación actual (se excluye de la lista) */
+	currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Temas relacionados',
+};
+
+const posts = getRelatedPosts(currentSlug);
+---
+
+{posts.length > 0 && (
+	<section class="blog-related" aria-labelledby="blog-related-title">
+		<h2 id="blog-related-title" class="blog-related__title container">
+			{content.title}
+		</h2>
+		<Carousel label={content.title} gap={16}>
+			{posts.map((post) => (
+				<RelatedPostCard post={post} />
+			))}
+		</Carousel>
+	</section>
+)}
+
+<style>
+	.blog-related {
+		display: none; /* solo móvil (ver comentario de arriba) */
+		flex-direction: column;
+		gap: var(--space-4);
+		padding-bottom: var(--space-10);
+		--carousel-controls-gap: var(--space-4);
+	}
+
+	.blog-related__title {
+		font-size: var(--font-size-h3);
+		line-height: 1.2;
+		text-align: center;
+	}
+
+	@media (max-width: 640px) {
+		.blog-related {
+			display: flex;
+		}
+	}
+</style>

@@ -6,13 +6,13 @@ Esta guía explica cómo está organizado el proyecto y cómo agregar nuevas pá
 
 ## 1. Stack
 
-| Herramienta                          | Uso                                                                     |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| [Astro](https://docs.astro.build)    | Framework: componentes `.astro` (HTML + CSS + JS) que generan HTML estático |
-| TypeScript                           | Tipos para datos y scripts (`src/data`, `src/scripts`)                   |
-| CSS con variables (design tokens)    | Sin frameworks CSS. Cada componente trae su propio `<style>` con alcance local |
-| `@fontsource/poppins`                | Tipografía del diseño web, autoalojada                                  |
-| Prettier                             | Formato del código (tabulaciones)                                       |
+| Herramienta                       | Uso                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| [Astro](https://docs.astro.build) | Framework: componentes `.astro` (HTML + CSS + JS) que generan HTML estático    |
+| TypeScript                        | Tipos para datos y scripts (`src/data`, `src/scripts`)                         |
+| CSS con variables (design tokens) | Sin frameworks CSS. Cada componente trae su propio `<style>` con alcance local |
+| `@fontsource/poppins`             | Tipografía del diseño web, autoalojada                                         |
+| Prettier                          | Formato del código (tabulaciones)                                              |
 
 Comandos:
 
@@ -72,7 +72,7 @@ import CharlasHero from '@components/sections/charlas/CharlasHero.astro';
 ---
 
 <SiteLayout title="Charlas informativas" description="…">
-	<CharlasHero />
+  <CharlasHero />
 </SiteLayout>
 ```
 
@@ -93,22 +93,24 @@ import Button from '@components/ui/Button.astro';
 
 // ----- Contenido de la sección -----
 const content = {
-	title: 'Título',
-	subtitle: 'Bajada…',
+  title: 'Título',
+  subtitle: 'Bajada…',
 };
 ---
 
 <section class="nombre-seccion section" id="ancla" aria-labelledby="nombre-seccion-title">
-	<div class="container">
-		<h2 id="nombre-seccion-title" class="nombre-seccion__title">{content.title}</h2>
-		…
-	</div>
+  <div class="container">
+    <h2 id="nombre-seccion-title" class="nombre-seccion__title">
+      {content.title}
+    </h2>
+    …
+  </div>
 </section>
 
 <style>
-	.nombre-seccion {
-		background-color: var(--surface-dark);
-	}
+  .nombre-seccion {
+    background-color: var(--surface-dark);
+  }
 </style>
 ```
 
@@ -140,14 +142,14 @@ import foto from '@assets/images/home/estudiante.jpg';
 
 Todos los colores, tamaños de letra, espaciados y radios son variables CSS. **No escribas colores ni tamaños “a mano”** si existe un token.
 
-| Token                                   | Valor              | Origen                     |
-| --------------------------------------- | ------------------ | -------------------------- |
-| `--color-blue`                          | `#007AFC`          | Manual · Azul principal    |
-| `--color-red`                           | `#FF1A30`          | Manual · Rojo principal    |
-| `--color-white`                         | `#F4F4F4`          | Manual · Blanco de marca   |
-| `--color-orange` / `--color-skyblue` / `--color-green` / `--color-yellow` / `--color-pink` | `#FF7B23` / `#00C0FC` / `#00736A` / `#FBBD1D` / `#FFA2A4` | Manual · Secundarios |
-| `--color-blue-title`                    | `#125BA8`          | Figma · Títulos sobre fondo claro |
-| `--color-black`                         | `#171A1A`          | Figma · Fondo oscuro       |
+| Token                                                                                      | Valor                                                     | Origen                            |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------------- |
+| `--color-blue`                                                                             | `#007AFC`                                                 | Manual · Azul principal           |
+| `--color-red`                                                                              | `#FF1A30`                                                 | Manual · Rojo principal           |
+| `--color-white`                                                                            | `#F4F4F4`                                                 | Manual · Blanco de marca          |
+| `--color-orange` / `--color-skyblue` / `--color-green` / `--color-yellow` / `--color-pink` | `#FF7B23` / `#00C0FC` / `#00736A` / `#FBBD1D` / `#FFA2A4` | Manual · Secundarios              |
+| `--color-blue-title`                                                                       | `#125BA8`                                                 | Figma · Títulos sobre fondo claro |
+| `--color-black`                                                                            | `#171A1A`                                                 | Figma · Fondo oscuro              |
 
 ### Convenciones
 
@@ -171,19 +173,21 @@ Según el Manual de marca:
 
 Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interfieren con los clics).
 
+> **Importante:** para recortar decoraciones que sobresalen (ondas, formas) usa `overflow: clip` en lugar de `overflow: hidden`. Con `hidden` el contenedor puede desplazarse solo al recibir foco con el teclado y el contenido “se corre”.
+
 ---
 
 ## 5. Componentes disponibles
 
-| Componente                     | Uso                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| `ui/Button.astro`              | Botones y enlaces. Variantes `outline` (con la “rayita” de la marca), `primary` (amarillo), `secondary`, `light`. Tonos `light`/`blue`/`dark`. Tamaños `sm`/`md`/`lg`. |
-| `ui/Icon.astro`                | Íconos SVG por nombre.                                                 |
-| `ui/Carousel.astro`            | Carrusel horizontal con flechas y puntos (tono `light` o `blue`).      |
-| `brand/Logo.astro`             | Logotipo oficial.                                                      |
-| `cards/UniversityCard.astro`   | Tarjeta de universidad con forma de color.                             |
-| `cards/TestimonialCard.astro`  | Tarjeta de caso de éxito.                                              |
-| `cards/VideoCard.astro`        | Tarjeta de video.                                                      |
+| Componente                    | Uso                                                                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ui/Button.astro`             | Botones y enlaces. Variantes `outline` (con la “rayita” de la marca), `primary` (amarillo), `secondary`, `light`. Tonos `light`/`blue`/`dark`. Tamaños `sm`/`md`/`lg`. |
+| `ui/Icon.astro`               | Íconos SVG por nombre.                                                                                                                                                 |
+| `ui/Carousel.astro`           | Carrusel horizontal con flechas y puntos (tono `light` o `blue`).                                                                                                      |
+| `brand/Logo.astro`            | Logotipo oficial.                                                                                                                                                      |
+| `cards/UniversityCard.astro`  | Tarjeta de universidad con forma de color.                                                                                                                             |
+| `cards/TestimonialCard.astro` | Tarjeta de caso de éxito.                                                                                                                                              |
+| `cards/VideoCard.astro`       | Tarjeta de video.                                                                                                                                                      |
 
 ---
 

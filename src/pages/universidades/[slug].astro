@@ -1,0 +1,102 @@
+---
+/**
+ * Ficha de universidad ( /universidades/{slug}/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276).
+ *
+ * En Figma la ficha es un panel con botón ✕. Aquí es una página normal que
+ * se ve como ese panel: una hoja blanca (máx. 1266px) centrada sobre el fondo
+ * oscuro del sitio; la ✕ vuelve al listado /universidades/.
+ *
+ * Se genera una página por cada universidad de src/data/universities.ts.
+ * Solo se dibujan las secciones que tienen datos (los campos de la ficha son
+ * opcionales); la píldora de navegación aparece si hay más de una sección.
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import UniversitySheetHeader from '@components/sections/universities/UniversitySheetHeader.astro';
+import UniversityCover from '@components/sections/universities/UniversityCover.astro';
+import UniversityTabs from '@components/sections/universities/UniversityTabs.astro';
+import UniversityOverview from '@components/sections/universities/UniversityOverview.astro';
+import UniversityDetails from '@components/sections/universities/UniversityDetails.astro';
+import UniversityTips from '@components/sections/universities/UniversityTips.astro';
+import { universities, type University } from '@data/universities';
+
+export function getStaticPaths() {
+	return universities.map((university) => ({
+		params: { slug: university.slug },
+		props: { university },
+	}));
+}
+
+interface Props {
+	university: University;
+}
+
+const { university } = Astro.props;
+
+/** Secciones de la ficha (anclas de la píldora "De un vistazo · Detalles · Consejos") */
+const sections = {
+	overview: { id: 'de-un-vistazo', label: 'De un vistazo' },
+	details: { id: 'detalles', label: 'Detalles' },
+	tips: { id: 'consejos', label: 'Consejos' },
+};
+
+const hasDetails = Boolean(
+	university.faculties?.length || university.rankings || university.studentLife?.length,
+);
+const tips = university.tips ?? [];
+
+const tabs = [
+	sections.overview,
+	...(hasDetails ? [sections.details] : []),
+	...(tips.length ? [sections.tips] : []),
+];
+
+const description =
+	university.summary ??
+	`Conoce la ${university.name} (${university.city}, Rusia): carreras, vida estudiantil y consejos para postular con Peruana en Rusia.`;
+---
+
+<SiteLayout title={university.name} description={description}>
+	<div class="university-page">
+		<article class="university-sheet">
+			<UniversitySheetHeader university={university} />
+			<UniversityCover university={university} />
+			{tabs.length > 1 && <UniversityTabs items={tabs} />}
+			<UniversityOverview id={sections.overview.id} university={university} />
+			{hasDetails && <UniversityDetails id={sections.details.id} university={university} />}
+			{tips.length > 0 && <UniversityTips id={sections.tips.id} tips={tips} />}
+		</article>
+	</div>
+</SiteLayout>
+
+<style>
+	/* Fondo oscuro del sitio alrededor de la hoja */
+	.university-page {
+		padding: var(--space-6) var(--gutter) var(--space-10);
+	}
+
+	/* Hoja blanca (panel "Universidad Single" de Figma) */
+	.university-sheet {
+		position: relative;
+		max-width: 79.125rem; /* 1266px */
+		margin-inline: auto;
+		/* 112px bajo los consejos (32px de la sección + 80px), como en Figma */
+		padding-bottom: var(--space-10);
+		border-radius: var(--radius-xl); /* 32px */
+		background-color: var(--surface-white);
+		color: var(--text-on-light);
+	}
+
+	@media (max-width: 640px) {
+		.university-page {
+			padding: var(--space-4) 0 var(--space-8);
+		}
+
+		.university-sheet {
+			padding-bottom: var(--space-6);
+			border-radius: var(--radius-lg);
+		}
+	}
+</style>

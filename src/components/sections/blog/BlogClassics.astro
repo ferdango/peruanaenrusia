@@ -1,0 +1,99 @@
+---
+/**
+ * BlogClassics — "Clásicos"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › Blog (1519:383) › "Frame 628319" (1715:588).
+ *
+ * Grilla de 4 columnas con los artículos marcados con `classic: true` en
+ * src/data/articles.ts (2 columnas en tablet; en móvil, fila deslizable).
+ *
+ * Uso: cuarta sección de src/pages/blog/index.astro
+ *   <BlogClassics />
+ */
+import ArticleCard from '@components/blog/ArticleCard.astro';
+import { blogSectionIds, getClassicArticles } from '@data/blog';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Clásicos',
+};
+
+const articles = getClassicArticles();
+---
+
+{articles.length > 0 && (
+	<section class="blog-classics" id={blogSectionIds.classics} aria-labelledby="blog-classics-title">
+		<div class="blog-classics__inner container">
+			<h2 id="blog-classics-title" class="blog-classics__title">
+				{content.title}
+			</h2>
+
+			<ul class="blog-classics__grid" role="list">
+				{articles.map((article) => (
+					<li class="blog-classics__item">
+						<ArticleCard article={article} />
+					</li>
+				))}
+			</ul>
+		</div>
+	</section>
+)}
+
+<style>
+	.blog-classics {
+		position: relative;
+		padding-block: var(--space-9); /* 64px */
+	}
+
+	.blog-classics__inner {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+	}
+
+	.blog-classics__title {
+		font-size: var(--font-size-h3);
+		line-height: 1.15; /* 32px */
+	}
+
+	/* 4 columnas de 320px: 24px entre columnas y 28px entre filas */
+	.blog-classics__grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1.75rem var(--space-5);
+	}
+
+	@media (max-width: 1100px) {
+		.blog-classics__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	/* Móvil: fila deslizable con "scroll-snap" (sin JavaScript) */
+	@media (max-width: 640px) {
+		.blog-classics {
+			padding-block: var(--space-7);
+		}
+
+		.blog-classics__grid {
+			display: flex;
+			gap: var(--space-3);
+			margin-inline: calc(-1 * var(--gutter));
+			padding-inline: var(--gutter);
+			overflow-x: auto;
+			overscroll-behavior-x: contain;
+			scroll-snap-type: x mandatory;
+			scroll-padding-inline: var(--gutter);
+			scrollbar-width: none;
+		}
+
+		.blog-classics__grid::-webkit-scrollbar {
+			display: none;
+		}
+
+		.blog-classics__item {
+			flex: 0 0 min(80vw, 20rem);
+			scroll-snap-align: start;
+		}
+	}
+</style>

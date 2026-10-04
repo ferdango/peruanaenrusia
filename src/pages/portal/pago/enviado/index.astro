@@ -1,0 +1,30 @@
+---
+/**
+ * /portal/pago/enviado/ — solicitud de pago enviada
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 9" (2045:358).
+ * Se llega aquí después de "Ya transferí" en /portal/pago/.
+ */
+import PortalLayout from '@layouts/PortalLayout.astro';
+import PaymentStatusCard from '@components/portal/PaymentStatusCard.astro';
+import { formatDateTime, paymentRequest } from '@data/portal';
+
+const content = {
+	title: 'Solicitud de pago enviada',
+	action: 'Descargar mi constancia',
+};
+---
+
+<PortalLayout
+	title={content.title}
+	description="Recibimos tu solicitud de pago y estamos validando los fondos."
+	currentStep="payment"
+>
+	<PaymentStatusCard
+		variant="sent"
+		title={content.title}
+		status={paymentRequest.status}
+		detail={formatDateTime(paymentRequest.submittedAt)}
+		action={{ label: content.action, href: paymentRequest.receiptHref, download: true }}
+	/>
+</PortalLayout>

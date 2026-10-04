@@ -1,0 +1,23 @@
+---
+/**
+ * Listado de universidades ( /universidades/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83).
+ *
+ * Portada "Casas de estudio" + grilla con todas las universidades de
+ * src/data/universities.ts. Cada tarjeta enlaza a la ficha
+ * /universidades/{slug}/ (src/pages/universidades/[slug].astro).
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import UniversitiesHero from '@components/sections/universities/UniversitiesHero.astro';
+import UniversitiesGrid from '@components/sections/universities/UniversitiesGrid.astro';
+---
+
+<SiteLayout
+	title="Universidades"
+	description="Todas las universidades de Rusia a las que puedes postular, en un solo lugar. Conoce cada casa de estudio y elige la tuya."
+>
+	<UniversitiesHero />
+	<UniversitiesGrid />
+</SiteLayout>

@@ -1,0 +1,67 @@
+---
+/**
+ * StepIllustration — ilustración de línea de cada paso del proceso
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8":
+ *   documents → "Group 136" (2223:373) · monitor con documento (SVG)
+ *   contract  → "Group 137" (2223:341) · edificio de la universidad (SVG)
+ *   visa      → "Group 138" (3300:316) · pasaporte y avión (SVG)
+ *   travel    → "Rectangle 194" (2220:319) · avión en vuelo (PNG en Figma)
+ *
+ * Los SVG se muestran como <img> (decorativos, alt vacío): así una misma
+ * ilustración puede repetirse en la página sin duplicar los id internos del
+ * SVG. La del viaje es una imagen y se optimiza con <Image /> de Astro.
+ *
+ * Uso:
+ *   <StepIllustration name="documents" />
+ */
+import { Image } from 'astro:assets';
+import contract from '@assets/graphics/illustrations/portal-contract.svg';
+import documents from '@assets/graphics/illustrations/portal-documents.svg';
+import visa from '@assets/graphics/illustrations/portal-visa.svg';
+import travel from '@assets/images/portal/illustration-travel.png';
+
+const vectorIllustrations = { documents, contract, visa };
+
+export type StepIllustrationName = keyof typeof vectorIllustrations | 'travel';
+
+interface Props {
+	name: StepIllustrationName;
+	class?: string;
+}
+
+const { name, class: className } = Astro.props;
+const classes = ['step-illustration', className];
+---
+
+{name === 'travel' ? (
+	<Image
+		class:list={classes}
+		src={travel}
+		width={320}
+		height={181}
+		widths={[320, 640]}
+		sizes="320px"
+		alt=""
+		loading="lazy"
+	/>
+) : (
+	<img
+		class:list={classes}
+		src={vectorIllustrations[name].src}
+		width={vectorIllustrations[name].width}
+		height={vectorIllustrations[name].height}
+		alt=""
+		loading="lazy"
+		decoding="async"
+	/>
+)}
+
+<style>
+	.step-illustration {
+		flex-shrink: 0;
+		align-self: center;
+		max-width: 100%;
+		height: auto;
+	}
+</style>

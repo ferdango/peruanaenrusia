@@ -1,0 +1,104 @@
+---
+/**
+ * UploadButton — botón "Subir archivo" con selector de archivos oculto
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "MacBook Pro 14' - 8" › botón "Subir archivo"
+ * (2223:400): borde e ícono azules, 164 × 60px.
+ *
+ * Es un <label> con el aspecto de PortalButton (variante "action") que
+ * envuelve un <input type="file"> visualmente oculto (sigue siendo accesible
+ * con teclado). El nombre del archivo elegido lo muestra
+ * src/scripts/portal-upload.ts dentro del contenedor [data-upload] más cercano
+ * (ver DocumentRow).
+ *
+ * Uso:
+ *   <UploadButton id="doc-birth-certificate" name="birthCertificate"
+ *       describedBy="doc-birth-certificate-title" />
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	/** id del <input type="file"> */
+	id: string;
+	/** name del campo (para el envío a la API) */
+	name: string;
+	/** Formatos aceptados */
+	accept?: string;
+	/** id(s) del texto que describe qué archivo subir (título del documento) */
+	describedBy?: string;
+	label?: string;
+	class?: string;
+}
+
+const {
+	id,
+	name,
+	accept = '.jpg,.jpeg,.png,.pdf',
+	describedBy,
+	label = 'Subir archivo',
+	class: className,
+} = Astro.props;
+---
+
+<label class:list={['upload-button', className]} for={id}>
+	<input
+		id={id}
+		name={name}
+		type="file"
+		accept={accept}
+		class="upload-button__input visually-hidden"
+		aria-describedby={describedBy}
+		data-upload-input
+	/>
+	<Icon name="file-upload" size={24} class="upload-button__icon" />
+	<span class="upload-button__label" data-upload-label>
+		{label}
+	</span>
+</label>
+
+<script>
+	import { initPortalUploads } from '@scripts/portal-upload';
+
+	initPortalUploads();
+</script>
+
+<style>
+	.upload-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		gap: 0.625rem; /* 10px */
+		min-height: 3.75rem; /* 60px */
+		padding: var(--space-3) var(--space-4); /* 12px 16px */
+		border: 1px solid var(--color-blue-title);
+		border-radius: var(--radius-md);
+		background-color: var(--portal-surface);
+		color: var(--color-blue-title);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		white-space: nowrap;
+		cursor: pointer;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.upload-button:hover {
+		background-color: var(--portal-tint);
+	}
+
+	.upload-button:active {
+		transform: scale(0.98);
+	}
+
+	/* El input está oculto: el foco de teclado se muestra en el botón */
+	.upload-button:focus-within {
+		box-shadow: var(--focus-ring);
+	}
+
+	.upload-button__icon {
+		flex-shrink: 0;
+	}
+</style>

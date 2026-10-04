@@ -1,0 +1,194 @@
+---
+/**
+ * UniversityTabs — Píldora "De un vistazo · Detalles · Consejos"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628417" (3314:111).
+ *
+ * Navegación por anclas dentro de la ficha de universidad. Como en Figma,
+ * la píldora se superpone a la foto de portada y queda fija (sticky) bajo el
+ * header mientras se recorre la hoja. El enlace de la sección visible se
+ * resalta con un borde (scroll spy en el <script> de este componente).
+ *
+ * Debe ser hijo directo de la hoja (así se mantiene fija en todo su alto).
+ *
+ * Uso:
+ *   <UniversityTabs items={[{ id: 'de-un-vistazo', label: 'De un vistazo' }, …]} />
+ */
+import Logo from '@components/brand/Logo.astro';
+
+interface TabItem {
+	/** id de la sección destino (sin "#") */
+	id: string;
+	label: string;
+}
+
+interface Props {
+	items: TabItem[];
+	/** Nombre accesible de la navegación */
+	label?: string;
+}
+
+const { items, label = 'Secciones de la ficha' } = Astro.props;
+---
+
+<nav class="university-tabs" aria-label={label} data-university-tabs>
+	<div class="university-tabs__pill">
+		<span class="university-tabs__logo" aria-hidden="true">
+			<Logo variant="vertical" color="mono" width={36} />
+		</span>
+
+		<ul class="university-tabs__list" role="list">
+			{items.map((item, index) => (
+				<li>
+					<a
+						href={`#${item.id}`}
+						class:list={['university-tabs__link', { 'is-active': index === 0 }]}
+						aria-current={index === 0 ? 'true' : undefined}
+						data-tab-link
+					>
+						{item.label}
+					</a>
+				</li>
+			))}
+		</ul>
+	</div>
+</nav>
+
+<script>
+	/**
+	 * Scroll spy: marca como activo el enlace de la última sección cuyo borde
+	 * superior ya pasó por debajo de la píldora.
+	 */
+	document.querySelectorAll<HTMLElement>('[data-university-tabs]').forEach((nav) => {
+		const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('[data-tab-link]'));
+		const sections = links
+			.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+			.filter((section): section is HTMLElement => section !== null);
+
+		if (sections.length !== links.length) return;
+
+		const setActive = (activeIndex: number) => {
+			links.forEach((link, index) => {
+				const isActive = index === activeIndex;
+				link.classList.toggle('is-active', isActive);
+				if (isActive) link.setAttribute('aria-current', 'true');
+				else link.removeAttribute('aria-current');
+			});
+		};
+
+		let ticking = false;
+
+		const update = () => {
+			ticking = false;
+			// Línea de referencia: un poco por debajo de la píldora
+			const referenceLine = nav.getBoundingClientRect().bottom + 32;
+			let activeIndex = 0;
+
+			sections.forEach((section, index) => {
+				if (section.getBoundingClientRect().top <= referenceLine) activeIndex = index;
+			});
+
+			setActive(activeIndex);
+		};
+
+		const requestUpdate = () => {
+			if (ticking) return;
+			ticking = true;
+			requestAnimationFrame(update);
+		};
+
+		window.addEventListener('scroll', requestUpdate, { passive: true });
+		window.addEventListener('resize', requestUpdate);
+		update();
+	});
+</script>
+
+<style>
+	.university-tabs {
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-4));
+		z-index: 2;
+		width: fit-content;
+		max-width: calc(100% - 2 * var(--space-4));
+		/* Se superpone 38.5px a la foto de portada (como en Figma) */
+		margin: -2.40625rem auto 0;
+	}
+
+	.university-tabs__pill {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2); /* 8px */
+		padding: var(--space-2);
+		border-radius: var(--radius-lg); /* 24px */
+		background-color: var(--color-blue);
+	}
+
+	/* Recuadro azul oscuro con el logo (60 × 60 px) */
+	.university-tabs__logo {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 3.75rem;
+		height: 3.75rem;
+		border-radius: 1rem; /* 16px */
+		background-color: var(--color-blue-title);
+		color: var(--color-white);
+	}
+
+	.university-tabs__list {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.university-tabs__link {
+		display: flex;
+		align-items: center;
+		height: 3rem; /* 48px */
+		padding: 0.625rem var(--space-4); /* 10px 16px */
+		border: 1px solid transparent;
+		border-radius: var(--radius-md); /* 12px */
+		color: var(--color-white);
+		font-size: var(--font-size-nav); /* 15px */
+		font-weight: var(--font-weight-medium);
+		line-height: 1.75rem;
+		white-space: nowrap;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.university-tabs__link:hover {
+		background-color: rgb(244 244 244 / 0.12);
+	}
+
+	/* Sección visible: borde claro (estado "De un vistazo" del diseño) */
+	.university-tabs__link.is-active {
+		border-color: var(--color-white);
+	}
+
+	@media (max-width: 640px) {
+		.university-tabs {
+			margin-top: -1.75rem;
+		}
+
+		.university-tabs__logo {
+			display: none;
+		}
+
+		.university-tabs__pill {
+			padding: 0.375rem;
+			border-radius: 1.25rem;
+		}
+
+		.university-tabs__list {
+			gap: var(--space-1);
+		}
+
+		.university-tabs__link {
+			height: 2.5rem;
+			padding-inline: 0.625rem;
+			font-size: var(--font-size-sm);
+		}
+	}
+</style>

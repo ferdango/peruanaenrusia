@@ -23,6 +23,7 @@ npm install          # instalar dependencias
 npm run dev          # servidor de desarrollo → http://localhost:4321
 npm run build        # compilar el sitio en /dist (estático + servidor)
 npm start            # servidor de producción (server.mjs)
+# versión HTML puro para GitHub Pages: DEPLOY_TARGET=static (ver docs/DESPLIEGUE.md)
 npm run preview      # previsualizar la compilación
 npm run check        # revisar tipos y errores
 npm run format       # formatear todo el código
@@ -78,6 +79,8 @@ Alias de importación (evitan rutas como `../../..`):
 1. Crea el archivo en `src/pages/` (ej. `src/pages/charlas.astro` → `/charlas/`).
 2. Envuelve el contenido en `SiteLayout` (sitio público) o `PortalLayout` (portal del estudiante).
 3. Si debe aparecer en el menú, agrégala en `src/data/navigation.ts`.
+
+> **Enlaces internos**: usa `routes` / `detailRoutes` (`src/data/navigation.ts`) o `withBase('/charlas/')` (`src/utils/url.ts`); nunca escribas `href="/charlas/"` a mano. El sitio también se publica dentro de una subcarpeta (GitHub Pages: `/peruanaenrusia/`) y esas funciones la agregan.
 
 ```astro
 ---
@@ -237,7 +240,7 @@ Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interf
 - **Modales y menú lateral**: son elementos `<dialog>`. Cualquier botón con `data-dialog-open="id-del-dialog"` lo abre, y uno con `data-dialog-close` lo cierra (ver `src/scripts/dialog.ts`).
 - **Carruseles**: automáticos con el componente `Carousel`.
 - **Formularios**: validación accesible y envío a la API con `src/scripts/forms.ts` (`validateForm`, `postJson`).
-- **Inicio de sesión**: `src/scripts/auth-flow.ts` (modal) y `src/scripts/session-ui.ts` (textos de los botones con sesión iniciada). Para abrir el modal desde una URL: `/?login=1`.
+- **Inicio de sesión**: `src/scripts/auth-flow.ts` (modal), `src/scripts/auth-api.ts` (llamadas al servidor; en la versión estática, demostración) y `src/scripts/session-ui.ts` (textos de los botones con sesión iniciada). Para abrir el modal desde una URL: `/?login=1`.
 - Usa `<script>` dentro del componente solo para lógica propia de ese componente.
 - **Seguridad (CSP)**: no uses `<script is:inline>` con código ni atributos como `onclick=`; los scripts normales de Astro ya están permitidos. Las variables CSS en `style=""` sí se pueden usar. Ver [SEGURIDAD.md](SEGURIDAD.md).
 

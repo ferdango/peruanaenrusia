@@ -15,6 +15,11 @@ import { loadEnv } from 'vite';
  *     /api/* (inicio de sesión con Google y por correo, Libro de
  *     reclamaciones) y /portal/* (protegido por sesión).
  *   - Se ejecuta con Node.js: `npm run build` y luego `npm start` (server.mjs).
+ *
+ * Versión estática (DEPLOY_TARGET=static): solo HTML, CSS, JavaScript e
+ * imágenes en dist/client, para hostings sin servidor como GitHub Pages. El
+ * portal se genera con datos de ejemplo, el inicio de sesión del modal es una
+ * demostración y el Libro de reclamaciones indica cómo reclamar por correo.
  */
 
 // Variables de entorno disponibles al compilar (archivo .env o del hosting)
@@ -22,6 +27,17 @@ const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 
 /** true al ejecutar `astro dev` (las cookies seguras exigen HTTPS en producción) */
 const isDev = process.argv.includes('dev');
+
+/** true = versión estática sin servidor (GitHub Pages) */
+const isStatic = env.DEPLOY_TARGET === 'static';
+
+/**
+ * Subcarpeta donde se publica el sitio ('/' en la raíz del dominio).
+ * GitHub Pages sin dominio propio publica en /<repositorio> (ej. /peruanaenrusia).
+ */
+const base = `/${(env.BASE_PATH ?? '').replace(/^\/+|\/+$/g, '')}`;
+/** Prefijo para las rutas escritas en esta configuración ('' en la raíz del dominio) */
+const basePrefix = base === '/' ? '' : base;
 
 /** Origen del WordPress (gestor de contenidos), si está configurado */
 const wordpressOrigin = (() => {
@@ -43,10 +59,32 @@ const imgSrc = `img-src 'self' data: blob: ${imageOrigins.join(' ')}`;
 /** @type {`media-src${string}`} */
 const mediaSrc = wordpressOrigin ? `media-src 'self' ${wordpressOrigin}` : "media-src 'self'";
 
+/**
+ * Ajustes de la versión estática.
+ * @type {import('astro').AstroIntegration}
+ */
+const staticSite = {
+	name: 'peru-static-site',
+	hooks: {
+		// El adaptador de Node deja las redirecciones al servidor: aquí se generan como HTML
+		'astro:config:setup': ({ updateConfig }) => {
+			updateConfig({ build: { redirects: true } });
+		},
+		// El portal (bajo demanda en el servidor) se genera como páginas con datos de ejemplo
+		'astro:route:setup': ({ route }) => {
+			if (route.component.startsWith('src/pages/portal/')) route.prerender = true;
+		},
+	},
+};
+
 export default defineConfig({
 	// URL pública del sitio (URLs canónicas, sitemap y metadatos Open Graph).
 	// Se puede cambiar con la variable SITE_URL sin tocar este archivo.
 	site: env.SITE_URL || 'https://peruanaenrusia.pe',
+
+	// Subcarpeta de publicación (variable BASE_PATH). Las rutas internas la
+	// agregan con withBase() o usando `routes` (ver src/utils/url.ts).
+	base,
 
 	// Todas las rutas terminan en "/" (ej. /blog/) para mantener URLs consistentes.
 	trailingSlash: 'always',
@@ -66,7 +104,7 @@ export default defineConfig({
 
 	// /casos-de-exito/ no tiene página propia: lleva a la sección del Home
 	redirects: {
-		'/casos-de-exito': '/#casos-de-exito',
+		'/casos-de-exito': `${basePrefix}/#casos-de-exito`,
 	},
 
 	// Precarga las páginas al pasar el cursor por un enlace → navegación más rápida.
@@ -82,6 +120,7 @@ export default defineConfig({
 			changefreq: 'weekly',
 			priority: 0.7,
 		}),
+		...(isStatic ? [staticSite] : []),
 	],
 
 	// Sin resaltado de código (Shiki usa estilos en línea incompatibles con la CSP)
@@ -98,11 +137,21 @@ export default defineConfig({
 	},
 
 	// Variables de entorno tipadas (astro:env). Plantilla: .env.example
-	// Todas son de servidor y se leen al ejecutar (access: 'secret'): nunca
-	// llegan al navegador y se pueden cambiar en el hosting sin recompilar.
-	// (WORDPRESS_URL se lee además al compilar: el contenido estático sale de ahí.)
+	// Salvo DEPLOY_TARGET, todas son de servidor y se leen al ejecutar
+	// (access: 'secret'): nunca llegan al navegador y se pueden cambiar en el
+	// hosting sin recompilar. (WORDPRESS_URL se lee además al compilar: el
+	// contenido estático sale de ahí.)
 	env: {
 		schema: {
+			// ----- Publicación -----
+			// 'static' = versión sin servidor para GitHub Pages (se fija al compilar)
+			DEPLOY_TARGET: envField.enum({
+				context: 'client',
+				access: 'public',
+				values: ['server', 'static'],
+				default: 'server',
+			}),
+
 			// ----- Gestor de contenidos (WordPress headless) -----
 			WORDPRESS_URL: envField.string({
 				context: 'server',

@@ -27,6 +27,8 @@
  *
  * Backend: el botón de Google lleva a /api/auth/google/ y los formularios
  * llaman a /api/auth/email/* (ver src/scripts/auth-flow.ts y src/pages/api/auth/).
+ * En la versión estática (GitHub Pages) el acceso es una demostración y el
+ * panel muestra un aviso (ver src/scripts/auth-api.ts).
  * Para abrir el modal desde cualquier página con un aviso: /?login=1
  * (opcional: &auth_error=… y &next=/ruta/ a la que volver).
  */
@@ -36,7 +38,11 @@ import AuthArt from './AuthArt.astro';
 import AuthField from './AuthField.astro';
 import AuthGoogleButton from './AuthGoogleButton.astro';
 import { routes } from '@data/navigation';
-import type { AuthStep } from '@scripts/auth-flow';
+import type { AuthStep } from '@scripts/auth-api';
+import { DEPLOY_TARGET } from 'astro:env/client';
+
+/** Versión estática (sin servidor): el inicio de sesión es una demostración */
+const isDemoAuth = DEPLOY_TARGET === 'static';
 
 // ----- Textos comunes -----
 const content = {
@@ -55,6 +61,10 @@ const content = {
 		before: 'He leído y acepto la ',
 		link: 'Política de Privacidad',
 		after: ' y protección de datos de Peruana en Rusia',
+	},
+	demo: {
+		title: 'Versión de demostración.',
+		text: 'El inicio de sesión es simulado: usa cualquier correo y cualquier código de 6 dígitos. No se envía ningún dato.',
 	},
 };
 
@@ -288,6 +298,12 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 					)}
 				</div>
 			))}
+
+			{isDemoAuth && (
+				<p class="auth-modal__demo">
+					<strong>{content.demo.title}</strong> {content.demo.text}
+				</p>
+			)}
 		</div>
 	</div>
 
@@ -362,6 +378,17 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		background-color: var(--surface-light);
+	}
+
+	/* Aviso de la versión estática (GitHub Pages): el acceso es una demostración */
+	.auth-modal__demo {
+		margin-top: var(--space-5);
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: color-mix(in srgb, var(--color-black) 5%, transparent);
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		color: var(--text-on-light);
 	}
 
 	/* ----- Botón cerrar: círculo de 40px fuera de la tarjeta, arriba a la derecha ----- */

@@ -14,9 +14,11 @@ import { defineMiddleware } from 'astro:middleware';
 import { PORTAL_DEMO } from 'astro:env/server';
 
 import { securityHeaders } from '../config/security-headers.mjs';
+import { routes } from '@data/navigation';
 import { isSameOrigin, json } from '@lib/server/http';
 import { AUTH_HINT_COOKIE } from '@lib/server/session';
 import type { SessionUser } from '@lib/server/types';
+import { withoutBase } from '@utils/url';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -32,7 +34,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	// Las páginas estáticas se generan al compilar: no hay petición real
 	if (context.isPrerendered) return next();
 
-	const { pathname } = context.url;
+	const pathname = withoutBase(context.url.pathname);
 	const isApi = pathname.startsWith('/api/');
 	const isPortal = pathname.startsWith('/portal/');
 
@@ -53,8 +55,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		} else {
 			// La sesión venció: se borra también la cookie informativa (evita volver al portal en bucle)
 			context.cookies.delete(AUTH_HINT_COOKIE, { path: '/' });
-			const destination = `${pathname}${context.url.search}`;
-			return context.redirect(`/?login=1&next=${encodeURIComponent(destination)}`, 302);
+			const destination = `${context.url.pathname}${context.url.search}`;
+			return context.redirect(`${routes.home}?login=1&next=${encodeURIComponent(destination)}`, 302);
 		}
 	}
 

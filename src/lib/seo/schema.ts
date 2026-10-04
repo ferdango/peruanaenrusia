@@ -10,25 +10,30 @@
  *
  * Referencia: https://developers.google.com/search/docs/appearance/structured-data
  */
+import { routes } from '@data/navigation';
 import { site } from '@data/site';
 
 export type JsonLd = Record<string, unknown>;
 
-/** URL absoluta a partir de una ruta del sitio */
+/** URL absoluta a partir de una ruta del sitio (con subcarpeta, ej. routes.blog) */
 export const absoluteUrl = (path: string, base: URL | string | undefined) => new URL(path, base).href;
+
+/** Identificadores de la organización y del sitio (anclas de la portada) */
+const ORGANIZATION_ID = `${routes.home}#organizacion`;
+const WEBSITE_ID = `${routes.home}#sitio`;
 
 /** Organización (en todas las páginas) */
 export function organizationSchema(siteUrl: URL | string | undefined, logoUrl: string): JsonLd {
 	return {
 		'@context': 'https://schema.org',
 		'@type': 'EducationalOrganization',
-		'@id': absoluteUrl('/#organizacion', siteUrl),
+		'@id': absoluteUrl(ORGANIZATION_ID, siteUrl),
 		name: site.name,
 		legalName: site.legal.companyName,
 		alternateName: site.shortName,
 		slogan: site.tagline,
 		description: site.description,
-		url: absoluteUrl('/', siteUrl),
+		url: absoluteUrl(routes.home, siteUrl),
 		logo: logoUrl,
 		email: site.contact.email,
 		telephone: site.contact.phone,
@@ -50,15 +55,15 @@ export function websiteSchema(siteUrl: URL | string | undefined): JsonLd {
 	return {
 		'@context': 'https://schema.org',
 		'@type': 'WebSite',
-		'@id': absoluteUrl('/#sitio', siteUrl),
+		'@id': absoluteUrl(WEBSITE_ID, siteUrl),
 		name: site.name,
-		url: absoluteUrl('/', siteUrl),
+		url: absoluteUrl(routes.home, siteUrl),
 		inLanguage: 'es-PE',
-		publisher: { '@id': absoluteUrl('/#organizacion', siteUrl) },
+		publisher: { '@id': absoluteUrl(ORGANIZATION_ID, siteUrl) },
 	};
 }
 
-/** Migas de pan: [{ name: 'Inicio', path: '/' }, { name: 'Blog', path: '/blog/' }, …] */
+/** Migas de pan: [{ name: 'Inicio', path: routes.home }, { name: 'Blog', path: routes.blog }, …] */
 export function breadcrumbSchema(
 	items: { name: string; path: string }[],
 	siteUrl: URL | string | undefined,
@@ -101,8 +106,8 @@ export function articleSchema(input: ArticleInput, siteUrl: URL | string | undef
 		mainEntityOfPage: absoluteUrl(input.path, siteUrl),
 		author: input.authorName
 			? { '@type': 'Person', name: input.authorName }
-			: { '@id': absoluteUrl('/#organizacion', siteUrl) },
-		publisher: { '@id': absoluteUrl('/#organizacion', siteUrl) },
+			: { '@id': absoluteUrl(ORGANIZATION_ID, siteUrl) },
+		publisher: { '@id': absoluteUrl(ORGANIZATION_ID, siteUrl) },
 	};
 }
 
@@ -131,7 +136,7 @@ export function videoSchema(input: VideoInput, siteUrl: URL | string | undefined
 					contentUrl: `https://www.youtube.com/watch?v=${input.youtubeId}`,
 				}
 			: {}),
-		publisher: { '@id': absoluteUrl('/#organizacion', siteUrl) },
+		publisher: { '@id': absoluteUrl(ORGANIZATION_ID, siteUrl) },
 	};
 }
 

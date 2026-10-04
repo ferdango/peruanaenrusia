@@ -17,6 +17,10 @@
  * Al terminar, el formulario se reemplaza por la constancia con el código de
  * seguimiento (se puede imprimir).
  *
+ * En la versión estática (GitHub Pages) no hay servidor que registre la
+ * reclamación: se muestra un aviso con el correo para reclamar y el
+ * formulario no se envía (nunca se simula una constancia).
+ *
  * Uso: <ComplaintsForm /> (página /libro-de-reclamaciones/).
  */
 import Button from '@components/ui/Button.astro';
@@ -32,6 +36,10 @@ import {
 } from '@data/complaints';
 import { routes } from '@data/navigation';
 import { site } from '@data/site';
+import { DEPLOY_TARGET } from 'astro:env/client';
+
+/** Versión estática (sin servidor): el formulario no puede registrar reclamaciones */
+const isStatic = DEPLOY_TARGET === 'static';
 
 // ----- Contenido -----
 const content = {
@@ -61,6 +69,11 @@ const content = {
 			`La empresa responderá a su reclamación en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles conforme a la Ley N° 29571.`,
 		],
 	},
+	unavailable: {
+		title: 'Esta versión del sitio todavía no registra reclamaciones en línea.',
+		before: 'Para presentar un reclamo o una queja, escríbenos a',
+		after: `con tus datos y el detalle. Te responderemos en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles.`,
+	},
 	success: {
 		title: '¡Recibimos tu reclamación!',
 		code: 'Código de seguimiento',
@@ -88,6 +101,16 @@ const L = complaintLimits;
 			<span>RUC {site.legal.ruc}</span>
 		</p>
 	</header>
+
+	{isStatic && (
+		<p class="complaints__notice" data-complaints-unavailable>
+			<strong>{content.unavailable.title}</strong>
+			<span>
+				{content.unavailable.before} <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>{' '}
+				{content.unavailable.after}
+			</span>
+		</p>
+	)}
 
 	<form class="complaints__form" data-complaints-form novalidate>
 		<input type="hidden" name="id" data-complaint-id />
@@ -150,7 +173,7 @@ const L = complaintLimits;
 						help="Número de su documento de identidad."
 						autocomplete="off"
 						required
-						pattern="[A-Za-z0-9-]{6,20}"
+						pattern="[A-Za-z0-9\-]{6,20}"
 						maxlength={L.document}
 						messages={{
 							required: 'Ingrese su número de documento.',
@@ -185,7 +208,7 @@ const L = complaintLimits;
 					autocomplete="tel"
 					help="Su número de teléfono para poder comunicar la respuesta a su reclamación."
 					required
-					pattern="[+0-9 ()-]{6,20}"
+					pattern="[+0-9 \(\)\-]{6,20}"
 					maxlength={L.phone}
 					messages={{
 						required: 'Ingrese su número de celular.',
@@ -379,7 +402,9 @@ const L = complaintLimits;
 </div>
 
 <script>
+	import { DEPLOY_TARGET } from 'astro:env/client';
 	import { ApiError, enableLiveValidation, postJson, setFieldError, validateForm } from '@scripts/forms';
+	import { withBase } from '@utils/url';
 
 	interface ComplaintResponse {
 		code: string;
@@ -430,11 +455,21 @@ const L = complaintLimits;
 			if (status) status.textContent = '';
 			if (!validateForm(form)) return;
 
+			// Versión estática: no hay servidor que registre la reclamación (ver aviso)
+			if (DEPLOY_TARGET === 'static') {
+				const notice = root.querySelector<HTMLElement>('[data-complaints-unavailable]');
+				const message = Array.from(notice?.children ?? [], (part) =>
+					(part.textContent ?? '').replace(/\s+/g, ' ').trim(),
+				).join(' ');
+				if (status) status.textContent = message;
+				return;
+			}
+
 			const data = Object.fromEntries(new FormData(form).entries());
 			setBusy(true);
 
 			try {
-				const result = await postJson<ComplaintResponse>('/api/reclamaciones/', {
+				const result = await postJson<ComplaintResponse>(withBase('/api/reclamaciones/'), {
 					...data,
 					isMinor: minor?.checked ?? false,
 					consent: true,
@@ -643,6 +678,24 @@ const L = complaintLimits;
 
 	.complaints__consent-text a:hover {
 		color: var(--color-blue-title);
+	}
+
+	/* Aviso de la versión estática (sin servidor) */
+	.complaints__notice {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		padding: var(--space-4) var(--space-5);
+		border-radius: var(--radius-md);
+		background-color: var(--surface-white);
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--complaints-text);
+	}
+
+	.complaints__notice a {
+		font-weight: var(--font-weight-semibold);
+		text-decoration: underline;
 	}
 
 	.complaints__status {

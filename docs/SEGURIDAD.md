@@ -25,6 +25,8 @@ Definidas en un solo lugar, [`config/security-headers.mjs`](../config/security-h
 
 Para hostings estáticos hay copias en `public/.htaccess` y `public/_headers` (mantenlas sincronizadas).
 
+**GitHub Pages** no permite cabeceras propias: la versión publicada ahí solo tiene la CSP (en `<meta>`) y el HTTPS de GitHub. Como no hay servidor, tampoco hay datos que proteger: el acceso es una demostración que no envía nada y el Libro de reclamaciones no registra envíos ([DESPLIEGUE.md](DESPLIEGUE.md#2-github-pages-html-puro)).
+
 ## 3. Content Security Policy (CSP)
 
 Astro genera la política de cada página (`astro.config.mjs → security.csp`) con los **hashes** de sus scripts y estilos: el navegador solo ejecuta el código del sitio. Orígenes externos permitidos:

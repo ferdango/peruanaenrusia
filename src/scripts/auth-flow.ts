@@ -6,12 +6,14 @@
  *   login ─(Continuar manualmente)→ login-email → login-code → portal
  *     └─(Regístrate aquí)→ register-email → register-name → register-code → portal
  *
- * Backend (src/pages/api/auth/):
+ * Backend (src/pages/api/auth/, llamado desde src/scripts/auth-api.ts):
  *   - "Usa tu cuenta de Google" → enlace a /api/auth/google/?next=… (OAuth en
  *     el servidor; al volver, la sesión ya está iniciada).
  *   - Pasos de correo → POST /api/auth/email/start/ (envía el código o pide
  *     el nombre si la cuenta no existe), /verify/ (valida el código e inicia
  *     la sesión) y /resend/ (reenvía el código).
+ *   - En la versión estática (GitHub Pages) no hay servidor: auth-api.ts
+ *     simula estas respuestas y el modal muestra un aviso de demostración.
  *
  * Marcado que usa este script (ver src/components/overlays/AuthModal.astro):
  *   data-auth-step="login-email"   → contenedor de un paso
@@ -36,12 +38,19 @@
  * Si ya hay una sesión iniciada (cookie peru_auth), abrir el modal lleva
  * directo al portal.
  */
+import { routes } from '@data/navigation';
+import { withBase } from '@utils/url';
+import {
+	hasSession,
+	isDemoAuth,
+	resendAccessCode,
+	startDemoGoogleAccess,
+	startEmailAccess,
+	verifyAccessCode,
+	type AuthStep,
+} from './auth-api';
 import { initDialogs, openDialog } from './dialog';
-import { ApiError, postJson } from './forms';
-
-/** Pasos del modal (valor de data-auth-step) */
-export type AuthStep =
-	'login' | 'login-email' | 'login-code' | 'register-email' | 'register-name' | 'register-code';
+import { ApiError } from './forms';
 
 const DIALOG_ID = 'auth-modal';
 const DEFAULT_STEP: AuthStep = 'login';
@@ -54,7 +63,7 @@ const VIEWS: Record<string, AuthStep> = {
 };
 
 /** Ruta del portal si el <dialog> no define data-auth-redirect */
-const FALLBACK_REDIRECT = '/portal/mi-proceso/';
+const FALLBACK_REDIRECT = routes.portal;
 
 /** Tiempo que se muestra la confirmación de "Volver a enviarlo" (ms) */
 const RESEND_FEEDBACK_MS = 5000;
@@ -81,11 +90,6 @@ interface ShowStepOptions {
 	focus?: boolean;
 	/** Anuncia el paso en la región aria-live (por defecto sí) */
 	announce?: boolean;
-}
-
-/** ¿Hay una sesión iniciada? (cookie informativa, ver src/lib/server/session.ts) */
-export function hasSession(): boolean {
-	return document.cookie.split(';').some((cookie) => cookie.trim() === 'peru_auth=1');
 }
 
 /** Solo rutas del propio sitio (evita redirecciones a otros dominios) */
@@ -270,7 +274,7 @@ export function initAuthFlow(): void {
 			switch (step) {
 				case 'login-email':
 				case 'register-email': {
-					const result = await postJson<{ next: AuthStep }>('/api/auth/email/start/', {
+					const result = await startEmailAccess({
 						email: state.email,
 						intent: step === 'login-email' ? 'login' : 'register',
 						next: state.next,
@@ -279,7 +283,7 @@ export function initAuthFlow(): void {
 					break;
 				}
 				case 'register-name': {
-					const result = await postJson<{ next: AuthStep }>('/api/auth/email/start/', {
+					const result = await startEmailAccess({
 						email: state.email,
 						name: state.name,
 						intent: 'register',
@@ -290,9 +294,7 @@ export function initAuthFlow(): void {
 				}
 				case 'login-code':
 				case 'register-code': {
-					const result = await postJson<{ redirect: string }>('/api/auth/email/verify/', {
-						code: data.get('code'),
-					});
+					const result = await verifyAccessCode(String(data.get('code') ?? ''), state.next);
 					window.location.assign(safePath(result.redirect, portalUrl));
 					return; // se mantiene "ocupado" mientras carga el portal
 				}
@@ -317,14 +319,25 @@ export function initAuthFlow(): void {
 
 	function updateGoogleLinks(): void {
 		googleLinks.forEach((link) => {
-			const url = new URL(link.getAttribute('href') ?? '/api/auth/google/', window.location.origin);
+			const url = new URL(
+				link.getAttribute('href') ?? withBase('/api/auth/google/'),
+				window.location.origin,
+			);
 			url.searchParams.set('next', state.next);
 			link.href = `${url.pathname}${url.search}`;
 		});
 	}
 
 	googleLinks.forEach((link) => {
-		link.addEventListener('click', () => link.setAttribute('aria-busy', 'true'));
+		link.addEventListener('click', (event) => {
+			link.setAttribute('aria-busy', 'true');
+			// Versión estática: no hay servidor que hable con Google → demostración
+			if (isDemoAuth) {
+				event.preventDefault();
+				startDemoGoogleAccess();
+				window.location.assign(state.next);
+			}
+		});
 	});
 
 	// "¿No recibiste el código? Volver a enviarlo"
@@ -339,7 +352,7 @@ export function initAuthFlow(): void {
 			button.setAttribute('aria-disabled', 'true');
 
 			try {
-				await postJson('/api/auth/email/resend/', {});
+				await resendAccessCode();
 				if (status)
 					status.textContent = (status.dataset.message ?? '').replace('{email}', state.email);
 			} catch (error) {

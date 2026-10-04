@@ -23,6 +23,7 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from 'astro:env/server';
 
+import { withBase } from '@utils/url';
 import { pkceChallenge, randomToken } from './crypto';
 
 const AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -33,7 +34,7 @@ const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 const googleKeys = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'));
 
 /** Ruta de vuelta (debe coincidir con la registrada en Google Cloud Console) */
-export const GOOGLE_CALLBACK_PATH = '/api/auth/google/callback/';
+export const GOOGLE_CALLBACK_PATH = withBase('/api/auth/google/callback/');
 
 export interface GoogleProfile {
 	sub: string;

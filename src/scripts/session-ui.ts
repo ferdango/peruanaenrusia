@@ -2,8 +2,9 @@
  * Estado de sesión en las páginas estáticas
  * --------------------------------------------------------------------------
  * Las páginas públicas son HTML estático, así que no saben si hay sesión.
- * Este script lee la cookie informativa `peru_auth` (sin datos personales) y
- * adapta los textos de los botones de acceso:
+ * Este script lee la cookie informativa `peru_auth` (sin datos personales; en
+ * la versión estática, la sesión de demostración, ver auth-api.ts) y adapta
+ * los textos de los botones de acceso:
  *
  *   <button data-dialog-open="auth-modal" data-session-text="Mi proceso">Inicia sesión</button>
  *       → con sesión, el texto pasa a "Mi proceso".
@@ -13,7 +14,7 @@
  * Al pulsarlos con sesión iniciada, src/scripts/auth-flow.ts lleva al portal
  * en lugar de abrir el modal.
  */
-import { hasSession } from './auth-flow';
+import { hasSession } from './auth-api';
 
 export function initSessionUi(): void {
 	if (!hasSession()) return;

@@ -6,6 +6,8 @@ Sitio web de **Peruana en Rusia**, construido a partir del diseño de Figma ([Pe
 
 Incluye el sitio público completo, el portal del estudiante, inicio de sesión con **Google** o con código por correo, **Libro de reclamaciones** virtual, integración lista con **WordPress** como gestor de contenidos, **SEO avanzado** y **cabeceras y políticas de seguridad**.
 
+**Vista previa en GitHub Pages (HTML puro):** <https://ferdango.github.io/peruanaenrusia/> — se actualiza sola con cada cambio en `master` ([detalles](docs/DESPLIEGUE.md#2-github-pages-html-puro)).
+
 ---
 
 ## Requisitos
@@ -114,7 +116,7 @@ server.mjs         servidor de producción
 | [GUIA-DESARROLLO.md](docs/GUIA-DESARROLLO.md) | Estructura, convenciones y cómo agregar páginas y módulos |
 | [WORDPRESS.md](docs/WORDPRESS.md)             | Conectar WordPress como gestor de contenidos              |
 | [AUTENTICACION.md](docs/AUTENTICACION.md)     | Inicio de sesión con Google y por correo                  |
-| [DESPLIEGUE.md](docs/DESPLIEGUE.md)           | Publicar en Hostinger u otros hostings                    |
+| [DESPLIEGUE.md](docs/DESPLIEGUE.md)           | Publicar en Hostinger, GitHub Pages u otros hostings      |
 | [SEGURIDAD.md](docs/SEGURIDAD.md)             | Medidas de seguridad y mantenimiento                      |
 | [SEO.md](docs/SEO.md)                         | Metadatos, datos estructurados, sitemap y rendimiento     |
 
@@ -145,10 +147,13 @@ El proyecto incluye **contenido de ejemplo** tomado del diseño. Reemplázalo po
 - [ ] URLs de redes sociales, teléfono y correo → `src/data/site.ts`
 - [ ] Video de presentación del Home → `videoSrc` en `src/components/sections/home/HomeHero.astro`
 - [ ] Dominio definitivo → variable `SITE_URL`
-- [ ] Variables de producción: ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md#3-antes-de-publicar-lista-de-control)
+- [ ] Variables de producción: ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md#4-antes-de-publicar-lista-de-control)
 
 Pendiente de backend: los datos del portal del estudiante (estado de los pasos, pagos y documentos) son de ejemplo (`src/data/portal.ts`); la carga de archivos y el pago aún no se envían a un servidor. La traducción del sitio a otros idiomas (selector de idioma) queda preparada pero sin contenido traducido.
 
 ## Despliegue
 
-`npm run build` y `npm start` en un hosting con Node.js 22+ (por ejemplo, Hostinger "Aplicación Node.js"). Detalles, variables y alternativas en **[docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)**.
+- **Sitio completo**: `npm run build` y `npm start` en un hosting con Node.js 22+ (por ejemplo, Hostinger "Aplicación Node.js").
+- **GitHub Pages (HTML puro)**: automático con [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml) en cada cambio de `master`; el inicio de sesión funciona en modo demostración.
+
+Detalles, variables y alternativas en **[docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)**.

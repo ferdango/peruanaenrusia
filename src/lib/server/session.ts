@@ -11,12 +11,13 @@
  */
 import type { APIContext } from 'astro';
 
+import { routes } from '@data/navigation';
 import type { SessionUser } from './types';
 
 export const AUTH_HINT_COOKIE = 'peru_auth';
 
 /** Ruta del portal (destino por defecto después de iniciar sesión) */
-export const PORTAL_HOME = '/portal/mi-proceso/';
+export const PORTAL_HOME = routes.portal;
 
 const SEVEN_DAYS = 60 * 60 * 24 * 7;
 

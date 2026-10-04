@@ -14,6 +14,7 @@
  */
 
 import type { ImageMetadata } from 'astro';
+import { withBase } from '@utils/url';
 import { site } from './site';
 import bankBcpLogo from '@assets/images/portal/bank-bcp.png';
 
@@ -22,13 +23,13 @@ import bankBcpLogo from '@assets/images/portal/bank-bcp.png';
    ========================================================================== */
 
 export const portalRoutes = {
-	payment: '/portal/pago/',
-	paymentSent: '/portal/pago/enviado/',
-	paymentRejected: '/portal/pago/rechazado/',
-	process: '/portal/mi-proceso/',
-	processDetail: '/portal/mi-proceso/detalle/',
+	payment: withBase('/portal/pago/'),
+	paymentSent: withBase('/portal/pago/enviado/'),
+	paymentRejected: withBase('/portal/pago/rechazado/'),
+	process: withBase('/portal/mi-proceso/'),
+	processDetail: withBase('/portal/mi-proceso/detalle/'),
 	/** Al cerrar sesión se vuelve al inicio del sitio público */
-	logout: '/',
+	logout: withBase('/'),
 } as const;
 
 /* ==========================================================================

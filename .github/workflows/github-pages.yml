@@ -1,0 +1,84 @@
+# Publica la versión estática del sitio (HTML puro) en GitHub Pages
+# ---------------------------------------------------------------------------
+# Compila el sitio sin servidor (DEPLOY_TARGET=static) y sube el HTML, CSS,
+# JavaScript e imágenes resultantes a la rama gh-pages, que es la que muestra
+# GitHub Pages (Settings → Pages → Deploy from a branch → gh-pages / root).
+#
+# Se ejecuta al subir cambios a master, a mano (Actions → "Publicar en GitHub
+# Pages" → Run workflow) y cuando WordPress avisa que cambió el contenido
+# (repository_dispatch "wordpress-update", ver docs/WORDPRESS.md).
+# Guía: docs/DESPLIEGUE.md › GitHub Pages.
+
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [wordpress-update]
+
+permissions:
+  contents: write # subir el HTML a la rama gh-pages
+  pages: write # leer la dirección de GitHub Pages y pedir la publicación
+
+# Una publicación a la vez; si llegan varias seguidas, se publica la última
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Compilar y publicar
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Dirección del sitio en GitHub Pages
+        id: pages
+        run: |
+          # https://ferdango.github.io/peruanaenrusia/ → origen + subcarpeta
+          # (con dominio propio: https://peruanaenrusia.pe/ y sin subcarpeta)
+          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .html_url)
+          echo "origin=$(node -p 'new URL(process.argv[1]).origin' "$url")" >> "$GITHUB_OUTPUT"
+          echo "base=$(node -p 'new URL(process.argv[1]).pathname.replace(/\/$/, "")' "$url")" >> "$GITHUB_OUTPUT"
+          echo "Sitio: $url"
+
+      - name: Compilar la versión estática
+        run: |
+          # El contenido sale de WordPress solo si existe la variable WORDPRESS_URL
+          # (Settings → Secrets and variables → Actions → Variables)
+          if [ -n "$WORDPRESS_URL_VAR" ]; then export WORDPRESS_URL="$WORDPRESS_URL_VAR"; fi
+          npm run build
+        env:
+          DEPLOY_TARGET: static
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base }}
+          WORDPRESS_URL_VAR: ${{ vars.WORDPRESS_URL }}
+
+      - name: Subir el HTML a la rama gh-pages
+        working-directory: dist/client
+        run: |
+          # Configuración de otros hostings (GitHub Pages no la usa)
+          rm -f .htaccess _headers
+          # Sin Jekyll: GitHub Pages publica los archivos tal cual (incluida la carpeta _astro)
+          touch .nojekyll
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "Publica el sitio (${GITHUB_SHA::7})"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+
+      - name: Pedir a GitHub Pages que publique la rama
+        run: gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" --silent || echo "GitHub Pages publicará la rama por su cuenta."

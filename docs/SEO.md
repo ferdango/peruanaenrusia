@@ -29,6 +29,7 @@ Valida con la [Prueba de resultados enriquecidos](https://search.google.com/test
 - **robots.txt**: `/robots.txt` (bloquea `/portal/` y `/api/`, apunta al sitemap).
 - **RSS del blog**: `/rss.xml`.
 - URLs limpias y consistentes con barra final (`/blog/mi-articulo/`); `/casos-de-exito/` redirige (308) a la sección del Home.
+- **Dirección temporal de GitHub Pages** (`*.github.io`): todas las páginas llevan `noindex` y `robots.txt` bloquea el rastreo, para que la vista previa no compita con el dominio oficial (ver `src/lib/seo/indexing.ts`). Con un dominio propio se indexa normalmente.
 
 ## 4. Rendimiento (Core Web Vitals)
 

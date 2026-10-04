@@ -7,6 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 
+import { routes } from '@data/navigation';
 import { createAuthorizationRequest, isGoogleConfigured } from '@lib/server/google';
 import { clientIp, publicOrigin, safeRedirectPath } from '@lib/server/http';
 import { MINUTE, rateLimit } from '@lib/server/rate-limit';
@@ -20,7 +21,7 @@ export const GET: APIRoute = (context) => {
 
 	// Vuelve al sitio con el modal abierto y un mensaje de error
 	const fail = (reason: string) =>
-		redirect(`/?login=1&auth_error=${reason}&next=${encodeURIComponent(next)}`, 302);
+		redirect(`${routes.home}?login=1&auth_error=${reason}&next=${encodeURIComponent(next)}`, 302);
 
 	if (!isGoogleConfigured() || !session) return fail('google_unavailable');
 

@@ -40,7 +40,8 @@ El orden de universidades, casos de éxito y preguntas se define con el campo **
 
    ```php
    define( 'PERU_FRONTEND_URL', 'https://peruanaenrusia.pe' );      // enlaces "Ver" del panel
-   define( 'PERU_DEPLOY_HOOK_URL', 'https://…' );                   // ver sección 5
+   define( 'PERU_GITHUB_REPO', 'ferdango/peruanaenrusia' );         // ver sección 5 (GitHub Pages)
+   define( 'PERU_GITHUB_TOKEN', 'github_pat_…' );                  // ver sección 5
    define( 'PERU_REDIRECT_FRONTEND', true );                        // el WordPress público redirige al sitio
    ```
 
@@ -100,13 +101,13 @@ Una página con el slug `legales`. Cada **Título 2** (`<h2>`) se numera automá
 
 ## 5. Publicar cambios automáticamente
 
-Como el sitio es estático, hay que recompilarlo cuando cambia el contenido. El plugin llama a `PERU_DEPLOY_HOOK_URL` **2 minutos después** de publicar, actualizar o eliminar contenido (agrupa varios cambios seguidos). También se puede lanzar a mano en _Herramientas → Recompilar sitio_.
+Como el sitio es estático, hay que recompilarlo cuando cambia el contenido. El plugin lo pide **2 minutos después** de publicar, actualizar o eliminar contenido (agrupa varios cambios seguidos). También se puede lanzar a mano en _Herramientas → Recompilar sitio_.
 
-Qué URL usar depende del hosting:
+Qué configurar en `wp-config.php` depende de dónde se publica:
 
-- **GitHub Actions**: un workflow con `workflow_dispatch`/`repository_dispatch` que compile y despliegue.
-- **Netlify / Vercel / Cloudflare Pages**: el "Deploy hook" del proyecto.
-- **Hostinger (Node.js)**: un webhook de despliegue del repositorio, o un script en el servidor que ejecute `git pull && npm ci && npm run build` y reinicie la app.
+- **GitHub Pages** (workflow [`github-pages.yml`](../.github/workflows/github-pages.yml)): `PERU_GITHUB_REPO` (`'ferdango/peruanaenrusia'`) y `PERU_GITHUB_TOKEN`. Crea el token en GitHub → _Settings → Developer settings → Fine-grained tokens_, con acceso **solo** a este repositorio y el permiso **Contents: Read and write** (con eso puede lanzar el workflow). Guárdalo únicamente en `wp-config.php`. En el repositorio, crea la variable `WORDPRESS_URL` para que la compilación lea el contenido ([DESPLIEGUE.md](DESPLIEGUE.md#2-github-pages-html-puro)).
+- **Netlify / Vercel / Cloudflare Pages**: `PERU_DEPLOY_HOOK_URL` con el "Deploy hook" del proyecto.
+- **Hostinger (Node.js)**: `PERU_DEPLOY_HOOK_URL` con un webhook de despliegue del repositorio, o un script en el servidor que ejecute `git pull && npm ci && npm run build` y reinicie la app.
 
 ---
 

@@ -14,11 +14,12 @@
  *   <AuthGoogleButton />
  */
 import Icon from '@components/ui/Icon.astro';
+import { withBase } from '@utils/url';
 
 const label = 'Usa tu cuenta de Google';
 ---
 
-<a href="/api/auth/google/" class="auth-google" data-auth-google rel="nofollow">
+<a href={withBase('/api/auth/google/')} class="auth-google" data-auth-google rel="nofollow">
 	<span class="auth-google__logo">
 		<Icon name="google" width={23.6463} height={24.4897} />
 	</span>

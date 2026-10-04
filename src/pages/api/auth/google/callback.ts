@@ -7,6 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 
+import { routes } from '@data/navigation';
 import { completeAuthorization } from '@lib/server/google';
 import { safeEqual } from '@lib/server/crypto';
 import { publicOrigin } from '@lib/server/http';
@@ -25,7 +26,7 @@ export const GET: APIRoute = async (context) => {
 
 	const next = oauth?.next ?? PORTAL_HOME;
 	const fail = (reason: string) =>
-		redirect(`/?login=1&auth_error=${reason}&next=${encodeURIComponent(next)}`, 302);
+		redirect(`${routes.home}?login=1&auth_error=${reason}&next=${encodeURIComponent(next)}`, 302);
 
 	// La persona canceló en la pantalla de Google
 	if (url.searchParams.get('error')) return fail('cancelled');

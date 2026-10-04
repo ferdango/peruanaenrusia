@@ -11,6 +11,8 @@
  *
  * Se usa delegación de eventos: basta con llamar initPortalNav() una vez.
  */
+import { routes } from '@data/navigation';
+import { endSession } from './auth-api';
 
 let ready = false;
 
@@ -39,7 +41,7 @@ export function initPortalNav(): void {
 }
 
 /** Vuelve a la página anterior del mismo sitio; si no hay, va a `fallback` */
-function goBack(fallback = '/'): void {
+function goBack(fallback = routes.home): void {
 	const cameFromThisSite =
 		document.referrer && new URL(document.referrer).origin === window.location.origin;
 
@@ -50,14 +52,10 @@ function goBack(fallback = '/'): void {
 	}
 }
 
-/** Cierra la sesión en el servidor (POST /api/auth/logout/) y vuelve al inicio */
+/** Cierra la sesión (POST /api/auth/logout/, ver auth-api.ts) y vuelve al inicio */
 async function logoutAndRedirect(href: string): Promise<void> {
 	try {
-		await fetch('/api/auth/logout/', {
-			method: 'POST',
-			credentials: 'same-origin',
-			headers: { 'X-Requested-With': 'fetch' },
-		});
+		await endSession();
 	} catch {
 		// Aunque falle la red, se sale del portal; la sesión vence sola a los 7 días
 	}

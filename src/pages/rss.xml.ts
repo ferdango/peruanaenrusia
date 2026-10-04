@@ -7,7 +7,7 @@
 import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 
-import { detailRoutes } from '@data/navigation';
+import { detailRoutes, routes } from '@data/navigation';
 import { site as siteData } from '@data/site';
 import { getBlogPosts } from '@lib/content';
 
@@ -18,7 +18,8 @@ export const GET: APIRoute = async ({ site }) => {
 		title: `Blog de ${siteData.name}`,
 		description:
 			'Videoblogs, charlas informativas y artículos para estudiar en Rusia: historias, consejos y todo lo que necesitas saber antes de viajar.',
-		site: site ?? 'https://peruanaenrusia.pe',
+		// Portada del sitio (con subcarpeta): base de los enlaces de cada publicación
+		site: new URL(routes.home, site ?? 'https://peruanaenrusia.pe').href,
 		customData: '<language>es-pe</language>',
 		items: posts.map((post) => ({
 			title: post.title,

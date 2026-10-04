@@ -50,9 +50,16 @@ function goBack(fallback = '/'): void {
 	}
 }
 
+/** Cierra la sesión en el servidor (POST /api/auth/logout/) y vuelve al inicio */
 async function logoutAndRedirect(href: string): Promise<void> {
-	// TODO (API): cerrar la sesión en el servidor, por ejemplo:
-	//   await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-	// y limpiar cualquier dato del estudiante guardado en el navegador.
+	try {
+		await fetch('/api/auth/logout/', {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'X-Requested-With': 'fetch' },
+		});
+	} catch {
+		// Aunque falle la red, se sale del portal; la sesión vence sola a los 7 días
+	}
 	window.location.assign(href);
 }

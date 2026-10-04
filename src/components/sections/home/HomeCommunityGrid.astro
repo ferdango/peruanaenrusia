@@ -3,11 +3,185 @@
  * HomeCommunityGrid — "Mira cómo estamos revolucionando vidas"
  * --------------------------------------------------------------------------
  * Figma: Home › "Frame 628458" (4045:120)
+ *   · Título (3832:120).
+ *   · Grilla (4045:119): columnas de 2 fotos (una de 400px y otra que ocupa el
+ *     resto de los 660px), alternando alta/baja, en un carrusel (4045:121).
+ *   · Tarjeta roja "Únete a Peruana en Rusia:" (4045:144) flotando sobre la
+ *     esquina inferior derecha de la grilla.
  *
- * TODO (en construcción): implementar según el diseño.
+ * Móvil: el diseño móvil no incluye esta grilla (pasa directo a "Una comunidad
+ * que cambia vidas", que trae su propia tarjeta roja), así que se oculta.
+ *
+ * Las fotos vienen de src/data/community.ts (`communityGridPhotos`).
+ *
+ * Uso: <HomeCommunityGrid /> (página de inicio).
  */
+import { Image } from 'astro:assets';
+
+import Carousel from '@components/ui/Carousel.astro';
+import CommunityJoinCard from './CommunityJoinCard.astro';
+import { communityGridPhotos, type CommunityPhoto } from '@data/community';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Mira cómo estamos revolucionando vidas',
+	carouselLabel: 'Fotos de la comunidad de Peruana en Rusia',
+};
+
+/** Agrupa las fotos de 2 en 2: cada par es una columna de la grilla */
+const columns: CommunityPhoto[][] = [];
+for (let index = 0; index < communityGridPhotos.length; index += 2) {
+	columns.push(communityGridPhotos.slice(index, index + 2));
+}
 ---
 
-<section class="section container" id="comunidad" aria-label="Mira cómo estamos revolucionando vidas">
-	<!-- Mira cómo estamos revolucionando vidas -->
+<section class="home-community section" id="comunidad" aria-labelledby="home-community-title">
+	<div class="container">
+		<h2 id="home-community-title" class="home-community__title">
+			{content.title}
+		</h2>
+	</div>
+
+	<div class="home-community__stage">
+		<Carousel label={content.carouselLabel} tone="blue" gap={16} class="home-community__carousel">
+			{columns.map((column, columnIndex) => (
+				<ul
+					class:list={['community-column', { 'community-column--reverse': columnIndex % 2 === 1 }]}
+					role="list"
+				>
+					{column.map((photo) => (
+						<li class="community-column__item">
+							{photo.href ? (
+								<a
+									href={photo.href}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="community-photo"
+								>
+									<Image
+										src={photo.image}
+										alt={photo.alt}
+										widths={[326, 652]}
+										sizes="(max-width: 1100px) 45vw, 326px"
+										class="community-photo__image"
+									/>
+								</a>
+							) : (
+								<div class="community-photo">
+									<Image
+										src={photo.image}
+										alt={photo.alt}
+										widths={[326, 652]}
+										sizes="(max-width: 1100px) 45vw, 326px"
+										class="community-photo__image"
+									/>
+								</div>
+							)}
+						</li>
+					))}
+				</ul>
+			))}
+		</Carousel>
+
+		<CommunityJoinCard class="home-community__join" />
+	</div>
 </section>
+
+<style>
+	.home-community {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7); /* 40px */
+		background-color: var(--surface-light);
+		color: var(--text-on-light);
+		--carousel-controls-gap: var(--space-7);
+	}
+
+	/* Figma: Poppins Bold 48/56, 540px */
+	.home-community__title {
+		max-width: 33.75rem;
+		font-size: var(--font-size-h1);
+		line-height: 1.1667;
+		color: var(--text-heading-light);
+		text-wrap: wrap;
+	}
+
+	/* ----- Escenario: carrusel + tarjeta roja flotante ----- */
+	.home-community__stage {
+		position: relative;
+		container-type: inline-size;
+	}
+
+	/* ----- Columna de 2 fotos (660px de alto) ----- */
+	.community-column {
+		display: grid;
+		grid-template-rows: 25rem minmax(0, 1fr); /* 400px + resto */
+		gap: var(--space-4); /* 16px */
+		/* 4 columnas visibles en el contenido de 1352px */
+		width: calc((min(100cqw - 2 * var(--gutter), var(--container-max)) - 3 * 16px) / 4);
+		height: 41.25rem; /* 660px */
+		margin: 0;
+		padding: 0;
+	}
+
+	.community-column--reverse {
+		grid-template-rows: minmax(0, 1fr) 25rem;
+	}
+
+	.community-column__item {
+		min-height: 0;
+	}
+
+	.community-photo {
+		display: block;
+		height: 100%;
+		overflow: clip;
+		border-radius: 1.75rem; /* 28px */
+	}
+
+	.community-photo__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	a.community-photo:hover .community-photo__image {
+		transform: scale(1.04);
+	}
+
+	/* ----- Tarjeta roja: esquina inferior derecha (Figma: left 1000 · top 770) ----- */
+	.home-community :global(.home-community__join) {
+		position: absolute;
+		top: 33.625rem; /* 538px desde el inicio de la grilla */
+		right: max(0.875rem, (100cqw - 1512px) / 2 + 0.875rem); /* 14px del borde del lienzo */
+		z-index: 1;
+	}
+
+	/* ===== Tablet: 2 columnas y media; la tarjeta roja va debajo ===== */
+	@media (max-width: 1100px) {
+		.community-column {
+			width: calc((100cqw - var(--gutter) - 2 * 16px) / 2.4);
+			height: 32rem;
+			grid-template-rows: 19rem minmax(0, 1fr);
+		}
+
+		.community-column--reverse {
+			grid-template-rows: minmax(0, 1fr) 19rem;
+		}
+
+		.home-community :global(.home-community__join) {
+			position: relative;
+			top: auto;
+			right: auto;
+			margin: var(--space-7) var(--gutter) 0 auto;
+		}
+	}
+
+	/* ===== Móvil: la grilla no forma parte del diseño móvil ===== */
+	@media (max-width: 640px) {
+		.home-community {
+			display: none;
+		}
+	}
+</style>

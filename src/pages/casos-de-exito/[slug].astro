@@ -1,0 +1,96 @@
+---
+/**
+ * Historia completa de un caso de éxito ( /casos-de-exito/{slug}/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) · UI Mobile › "Android
+ * Large - 9" (1758:3052).
+ *
+ * Se genera una página por cada caso de éxito (de WordPress o, si no está
+ * configurado, de src/data/testimonials.ts). Las secciones sin datos no se
+ * dibujan (todos los campos de la "historia completa" son opcionales).
+ *
+ * Secciones (src/components/sections/testimony/):
+ *   1. TestimonyHero       → portada con la frase del estudiante (h1)
+ *   2. TestimonyVideo      → "Conoce mi historia"
+ *   3. TestimonyHighlight  → cita destacada sobre la forma celeste
+ *   4. TestimonyStory      → "Cómo lo logré: el paso a paso" (#mi-historia)
+ *   5. TestimonyGallery    → publicaciones (estilo Instagram)
+ *   6. TestimonyClosing    → segundo video + cita final
+ *   7. StartCta (verde)    → "¿Te animas a intentarlo?"
+ *   8. TestimonyMoreCases  → "Más casos de éxito"
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import TestimonyHero from '@components/sections/testimony/TestimonyHero.astro';
+import TestimonyVideo from '@components/sections/testimony/TestimonyVideo.astro';
+import TestimonyHighlight from '@components/sections/testimony/TestimonyHighlight.astro';
+import TestimonyStory from '@components/sections/testimony/TestimonyStory.astro';
+import TestimonyGallery from '@components/sections/testimony/TestimonyGallery.astro';
+import TestimonyClosing from '@components/sections/testimony/TestimonyClosing.astro';
+import TestimonyMoreCases from '@components/sections/testimony/TestimonyMoreCases.astro';
+import StartCta from '@components/sections/shared/StartCta.astro';
+import { routes } from '@data/navigation';
+import { whatsappUrl } from '@data/site';
+import type { Testimonial } from '@data/testimonials';
+import { getTestimonials } from '@lib/content';
+import { breadcrumbSchema } from '@lib/seo/schema';
+
+export async function getStaticPaths() {
+	const testimonials = await getTestimonials();
+	return testimonials.map((testimonial) => ({
+		params: { slug: testimonial.slug },
+		props: { testimonial },
+	}));
+}
+
+interface Props {
+	testimonial: Testimonial;
+}
+
+const { testimonial } = Astro.props;
+
+// ----- Anclas de la página -----
+const anchors = {
+	video: 'conoce-mi-historia',
+	story: 'mi-historia',
+};
+
+// ----- Contenido del llamado final -----
+const cta = {
+	title: '¿Te animas a intentarlo?',
+	text: 'Reserva una llamada gratuita ahora. No pierdas esta oportunidad',
+	button: { label: 'Quiero empezar ahora', href: whatsappUrl, external: true },
+};
+
+// ----- Metadatos -----
+const meta = {
+	title: `Caso de éxito: ${testimonial.name}`,
+	description: `“${testimonial.headline ?? testimonial.quote}” — ${testimonial.name}, ${testimonial.role}. Conoce su historia y cómo logró estudiar en Rusia con Peruana en Rusia.`,
+	image: testimonial.portrait?.src ?? testimonial.avatar,
+};
+
+/** La flecha de la portada baja al video o, si no hay, a la historia */
+const nextAnchor = testimonial.video ? anchors.video : anchors.story;
+
+const jsonLd = [
+	breadcrumbSchema(
+		[
+			{ name: 'Inicio', path: routes.home },
+			{ name: 'Casos de éxito', path: routes.successCases },
+			{ name: testimonial.name, path: Astro.url.pathname },
+		],
+		Astro.site,
+	),
+];
+---
+
+<SiteLayout title={meta.title} description={meta.description} image={meta.image} jsonLd={jsonLd}>
+	<TestimonyHero testimonial={testimonial} storyHref={`#${anchors.story}`} nextHref={`#${nextAnchor}`} />
+	<TestimonyVideo id={anchors.video} testimonial={testimonial} />
+	<TestimonyHighlight testimonial={testimonial} />
+	<TestimonyStory id={anchors.story} testimonial={testimonial} />
+	<TestimonyGallery testimonial={testimonial} />
+	<TestimonyClosing testimonial={testimonial} />
+	<StartCta id="empezar" tone="green" title={cta.title} text={cta.text} cta={cta.button} />
+	<TestimonyMoreCases currentSlug={testimonial.slug} />
+</SiteLayout>

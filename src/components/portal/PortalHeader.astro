@@ -8,13 +8,17 @@
  * Pestaña blanca "colgada" del borde superior con el logo a color, el saludo
  * con la inicial del estudiante y el botón de cerrar sesión.
  *
+ * El nombre sale de la sesión del estudiante (Astro.locals.user, ver
+ * src/middleware.ts); si no hay sesión se usa el nombre de ejemplo de
+ * src/data/portal.ts.
+ *
  * Uso (ya lo incluye PortalLayout):
  *   <PortalHeader />
  */
 import Logo from '@components/brand/Logo.astro';
 import Icon from '@components/ui/Icon.astro';
 import { routes } from '@data/navigation';
-import { portalRoutes, student, studentInitial } from '@data/portal';
+import { portalRoutes, student } from '@data/portal';
 
 // ----- Textos -----
 const content = {
@@ -22,6 +26,10 @@ const content = {
 	homeLabel: 'Peruana en Rusia — ir al inicio',
 	logoutLabel: 'Cerrar sesión',
 };
+
+/** Primer nombre del estudiante con sesión iniciada */
+const firstName = Astro.locals.user?.name.trim().split(/\s+/)[0] || student.firstName;
+const initial = firstName.charAt(0).toUpperCase();
 ---
 
 <header class="portal-header">
@@ -31,14 +39,14 @@ const content = {
 
 	<div class="portal-header__user">
 		<span class="portal-header__avatar" aria-hidden="true">
-			{studentInitial}
+			{initial}
 		</span>
 		<div class="portal-header__session">
 			<p class="portal-header__greeting">
 				{content.greeting}
-				<strong class="portal-header__name">{student.firstName}</strong>
+				<strong class="portal-header__name">{firstName}</strong>
 			</p>
-			<!-- TODO (API): cerrar la sesión en el servidor antes de salir (ver src/scripts/portal-nav.ts) -->
+			<!-- Cierra la sesión en el servidor antes de salir (src/scripts/portal-nav.ts) -->
 			<a
 				class="portal-header__logout"
 				href={portalRoutes.logout}

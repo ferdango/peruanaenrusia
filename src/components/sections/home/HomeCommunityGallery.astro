@@ -2,12 +2,183 @@
 /**
  * HomeCommunityGallery — "Una comunidad que cambia vidas"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628101" (1346:947)
+ * Figma: Home › "Frame 628101" (1346:947): título + carrusel de fotos
+ * verticales (320 × 520, radio 28) y sus controles. La primera foto lleva el
+ * ícono de Instagram.
+ * Móvil: UI Mobile › Home: fondo oscuro, una foto por vista (330 × 575) con
+ * el botón ▶ en las publicaciones de video y, debajo, la tarjeta roja
+ * "Únete a Peruana en Rusia:" (en desktop esa tarjeta flota sobre la grilla
+ * de HomeCommunityGrid).
  *
- * TODO (en construcción): implementar según el diseño.
+ * Las fotos vienen de src/data/community.ts (`communityGalleryPhotos`).
+ *
+ * Uso: <HomeCommunityGallery /> (página de inicio, después de HomeCommunityGrid).
  */
+import { Image } from 'astro:assets';
+
+import Carousel from '@components/ui/Carousel.astro';
+import Icon from '@components/ui/Icon.astro';
+import CommunityJoinCard from './CommunityJoinCard.astro';
+import { communityGalleryPhotos } from '@data/community';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Una comunidad que cambia vidas',
+	carouselLabel: 'Publicaciones de la comunidad',
+	openPost: 'Ver la publicación en Instagram',
+};
 ---
 
-<section class="section container" id="galeria" aria-label="Una comunidad que cambia vidas">
-	<!-- Una comunidad que cambia vidas -->
+<section class="home-gallery section" id="galeria" aria-labelledby="home-gallery-title">
+	<div class="container">
+		<h2 id="home-gallery-title" class="home-gallery__title">
+			{content.title}
+		</h2>
+	</div>
+
+	<Carousel label={content.carouselLabel} tone="blue" gap={24} class="home-gallery__carousel">
+		{communityGalleryPhotos.map((photo) => {
+			const Tag = photo.href ? 'a' : 'figure';
+			return (
+				<Tag
+					class="gallery-photo"
+					{...(photo.href
+						? { href: photo.href, target: '_blank', rel: 'noopener noreferrer' }
+						: {})}
+				>
+					<Image
+						src={photo.image}
+						alt={photo.alt}
+						widths={[330, 660, 1080]}
+						sizes="(max-width: 640px) 330px, 320px"
+						class="gallery-photo__image"
+					/>
+					{photo.instagram && <Icon name="instagram" size={28} class="gallery-photo__instagram" />}
+					{photo.video && (
+						<span class="gallery-photo__play" aria-hidden="true">
+							<Icon name="play" size={24} />
+						</span>
+					)}
+					{photo.href && <span class="visually-hidden">{content.openPost}</span>}
+				</Tag>
+			);
+		})}
+	</Carousel>
+
+	<!-- Solo móvil: tarjeta roja debajo del carrusel -->
+	<CommunityJoinCard class="home-gallery__join" />
 </section>
+
+<style>
+	.home-gallery {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-7); /* 40px */
+		background-color: var(--surface-white);
+		color: var(--text-on-light);
+		--carousel-controls-gap: var(--space-7);
+	}
+
+	/* Figma: Poppins Bold 48/56 */
+	.home-gallery__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1667;
+		color: var(--text-heading-light);
+	}
+
+	/* ----- Foto vertical (320 × 520) ----- */
+	.gallery-photo {
+		position: relative;
+		display: block;
+		width: 20rem; /* 320px */
+		height: 32.5rem; /* 520px */
+		margin: 0;
+		overflow: clip;
+		border-radius: 1.75rem; /* 28px */
+	}
+
+	.gallery-photo__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	a.gallery-photo:hover .gallery-photo__image {
+		transform: scale(1.04);
+	}
+
+	/* Ícono de Instagram (Figma: 28px, blanco, a la derecha a media altura) */
+	.gallery-photo__instagram {
+		position: absolute;
+		top: 15.1875rem; /* 243px */
+		left: 13.3625rem; /* 213.8px */
+		color: var(--color-pure-white);
+		filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.35));
+	}
+
+	/* Botón ▶ de los videos (solo en móvil, como en el diseño) */
+	.gallery-photo__play {
+		position: absolute;
+		inset: 0;
+		display: none;
+		place-items: center;
+		margin: auto;
+		width: 3.5rem; /* 56px */
+		height: 3.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+	}
+
+	/* La tarjeta roja de esta sección solo se ve en móvil */
+	.home-gallery :global(.home-gallery__join) {
+		display: none;
+	}
+
+	/* ===== Móvil: fondo oscuro, una foto por vista y la tarjeta roja ===== */
+	@media (max-width: 640px) {
+		.home-gallery {
+			gap: var(--space-7);
+			padding-bottom: 0;
+			background-color: var(--surface-dark);
+			color: var(--text-on-dark);
+			--carousel-controls-gap: 1.75rem;
+		}
+
+		/* El diseño móvil no muestra el título (se mantiene para lectores de pantalla) */
+		.home-gallery__title {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		.home-gallery :global(.home-gallery__carousel) {
+			--carousel-color: var(--color-blue);
+			--carousel-dot: rgb(244 244 244 / 0.15);
+		}
+
+		.gallery-photo {
+			width: min(20.625rem, 100vw - 2 * var(--gutter)); /* 330px */
+			height: auto;
+			aspect-ratio: 330 / 575;
+		}
+
+		.gallery-photo__instagram {
+			display: none;
+		}
+
+		.gallery-photo__play {
+			display: grid;
+		}
+
+		.home-gallery :global(.home-gallery__join) {
+			display: flex;
+			margin-top: var(--space-6);
+		}
+	}
+</style>

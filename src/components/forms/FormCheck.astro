@@ -1,0 +1,147 @@
+---
+/**
+ * FormCheck — casilla de verificación circular
+ * --------------------------------------------------------------------------
+ * Figma: "Libro de reclamaciones" › "Radio button" (953:3245): círculo de
+ * 28px con borde negro y el texto a 12px. Al marcarla se rellena de azul con
+ * un check blanco.
+ *
+ * Es un <input type="checkbox"> nativo (accesible con teclado y lectores de
+ * pantalla) con un estilo propio.
+ *
+ * Uso:
+ *   <FormCheck id="c-minor" name="isMinor">Soy menor de edad</FormCheck>
+ *   <FormCheck id="c-consent" name="consent" required
+ *       messages={{ required: 'Debes aceptar el tratamiento de tus datos.' }}>
+ *       He leído y acepto…
+ *   </FormCheck>
+ */
+import Icon from '@components/ui/Icon.astro';
+
+interface Props {
+	id: string;
+	name: string;
+	value?: string;
+	required?: boolean;
+	checked?: boolean;
+	messages?: { required?: string };
+	/** Atributo para que un script muestre/oculte otros campos según la casilla */
+	controls?: string;
+	class?: string;
+}
+
+const {
+	id,
+	name,
+	value = 'si',
+	required = false,
+	checked = false,
+	messages = {},
+	controls,
+	class: className,
+} = Astro.props;
+const errorId = `${id}-error`;
+---
+
+<div class:list={['form-check', className]} data-form-field>
+	<label class="form-check__label" for={id}>
+		<input
+			type="checkbox"
+			id={id}
+			name={name}
+			value={value}
+			required={required}
+			checked={checked}
+			class="form-check__input"
+			aria-describedby={errorId}
+			aria-controls={controls}
+			data-msg-required={messages.required}
+		/>
+		<span class="form-check__box" aria-hidden="true">
+			<Icon name="check" size={16} />
+		</span>
+		<span class="form-check__text">
+			<slot />
+		</span>
+	</label>
+	<p id={errorId} class="form-check__error" aria-live="polite" data-form-error></p>
+</div>
+
+<style>
+	.form-check {
+		--form-check-error: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.form-check__label {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-3); /* 12px */
+		cursor: pointer;
+	}
+
+	/* El input real queda encima del círculo (invisible) para conservar el foco nativo */
+	.form-check__input {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		width: 1.75rem;
+		height: 1.75rem;
+		margin: 0;
+		opacity: 0;
+		cursor: pointer;
+		transform: translateY(-50%);
+	}
+
+	.form-check__box {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 1.75rem; /* 28px */
+		height: 1.75rem;
+		border: 1.5px solid var(--text-on-light);
+		border-radius: var(--radius-pill);
+		color: transparent;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	.form-check__input:checked + .form-check__box {
+		border-color: var(--color-blue-title);
+		background-color: var(--color-blue-title);
+		color: var(--color-pure-white);
+	}
+
+	.form-check__input:focus-visible + .form-check__box {
+		box-shadow: var(--focus-ring);
+	}
+
+	.form-check__input[aria-invalid='true'] + .form-check__box {
+		border-color: var(--form-check-error);
+	}
+
+	/* Figma: 16/20 */
+	.form-check__text {
+		font-size: var(--font-size-md);
+		line-height: 1.25rem;
+		color: var(--text-on-light);
+	}
+
+	.form-check__error {
+		padding-left: 2.5rem;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		line-height: 1rem;
+		color: var(--form-check-error);
+	}
+
+	.form-check__error:empty {
+		display: none;
+	}
+</style>

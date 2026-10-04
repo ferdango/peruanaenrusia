@@ -19,17 +19,22 @@
  *   label    → nombre accesible del carrusel (obligatorio).
  *   tone     → "light" (controles blancos, fondos oscuros) · "blue" (controles
  *              azules, fondos claros).
- *   gap      → espacio entre tarjetas en px (24 por defecto).
+ *   gap      → espacio entre tarjetas en px: 8, 12, 16, 24 (por defecto) o 32.
+ *              Para cambiarlo según el tamaño de pantalla, redefine la
+ *              variable --carousel-gap desde la sección.
  *   controls → muestra u oculta flechas y puntos (true por defecto).
  *
  * El comportamiento (flechas, puntos, estados) vive en src/scripts/carousel.ts.
  */
 import Icon from './Icon.astro';
 
+/** Espacios permitidos entre tarjetas (cada uno tiene su clase CSS, sin estilos en línea) */
+type CarouselGap = 8 | 12 | 16 | 24 | 32;
+
 interface Props {
 	label: string;
 	tone?: 'light' | 'blue';
-	gap?: number;
+	gap?: CarouselGap;
 	controls?: boolean;
 	class?: string;
 }
@@ -38,8 +43,7 @@ const { label, tone = 'light', gap = 24, controls = true, class: className } = A
 ---
 
 <div
-	class:list={['carousel', `carousel--${tone}`, className]}
-	style={`--carousel-gap: ${gap}px;`}
+	class:list={['carousel', `carousel--${tone}`, `carousel--gap-${gap}`, className]}
 	data-carousel
 	role="region"
 	aria-roledescription="carrusel"
@@ -88,6 +92,27 @@ const { label, tone = 'light', gap = 24, controls = true, class: className } = A
 	.carousel--blue {
 		--carousel-color: var(--color-blue-title);
 		--carousel-dot: rgb(18 91 168 / 0.2);
+	}
+
+	/* ----- Espacio entre tarjetas ----- */
+	.carousel--gap-8 {
+		--carousel-gap: 8px;
+	}
+
+	.carousel--gap-12 {
+		--carousel-gap: 12px;
+	}
+
+	.carousel--gap-16 {
+		--carousel-gap: 16px;
+	}
+
+	.carousel--gap-24 {
+		--carousel-gap: 24px;
+	}
+
+	.carousel--gap-32 {
+		--carousel-gap: 32px;
 	}
 
 	/* ----- Pista con scroll horizontal ----- */

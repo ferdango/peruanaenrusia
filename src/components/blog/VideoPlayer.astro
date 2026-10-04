@@ -15,16 +15,15 @@
  * Uso:
  *   <VideoPlayer title={video.title} thumbnail={video.thumbnail} youtubeId={video.youtubeId} />
  */
-import type { ImageMetadata } from 'astro';
-import { Image } from 'astro:assets';
-
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import type { ImageSource } from '@lib/content/images';
 import { site } from '@data/site';
 
 interface Props {
 	/** Título del video (texto accesible del botón y del reproductor) */
 	title: string;
-	thumbnail: ImageMetadata;
+	thumbnail: ImageSource;
 	youtubeId?: string;
 	class?: string;
 }
@@ -40,8 +39,8 @@ const playLabel = youtubeId
 ---
 
 <div class:list={['video-player', className]} data-video-player data-youtube-id={youtubeId}>
-	<Image
-		src={thumbnail}
+	<MediaImage
+		image={thumbnail}
 		alt=""
 		widths={[640, 1024, 1600]}
 		sizes="(max-width: 1100px) 100vw, 1024px"

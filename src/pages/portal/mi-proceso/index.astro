@@ -7,6 +7,9 @@
  */
 import PortalLayout from '@layouts/PortalLayout.astro';
 import ProcessSummary from '@components/portal/ProcessSummary.astro';
+
+// Página bajo demanda: el middleware verifica la sesión antes de mostrarla
+export const prerender = false;
 ---
 
 <PortalLayout

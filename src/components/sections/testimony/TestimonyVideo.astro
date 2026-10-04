@@ -13,7 +13,7 @@
  *
  * Uso: <TestimonyVideo id="conoce-mi-historia" testimonial={testimonial} />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import Icon from '@components/ui/Icon.astro';
 import WaveYellow from '@assets/graphics/waves/wave-yellow-video.svg';
@@ -42,8 +42,8 @@ const videoHref = testimonial.video?.url ?? youtubeChannel;
 	<section id={id} class="testimony-video" aria-labelledby={`${id}-title`}>
 		<div class="testimony-video__card">
 			<div class="testimony-video__media">
-				<Image
-					src={poster.src}
+				<MediaImage
+					image={poster.src}
 					alt={poster.alt}
 					widths={[480, 800, 1200, 1600, 2000]}
 					sizes="(max-width: 640px) 240vw, (max-width: 1512px) 115vw, 1550px"

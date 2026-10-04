@@ -14,7 +14,7 @@
  *
  * Uso: <TestimonyClosing testimonial={testimonial} />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import Logo from '@components/brand/Logo.astro';
 import Icon from '@components/ui/Icon.astro';
@@ -50,8 +50,8 @@ const videoHref = testimonial.video?.url ?? youtubeChannel;
 		<div class="testimony-closing__inner">
 			{poster && (
 				<div class="testimony-closing__media">
-					<Image
-						src={poster.src}
+					<MediaImage
+						image={poster.src}
 						alt={poster.alt}
 						widths={[640, 1100, 1600, 2000]}
 						sizes="(max-width: 640px) 240vw, 1100px"

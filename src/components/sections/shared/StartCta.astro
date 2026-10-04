@@ -1,0 +1,447 @@
+---
+/**
+ * StartCta — Llamado a la acción con dos estudiantes mirándose
+ * --------------------------------------------------------------------------
+ * Una misma composición del diseño en dos tonos:
+ *   tone="light" → Home › "¿Quieres iniciar tu proceso ahora?"
+ *                  Figma: "Group 6" (1388:4725): fondo celeste, banderas y
+ *                  estrellas. Móvil: UI Mobile › 1729:1909 (sin personas,
+ *                  con ondas de colores, estrellas y banderas).
+ *   tone="green" → Caso de éxito › "¿Te animas a intentarlo?"
+ *                  Figma: "My testimony" › 1847:296 (fondo verde), 1852:308
+ *                  (personas + ondas amarilla, roja y azul) y 1852:319 (texto).
+ *
+ * Desktop (> 1100 px): la composición se dibuja en un lienzo de 1512 × 840
+ * "píxeles de diseño" (--u) que escala con el ancho de la pantalla.
+ * Tablet y móvil: solo el texto y, debajo, las ondas del diseño móvil.
+ *
+ * Capas del lienzo (de atrás hacia adelante, como en Figma):
+ *   ondas de atrás (verde) → personas → onda de adelante (verde) → estrellas → banderas
+ *
+ * Uso:
+ *   <StartCta id="empezar" title="¿Quieres iniciar tu proceso ahora?" text="…"
+ *       cta={{ label: 'Quiero empezar ahora', mobileLabel: 'Empezar ahora', authView: 'register' }} />
+ *   <StartCta tone="green" title="¿Te animas a intentarlo?" text="…"
+ *       cta={{ label: 'Quiero empezar ahora', href: whatsappUrl, external: true }} />
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import personWoman from '@assets/images/cta/start-woman.png';
+import personMan from '@assets/images/cta/start-man.png';
+import WavesBack from '@assets/graphics/waves/cta-waves-back.svg';
+import WavesFront from '@assets/graphics/waves/cta-waves-front.svg';
+import WavesMobile from '@assets/graphics/waves/cta-waves-mobile.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+import StarWide from '@assets/graphics/stars/star-4-point-wide.svg';
+import FlagPe from '@assets/graphics/flags/pe.svg';
+import FlagRu from '@assets/graphics/flags/ru.svg';
+import FlagMx from '@assets/graphics/flags/mx.svg';
+import FlagAr from '@assets/graphics/flags/ar.svg';
+import FlagCo from '@assets/graphics/flags/co.svg';
+
+interface Props {
+	id?: string;
+	tone?: 'light' | 'green';
+	title: string;
+	text: string;
+	cta: {
+		label: string;
+		/** Texto más corto del botón en móvil (opcional) */
+		mobileLabel?: string;
+		/** Enlace del botón. Si no hay, el botón abre el modal de acceso */
+		href?: string;
+		/** true = el enlace se abre en una pestaña nueva (ej. WhatsApp) */
+		external?: boolean;
+		/** Paso con el que se abre el modal de acceso ("login" o "register") */
+		authView?: 'login' | 'register';
+	};
+}
+
+const { id, tone = 'light', title, text, cta } = Astro.props;
+const titleId = `${id ?? `start-cta-${tone}`}-title`;
+
+/** Banderas del lienzo de desktop (solo tono claro). La posición de cada una está en el CSS */
+const desktopFlags = [
+	{ Flag: FlagCo, key: 'co' },
+	{ Flag: FlagAr, key: 'ar' },
+	{ Flag: FlagMx, key: 'mx' },
+	{ Flag: FlagRu, key: 'ru' },
+	{ Flag: FlagPe, key: 'pe' },
+];
+
+const buttonProps = cta.href
+	? {
+			href: cta.href,
+			...(cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+		}
+	: { 'data-dialog-open': 'auth-modal', 'data-auth-view': cta.authView ?? 'register' };
+---
+
+<section id={id} class:list={['start-cta', `start-cta--${tone}`]} aria-labelledby={titleId}>
+	<!-- Lienzo de desktop (decorativo) -->
+	<div class="start-cta__canvas" aria-hidden="true">
+		{tone === 'green' && <WavesBack class="start-cta__waves" />}
+
+		<Image
+			src={personWoman}
+			alt=""
+			widths={[480, 724]}
+			sizes="(max-width: 1512px) 32vw, 483px"
+			class="start-cta__person start-cta__person--woman"
+		/>
+		<Image
+			src={personMan}
+			alt=""
+			widths={[586, 879]}
+			sizes="(max-width: 1512px) 39vw, 586px"
+			class="start-cta__person start-cta__person--man"
+		/>
+
+		{tone === 'green' && <WavesFront class="start-cta__waves" />}
+
+		<Star class="start-cta__star start-cta__star--skyblue" />
+		{tone === 'green' && <Star class="start-cta__star start-cta__star--orange" />}
+		<StarWide class="start-cta__star start-cta__star--yellow" />
+
+		{tone === 'light' &&
+			desktopFlags.map(({ Flag, key }) => (
+				<span class:list={['start-cta__flag', `start-cta__flag--${key}`]}>
+					<Flag />
+				</span>
+			))}
+	</div>
+
+	<div class="start-cta__content">
+		<h2 id={titleId} class="start-cta__title">
+			{title}
+		</h2>
+		<p class="start-cta__text">{text}</p>
+		<Button size="lg" class="start-cta__button" {...buttonProps}>
+			{cta.mobileLabel ? (
+				<Fragment>
+					<span class="start-cta__label-desktop">{cta.label}</span>
+					<span class="start-cta__label-mobile">{cta.mobileLabel}</span>
+				</Fragment>
+			) : (
+				cta.label
+			)}
+			{cta.external && <span class="visually-hidden"> (se abre en una pestaña nueva)</span>}
+		</Button>
+	</div>
+
+	<!-- Decoración de tablet y móvil (Figma 1729:1909) -->
+	<div class="start-cta__mobile-art" aria-hidden="true">
+		<WavesMobile class="start-cta__mobile-waves" />
+		<span class="start-cta__mobile-flag start-cta__mobile-flag--ru">
+			<FlagRu />
+		</span>
+		<span class="start-cta__mobile-flag start-cta__mobile-flag--pe">
+			<FlagPe />
+		</span>
+	</div>
+</section>
+
+<style>
+	.start-cta {
+		/* Colores de Figma sin token propio */
+		--start-cta-bg: #def7ff; /* Fondo celeste ("Rectangle 8") */
+		--start-cta-text: #414141;
+		--start-cta-button: #1268c3;
+
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		container-type: inline-size;
+		background-color: var(--start-cta-bg);
+		color: var(--text-on-light);
+	}
+
+	.start-cta--green {
+		--start-cta-bg: var(--color-green);
+		--start-cta-text: rgb(244 244 244 / 0.86);
+		--start-cta-button: var(--color-white);
+
+		color: var(--text-on-dark);
+	}
+
+	/* ===== Lienzo de desktop: 1512 × 840 px de diseño ===== */
+	.start-cta__canvas,
+	.start-cta__content {
+		/* 1 "px de diseño" = ancho de la sección / 1512 (máximo 1px) */
+		--u: calc(min(100cqw, 1512px) / 1512);
+	}
+
+	.start-cta__canvas {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		z-index: -1;
+		width: calc(1512 * var(--u));
+		height: calc(840 * var(--u));
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.start-cta__canvas > :global(*) {
+		position: absolute;
+		max-width: none;
+	}
+
+	.start-cta__waves {
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
+	/* Personas: recortes ya compuestos (rotación y máscara de Figma) */
+	.start-cta__person {
+		height: auto;
+	}
+
+	.start-cta__person--woman {
+		left: calc(159.33 * var(--u));
+		top: calc(228.67 * var(--u));
+		width: calc(482.67 * var(--u));
+	}
+
+	.start-cta__person--man {
+		left: calc(885.33 * var(--u));
+		top: calc(220.67 * var(--u));
+		width: calc(586 * var(--u));
+	}
+
+	/* Estrellas (posición, tamaño y giro de Figma) */
+	.start-cta__star {
+		transform: translate(-50%, -50%) rotate(-31.57deg);
+	}
+
+	.start-cta__star--skyblue {
+		left: calc(262.77 * var(--u));
+		top: calc(662.8 * var(--u));
+		width: calc(22.84 * var(--u));
+		height: auto;
+		color: var(--color-skyblue);
+	}
+
+	.start-cta__star--orange {
+		left: calc(782.9 * var(--u));
+		top: calc(610.1 * var(--u));
+		width: calc(16.27 * var(--u));
+		height: auto;
+		color: var(--color-orange);
+	}
+
+	.start-cta__star--yellow {
+		left: calc(1266.04 * var(--u));
+		top: calc(495.45 * var(--u));
+		width: calc(29.32 * var(--u));
+		height: auto;
+		color: var(--color-yellow);
+		transform: translate(-50%, -50%) rotate(-28.76deg);
+	}
+
+	/* En el caso de éxito las estrellas cambian de lugar */
+	.start-cta--green .start-cta__star--skyblue {
+		top: calc(132.8 * var(--u));
+	}
+
+	.start-cta--green .start-cta__star--yellow {
+		top: calc(101.05 * var(--u));
+		transform: translate(-50%, -50%) rotate(-26.74deg) skewX(6.74deg);
+	}
+
+	/* Banderas circulares de 28px (posiciones de Figma) */
+	.start-cta__flag {
+		left: calc(var(--flag-x) * var(--u));
+		top: calc(var(--flag-y) * var(--u));
+		width: calc(28 * var(--u));
+		height: calc(28 * var(--u));
+		overflow: clip;
+		border-radius: var(--radius-pill);
+	}
+
+	.start-cta__flag--co {
+		--flag-x: 145;
+		--flag-y: 356;
+	}
+
+	.start-cta__flag--ar {
+		--flag-x: 565;
+		--flag-y: 701;
+	}
+
+	.start-cta__flag--mx {
+		--flag-x: 856;
+		--flag-y: 435;
+	}
+
+	.start-cta__flag--ru {
+		--flag-x: 1261;
+		--flag-y: 644;
+	}
+
+	.start-cta__flag--pe {
+		--flag-x: 1363;
+		--flag-y: 248;
+	}
+
+	.start-cta__flag :global(svg),
+	.start-cta__mobile-flag :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+
+	/* ===== Texto ===== */
+	.start-cta__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-5); /* 24px */
+		min-height: calc(840 * var(--u));
+		padding: var(--space-10) var(--gutter); /* 80px */
+		text-align: center;
+	}
+
+	/* Figma: Poppins Bold 48/48, azul */
+	.start-cta__title {
+		max-width: 30.75rem; /* 492px */
+		font-size: var(--font-size-h1);
+		line-height: 1;
+		color: var(--text-heading-light);
+	}
+
+	/* Figma: Poppins Regular 20/28 */
+	.start-cta__text {
+		max-width: 30.75rem;
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		color: var(--start-cta-text);
+	}
+
+	/* Botón (297 × 70): borde y texto azul #1268C3 en el tono claro, blanco en el verde */
+	.start-cta :global(.start-cta__button) {
+		--btn-color: var(--start-cta-button);
+
+		width: min(18.5625rem, 100%);
+		margin-top: var(--space-4); /* 40px desde el texto (24 + 16) */
+		justify-content: space-between;
+	}
+
+	.start-cta__label-mobile {
+		display: none;
+	}
+
+	/* ----- Tono verde (Figma 1852:319): título grande y blanco ----- */
+	.start-cta--green .start-cta__content {
+		padding-top: calc(87 * var(--u));
+	}
+
+	.start-cta--green .start-cta__title {
+		max-width: 48.1875rem; /* 771px */
+		font-size: clamp(3rem, 0.75rem + 5.6vw, 6.25rem);
+		line-height: 1.12;
+		color: var(--color-pure-white);
+	}
+
+	.start-cta--green .start-cta__text {
+		max-width: 25rem; /* 400px */
+	}
+
+	/* ===== Decoración de tablet y móvil (oculta en desktop) ===== */
+	.start-cta__mobile-art {
+		display: none;
+	}
+
+	@media (max-width: 1100px) {
+		.start-cta__canvas {
+			display: none;
+		}
+
+		.start-cta__content {
+			min-height: 0;
+			padding: var(--space-8) var(--gutter) 0; /* 48px */
+		}
+
+		.start-cta--green .start-cta__content {
+			padding-top: var(--space-8);
+		}
+
+		/* Lienzo móvil de Figma (360 px de ancho) centrado y sin escalar:
+		   las ondas son más anchas que la pantalla y se recortan en los bordes */
+		.start-cta__mobile-art {
+			position: relative;
+			display: block;
+			width: 22.5rem; /* 360px */
+			height: 26.25rem; /* 420px: de la primera onda al final de la sección */
+			margin-inline: auto;
+			pointer-events: none;
+		}
+
+		.start-cta__mobile-waves {
+			position: absolute;
+			top: -24.625rem; /* -394px: el SVG usa las coordenadas del marco móvil */
+			left: 0;
+			width: 22.5rem;
+			height: auto;
+			max-width: none;
+			overflow: visible;
+		}
+
+		.start-cta__mobile-flag {
+			position: absolute;
+			width: 1.875rem; /* 30px */
+			height: 1.875rem;
+			overflow: clip;
+			border-radius: var(--radius-pill);
+		}
+
+		.start-cta__mobile-flag--ru {
+			left: 236.88px;
+			top: 196px;
+		}
+
+		.start-cta__mobile-flag--pe {
+			left: 80.88px;
+			top: 337px;
+		}
+	}
+
+	/* ===== Móvil (Figma 1729:1909) ===== */
+	@media (max-width: 640px) {
+		.start-cta__content {
+			gap: var(--space-5);
+		}
+
+		/* Figma móvil: 32/36 y 16/24 */
+		.start-cta__title {
+			font-size: 2rem;
+			line-height: 1.125;
+		}
+
+		.start-cta--green .start-cta__title {
+			font-size: 2.5rem;
+			line-height: 1.1;
+		}
+
+		.start-cta__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.start-cta :global(.start-cta__button) {
+			width: min(16.25rem, 100%); /* 260px */
+			justify-content: center;
+			gap: var(--space-5);
+		}
+
+		.start-cta__label-desktop {
+			display: none;
+		}
+
+		.start-cta__label-mobile {
+			display: inline;
+		}
+	}
+</style>

@@ -1,0 +1,234 @@
+---
+/**
+ * LegalContent — Textos legales
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Legales" (961:654):
+ *   · Portada "Frame 12" (961:679): título "Legales" + bajada centrados.
+ *   · Contenido "Frame 29305" (961:779): secciones numeradas (título 24px)
+ *     con sus párrafos (18/32 al 80 %), en una columna de 1024px.
+ *
+ * Acepta las dos formas de contenido de la página (ver src/lib/content/):
+ *   - `sections` (texto local de src/data/legal.ts): se numeran en orden.
+ *   - `html` (página "Legales" de WordPress, ya saneada): cada <h2> se
+ *     numera automáticamente con CSS.
+ *
+ * Uso: <LegalContent page={legalPage} />
+ */
+import type { LegalPage } from '@lib/content';
+import { formatDate } from '@utils/format';
+
+interface Props {
+	page: LegalPage;
+}
+
+const { page } = Astro.props;
+---
+
+<section class="legal" aria-labelledby="legal-title">
+	<header class="legal__hero container">
+		<h1 id="legal-title" class="legal__title">
+			{page.title}
+		</h1>
+		{page.subtitle && <p class="legal__subtitle">{page.subtitle}</p>}
+	</header>
+
+	<div class="legal__body">
+		{page.sections ? (
+			<Fragment>
+				<nav class="legal__toc" aria-label="Contenido de la página">
+					<ol role="list">
+						{page.sections.map((section, index) => (
+							<li>
+								<a href={`#${section.id}`}>
+									{index + 1}. {section.title}
+								</a>
+							</li>
+						))}
+					</ol>
+				</nav>
+				{page.sections.map((section, index) => (
+					<article class="legal__section" id={section.id} aria-labelledby={`${section.id}-title`}>
+						<h2 id={`${section.id}-title`} class="legal__heading">
+							<span class="legal__number">{index + 1}.</span> {section.title}
+						</h2>
+						<div class="legal__text">
+							{section.paragraphs.map((paragraph) => (
+								<p>{paragraph}</p>
+							))}
+						</div>
+					</article>
+				))}
+			</Fragment>
+		) : (
+			<div class="legal__html" set:html={page.html} />
+		)}
+
+		{page.updated && (
+			<p class="legal__updated">
+				Última actualización: <time datetime={page.updated}>{formatDate(page.updated)}</time>
+			</p>
+		)}
+	</div>
+</section>
+
+<style>
+	.legal {
+		/* Figma: texto #F7F7FF */
+		--legal-text: #f7f7ff;
+
+		color: var(--legal-text);
+	}
+
+	/* ----- Portada (252px en Figma) ----- */
+	.legal__hero {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		padding-block: 4.25rem var(--space-7); /* 68px · 40px */
+		text-align: center;
+	}
+
+	.legal__title {
+		font-size: var(--font-size-display);
+		line-height: 1;
+		color: var(--color-pure-white);
+	}
+
+	.legal__subtitle {
+		max-width: 36rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	/* ----- Contenido: columna de 1024px (Figma: padding 80/120, separación 48) ----- */
+	.legal__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-8); /* 48px */
+		max-width: calc(64rem + 2 * var(--gutter)); /* 1024px */
+		margin-inline: auto;
+		padding: var(--space-10) var(--gutter);
+	}
+
+	/* Índice de secciones */
+	.legal__toc ol {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		margin: 0;
+		padding: 0;
+	}
+
+	.legal__toc a {
+		display: inline-flex;
+		padding: var(--space-2) var(--space-4);
+		border: 1px solid var(--border-on-dark-strong);
+		border-radius: var(--radius-pill);
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--text-on-dark-soft);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	.legal__toc a:hover {
+		background-color: rgb(244 244 244 / 0.08);
+		color: var(--color-pure-white);
+	}
+
+	.legal__section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3); /* 12px */
+		scroll-margin-top: calc(var(--header-height) + var(--space-4));
+	}
+
+	/* Figma: Circular Std Bold 24 → Poppins Bold */
+	.legal__heading {
+		display: flex;
+		gap: var(--space-4);
+		font-size: var(--font-size-h4);
+		line-height: 1.3;
+		color: var(--legal-text);
+	}
+
+	.legal__number {
+		flex-shrink: 0;
+	}
+
+	/* Figma: Circular Std Book 18/32 al 80 % */
+	.legal__text,
+	.legal__html {
+		font-size: var(--font-size-lg);
+		line-height: 2rem;
+		color: rgb(247 247 255 / 0.8);
+	}
+
+	.legal__text p + p {
+		margin-top: 0;
+	}
+
+	/* ----- HTML de WordPress: numeración automática de los <h2> ----- */
+	.legal__html {
+		counter-reset: legal-section;
+	}
+
+	.legal__html :global(h2) {
+		margin: var(--space-8) 0 var(--space-3);
+		font-size: var(--font-size-h4);
+		line-height: 1.3;
+		color: var(--legal-text);
+		counter-increment: legal-section;
+	}
+
+	.legal__html :global(h2::before) {
+		content: counter(legal-section) '.';
+		margin-right: var(--space-4);
+	}
+
+	.legal__html :global(h2:first-child) {
+		margin-top: 0;
+	}
+
+	.legal__html :global(h3) {
+		margin: var(--space-5) 0 var(--space-2);
+		font-size: 1.25rem;
+		color: var(--legal-text);
+	}
+
+	.legal__html :global(ul),
+	.legal__html :global(ol) {
+		padding-left: 1.25em;
+	}
+
+	.legal__html :global(a) {
+		color: var(--color-skyblue);
+		text-decoration: underline;
+	}
+
+	.legal__updated {
+		font-size: var(--font-size-sm);
+		color: var(--text-on-dark-muted);
+	}
+
+	/* ----- Móvil ----- */
+	@media (max-width: 640px) {
+		.legal__hero {
+			padding-block: var(--space-8) var(--space-4);
+		}
+
+		.legal__body {
+			gap: var(--space-7);
+			padding-block: var(--space-7) var(--space-9);
+		}
+
+		.legal__text,
+		.legal__html {
+			font-size: var(--font-size-md);
+			line-height: 1.75rem;
+		}
+	}
+</style>

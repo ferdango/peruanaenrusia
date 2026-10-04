@@ -1,0 +1,112 @@
+---
+/**
+ * TestimonyMoreCases — "Más casos de éxito"
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628099" (1624:412):
+ * fondo oscuro, título alineado a la izquierda y carrusel de tarjetas de
+ * casos de éxito (379px) con sus controles.
+ * Móvil: UI Mobile › Caso de éxito: "Nuestros testimonios" centrado, con
+ * bajada, y una tarjeta por vista.
+ *
+ * Muestra los demás casos de éxito (sin el de la página actual).
+ *
+ * Uso: <TestimonyMoreCases currentSlug={testimonial.slug} />
+ */
+import TestimonialCard from '@components/cards/TestimonialCard.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { getTestimonials } from '@lib/content';
+
+interface Props {
+	/** Slug del caso de éxito actual (se excluye de la lista) */
+	currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+const others = (await getTestimonials()).filter((testimonial) => testimonial.slug !== currentSlug);
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Más casos de éxito',
+	mobileTitle: 'Nuestros testimonios',
+	subtitle:
+		'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+};
+---
+
+{others.length > 0 && (
+	<section class="more-cases section" aria-labelledby="more-cases-title">
+		<header class="more-cases__header container">
+			<h2 id="more-cases-title" class="more-cases__title">
+				<span class="more-cases__title-desktop">{content.title}</span>
+				<span class="more-cases__title-mobile">{content.mobileTitle}</span>
+			</h2>
+			<p class="more-cases__subtitle">{content.subtitle}</p>
+		</header>
+
+		<Carousel label={content.title} gap={24} class="more-cases__carousel">
+			{others.map((testimonial) => (
+				<TestimonialCard testimonial={testimonial} />
+			))}
+		</Carousel>
+	</section>
+)}
+
+<style>
+	.more-cases {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-8); /* 48px */
+		background-color: var(--surface-dark);
+		color: var(--text-on-dark);
+		--carousel-controls-gap: var(--space-7);
+	}
+
+	/* Figma: Poppins Bold 48/56 */
+	.more-cases__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1667;
+	}
+
+	.more-cases__title-mobile,
+	.more-cases__subtitle {
+		display: none;
+	}
+
+	.more-cases :global(.testimonial-card) {
+		--testimonial-card-width: 23.6875rem; /* 379px */
+	}
+
+	/* ===== Móvil: título centrado con bajada ===== */
+	@media (max-width: 640px) {
+		.more-cases {
+			gap: var(--space-7);
+		}
+
+		.more-cases__header {
+			text-align: center;
+		}
+
+		.more-cases__title {
+			font-size: 2rem;
+			line-height: 1.125;
+		}
+
+		.more-cases__title-desktop {
+			display: none;
+		}
+
+		.more-cases__title-mobile {
+			display: inline;
+		}
+
+		.more-cases__subtitle {
+			display: block;
+			margin-top: var(--space-4);
+			line-height: 1.75rem;
+		}
+
+		.more-cases :global(.testimonial-card) {
+			--testimonial-card-width: min(82vw, 20.375rem);
+		}
+	}
+</style>

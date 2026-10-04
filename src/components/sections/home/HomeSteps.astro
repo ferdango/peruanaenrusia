@@ -1,13 +1,194 @@
 ---
 /**
- * HomeSteps — "Qué tengo que hacer"
+ * HomeSteps — "¿Qué tengo que hacer?"
  * --------------------------------------------------------------------------
  * Figma: Home › "Frame 627948" (547:96)
+ *   · Encabezado (547:93): título + bajada.
+ *   · Carrusel (1388:5333): 5 tarjetas numeradas (fondo #F4F6FA, 422 × 419)
+ *     con su ilustración, y los controles (1608:137).
+ * Móvil: UI Mobile › "Frame 627948" (1407:1315): encabezado centrado y la
+ * misma tarjeta escalada (321 px de ancho).
  *
- * TODO (en construcción): implementar según el diseño.
+ * Cada tarjeta se dibuja en "píxeles de diseño" (--u = ancho de la tarjeta
+ * / 422), así la ilustración, los textos y los espacios mantienen las
+ * proporciones de Figma en cualquier tamaño.
+ *
+ * Los pasos vienen de src/data/steps.ts.
+ *
+ * Uso: <HomeSteps /> (página de inicio).
  */
+import Carousel from '@components/ui/Carousel.astro';
+import { processSteps } from '@data/steps';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: '¿Qué tengo que hacer?',
+	text: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+	carouselLabel: 'Pasos del proceso para estudiar en Rusia',
+};
+
+/** 1 → "01" */
+const stepNumber = (index: number) => String(index + 1).padStart(2, '0');
 ---
 
-<section class="section container" id="proceso" aria-label="Qué tengo que hacer">
-	<!-- Qué tengo que hacer -->
+<section class="home-steps section" id="proceso" aria-labelledby="home-steps-title">
+	<header class="home-steps__header container">
+		<h2 id="home-steps-title" class="home-steps__title">
+			{content.title}
+		</h2>
+		<p class="home-steps__text">{content.text}</p>
+	</header>
+
+	<Carousel label={content.carouselLabel} tone="blue" gap={24} class="home-steps__carousel">
+		{processSteps.map((step, index) => (
+			<article class="step-card" aria-labelledby={`home-step-${index + 1}`}>
+				<div class="step-card__inner">
+					<img
+						src={step.illustration.src}
+						width={step.illustration.width}
+						height={step.illustration.height}
+						alt=""
+						loading="lazy"
+						decoding="async"
+						class="step-card__art"
+					/>
+					<h3 id={`home-step-${index + 1}`} class="step-card__title">
+						<span class="step-card__number">
+							<span class="visually-hidden">Paso </span>
+							{stepNumber(index)}
+						</span>
+						<span>{step.title}</span>
+					</h3>
+					<p class="step-card__text">{step.text}</p>
+				</div>
+			</article>
+		))}
+	</Carousel>
 </section>
+
+<style>
+	.home-steps {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-8); /* 48px */
+		background-color: var(--surface-white);
+		color: var(--text-on-light);
+		--carousel-controls-gap: var(--space-7); /* 40px */
+	}
+
+	/* ----- Encabezado (848px) ----- */
+	.home-steps__header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.home-steps__header > * {
+		max-width: 53rem; /* 848px */
+	}
+
+	/* Figma: Poppins Bold 48/64 */
+	.home-steps__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.333;
+		color: var(--text-heading-light);
+	}
+
+	/* Figma: Poppins Regular 20/32 */
+	.home-steps__text {
+		font-size: 1.25rem;
+		line-height: 2rem;
+	}
+
+	/* ----- Tarjeta (422 × 419 px de diseño) ----- */
+	.step-card {
+		width: 26.375rem; /* 422px */
+		container-type: inline-size;
+	}
+
+	.step-card__inner {
+		/* 1 "px de diseño" = ancho de la tarjeta / 422 */
+		--u: calc(100cqw / 422);
+
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: calc(24 * var(--u));
+		min-height: calc(419 * var(--u));
+		padding: calc(28 * var(--u)) calc(24 * var(--u));
+		overflow: clip;
+		border-radius: calc(24 * var(--u));
+		background-color: #f4f6fa;
+	}
+
+	/* Ilustración: cubre la tarjeta (lienzo de 422 × 419) */
+	.step-card__art {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: -1;
+		width: 100%;
+		max-width: none;
+		height: auto;
+		pointer-events: none;
+	}
+
+	/* Figma: número Poppins Medium 30.5 (rojo) + título Poppins Bold 24 (azul), alto de línea 35 */
+	.step-card__title {
+		display: flex;
+		align-items: baseline;
+		gap: calc(12 * var(--u));
+		font-size: max(1.125rem, calc(24 * var(--u)));
+		line-height: calc(35 * var(--u));
+		color: var(--text-heading-light);
+		text-wrap: wrap;
+	}
+
+	.step-card__number {
+		flex-shrink: 0;
+		font-size: calc(30.545 * var(--u));
+		font-weight: var(--font-weight-medium);
+		color: var(--color-red);
+	}
+
+	/* Figma: Poppins Regular 16/26, #363636 */
+	.step-card__text {
+		font-size: max(0.8125rem, calc(16 * var(--u)));
+		line-height: 1.625;
+		color: #363636;
+	}
+
+	/* ===== Móvil (Figma 1407:1315): encabezado centrado y tarjetas de 321px ===== */
+	@media (max-width: 640px) {
+		.home-steps {
+			gap: var(--space-8);
+			padding-block: var(--space-9); /* 64px */
+			--carousel-controls-gap: 1.75rem; /* 28px */
+		}
+
+		.home-steps__header {
+			text-align: center;
+		}
+
+		/* Figma móvil: 32/36 y 16/24 */
+		.home-steps__title {
+			font-size: 2rem;
+			line-height: 1.125;
+		}
+
+		.home-steps__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.step-card {
+			width: min(20.0838rem, 100vw - 2.5rem); /* 321.34px */
+		}
+
+		.home-steps :global(.home-steps__carousel) {
+			--carousel-gap: 12px;
+		}
+	}
+</style>

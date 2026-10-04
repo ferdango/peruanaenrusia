@@ -13,9 +13,10 @@ yarn-error.log*
 pnpm-debug.log*
 
 
-# environment variables
+# environment variables (nunca subir secretos; la plantilla es .env.example)
 .env
-.env.production
+.env.*
+!.env.example
 
 # macOS-specific files
 .DS_Store
@@ -25,3 +26,6 @@ pnpm-debug.log*
 
 # configuración local del editor / herramientas
 .claude/
+
+# datos privados del servidor (sesiones, cuentas y reclamaciones locales)
+.data/

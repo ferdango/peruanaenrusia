@@ -15,6 +15,7 @@ import { Image } from 'astro:assets';
 
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
 import { countries } from '@data/countries';
 import { detailRoutes } from '@data/navigation';
 import type { Testimonial } from '@data/testimonials';
@@ -33,7 +34,13 @@ const href = detailRoutes.successCase(testimonial.slug);
 <article class:list={['testimonial-card', className]}>
 	<header class="testimonial-card__header">
 		<div class="testimonial-card__images">
-			<Image src={testimonial.avatar} alt="" width={56} height={56} class="testimonial-card__avatar" />
+			<MediaImage
+				image={testimonial.avatar}
+				alt=""
+				width={56}
+				height={56}
+				class="testimonial-card__avatar"
+			/>
 			<Image
 				src={country.flag}
 				alt={country.name}

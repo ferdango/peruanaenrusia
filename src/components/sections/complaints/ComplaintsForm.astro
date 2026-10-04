@@ -1,0 +1,795 @@
+---
+/**
+ * ComplaintsForm — Libro de reclamaciones virtual
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Libro de reclamaciones" (1001:818):
+ *   · Encabezado (1001:840): título, código de identificación, razón social y RUC.
+ *   · Formulario (1001:847): tarjetas blancas "Consumidor reclamante",
+ *     "Servicio contratado" y "Reclamación y pedido"; consentimiento de datos,
+ *     botón "Enviar reclamación" y "¿Qué sucede después…?".
+ *
+ * Además de los campos del diseño se piden el domicilio y, si quien reclama
+ * es menor de edad, los datos de su padre, madre o apoderado (exigidos por el
+ * Reglamento del Libro de Reclamaciones), y el monto reclamado (opcional).
+ *
+ * Envío: POST /api/reclamaciones/ (src/pages/api/reclamaciones.ts), que
+ * valida los datos, registra la reclamación y envía la constancia por correo.
+ * Al terminar, el formulario se reemplaza por la constancia con el código de
+ * seguimiento (se puede imprimir).
+ *
+ * Uso: <ComplaintsForm /> (página /libro-de-reclamaciones/).
+ */
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import FormCheck from '@components/forms/FormCheck.astro';
+import FormField from '@components/forms/FormField.astro';
+import {
+	claimTypes,
+	complaintLimits,
+	contractedServices,
+	documentTypes,
+	RESPONSE_DEADLINE_DAYS,
+} from '@data/complaints';
+import { routes } from '@data/navigation';
+import { site } from '@data/site';
+
+// ----- Contenido -----
+const content = {
+	title: 'Libro de reclamaciones',
+	codeLabel: 'Código de identificación:',
+	consumer: {
+		title: 'Consumidor reclamante',
+		text: 'Por favor, ingrese sus datos personales para poder atender su reclamación',
+	},
+	service: {
+		title: 'Servicio contratado',
+		text: 'Por favor, ingresa los detalles del servicio el cual quiere reclamar',
+	},
+	claim: {
+		title: 'Reclamación y pedido',
+		text: 'Por favor, cuéntenos sobre su reclamación y qué espera como solución.',
+	},
+	consentText:
+		'Al enviar esta reclamación, usted acepta y consiente expresamente que sus datos personales serán tratados para gestionar su reclamación, conforme a nuestras políticas de privacidad y las leyes peruanas aplicables, incluyendo la Ley N° 29733. Nos comprometemos a tratar estos datos con la máxima confidencialidad y seguridad. Para más información, consulte nuestra',
+	submit: 'Enviar reclamación',
+	sending: 'Enviando…',
+	next: {
+		title: '¿Qué sucede después de enviar su reclamación?',
+		items: [
+			'La empresa recibirá su reclamación y comenzará a procesarla.',
+			'Usted recibirá un correo electrónico de confirmación con un código de seguimiento para monitorizar el estado de su reclamación.',
+			`La empresa responderá a su reclamación en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles conforme a la Ley N° 29571.`,
+		],
+	},
+	success: {
+		title: '¡Recibimos tu reclamación!',
+		code: 'Código de seguimiento',
+		date: 'Fecha de registro',
+		emailBefore: 'Te enviamos una copia de la hoja de reclamación a',
+		emailFailed:
+			'Tu reclamación quedó registrada, pero no pudimos enviarte la copia por correo. Guarda o imprime esta constancia.',
+		deadline: `Te responderemos en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles.`,
+		print: 'Imprimir constancia',
+		home: 'Volver al inicio',
+	},
+};
+
+const L = complaintLimits;
+---
+
+<div class="complaints" data-complaints>
+	<header class="complaints__header">
+		<h1 class="complaints__title">{content.title}</h1>
+		<p class="complaints__code">
+			{content.codeLabel} <span data-complaint-code>—</span>
+		</p>
+		<p class="complaints__company">
+			<strong>{site.legal.companyName}</strong>
+			<span>RUC {site.legal.ruc}</span>
+		</p>
+	</header>
+
+	<form class="complaints__form" data-complaints-form novalidate>
+		<input type="hidden" name="id" data-complaint-id />
+		<!-- Campo trampa para bots: las personas no lo ven ni lo llenan -->
+		<div class="complaints__trap" aria-hidden="true">
+			<label for="c-website">No llenar este campo</label>
+			<input id="c-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+		</div>
+
+		<!-- 1. Consumidor reclamante -->
+		<fieldset class="complaints__card">
+			<legend class="complaints__card-heading">
+				<span class="complaints__card-title">{content.consumer.title}</span>
+				<span class="complaints__card-text">{content.consumer.text}</span>
+			</legend>
+
+			<div class="complaints__fields">
+				<FormField
+					id="c-name"
+					name="fullName"
+					label="Nombres completos"
+					autocomplete="name"
+					required
+					maxlength={L.name}
+					messages={{ required: 'Ingrese sus nombres completos.' }}
+				/>
+
+				<FormCheck id="c-minor" name="isMinor" controls="c-guardian">
+					Soy menor de edad
+				</FormCheck>
+
+				<div id="c-guardian" class="complaints__guardian" data-complaints-guardian hidden>
+					<FormField
+						id="c-guardian-name"
+						name="guardianName"
+						label="Nombre del padre, madre o apoderado"
+						help="Si eres menor de edad, la reclamación la presenta tu padre, madre o apoderado."
+						autocomplete="off"
+						required
+						maxlength={L.name}
+						messages={{ required: 'Ingrese el nombre de su padre, madre o apoderado.' }}
+					/>
+				</div>
+
+				<div class="complaints__row">
+					<FormField
+						id="c-doc-type"
+						name="documentType"
+						label="Tipo de documento"
+						as="select"
+						options={[...documentTypes]}
+						help="Elija el tipo de documento de identidad que usará para identificarse."
+						required
+						messages={{ required: 'Elija el tipo de documento.' }}
+					/>
+					<FormField
+						id="c-doc-number"
+						name="documentNumber"
+						label="Número de documento"
+						help="Número de su documento de identidad."
+						autocomplete="off"
+						required
+						pattern="[A-Za-z0-9-]{6,20}"
+						maxlength={L.document}
+						messages={{
+							required: 'Ingrese su número de documento.',
+							invalid: 'Revise el número: solo letras, números y guiones (6 a 20 caracteres).',
+						}}
+					/>
+				</div>
+
+				<FormField
+					id="c-email"
+					name="email"
+					label="Correo electrónico"
+					type="email"
+					inputmode="email"
+					autocomplete="email"
+					help="Su dirección de correo electrónico para poder comunicar la respuesta a su reclamación."
+					required
+					maxlength={L.email}
+					pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+					messages={{
+						required: 'Ingrese su correo electrónico.',
+						invalid: 'Ingrese un correo válido, por ejemplo: nombre@gmail.com.',
+					}}
+				/>
+
+				<FormField
+					id="c-phone"
+					name="phone"
+					label="Celular"
+					type="tel"
+					inputmode="tel"
+					autocomplete="tel"
+					help="Su número de teléfono para poder comunicar la respuesta a su reclamación."
+					required
+					pattern="[+0-9 ()-]{6,20}"
+					maxlength={L.phone}
+					messages={{
+						required: 'Ingrese su número de celular.',
+						invalid: 'Revise el número: solo números, espacios y el signo +.',
+					}}
+				/>
+
+				<FormField
+					id="c-address"
+					name="address"
+					label="Domicilio"
+					autocomplete="street-address"
+					help="Dirección, distrito y provincia."
+					required
+					maxlength={L.address}
+					messages={{ required: 'Ingrese su domicilio.' }}
+				/>
+			</div>
+		</fieldset>
+
+		<!-- 2. Servicio contratado -->
+		<fieldset class="complaints__card">
+			<legend class="complaints__card-heading">
+				<span class="complaints__card-title">{content.service.title}</span>
+				<span class="complaints__card-text">{content.service.text}</span>
+			</legend>
+
+			<div class="complaints__fields">
+				<FormField
+					id="c-service"
+					name="service"
+					label="Servicio contratado"
+					as="select"
+					options={[...contractedServices]}
+					help="Elija el servicio que tuviste inconvenientes"
+					required
+					messages={{ required: 'Elija el servicio contratado.' }}
+				/>
+				<FormField
+					id="c-amount"
+					name="amount"
+					label="Monto reclamado (S/)"
+					type="number"
+					inputmode="decimal"
+					min={0}
+					step="any"
+					help="Si su reclamación incluye un monto, indíquelo en soles."
+					messages={{ invalid: 'Ingrese un monto válido (solo números).' }}
+				/>
+				<FormField
+					id="c-description"
+					name="description"
+					label="Descripción del reclamo"
+					as="textarea"
+					help="Ayúdenos a identificar el producto o servicio sobre el que desea reclamar."
+					required
+					maxlength={L.text}
+					messages={{ required: 'Describa el servicio sobre el que reclama.' }}
+				/>
+			</div>
+		</fieldset>
+
+		<!-- 3. Reclamación y pedido -->
+		<fieldset class="complaints__card">
+			<legend class="complaints__card-heading">
+				<span class="complaints__card-title">{content.claim.title}</span>
+				<span class="complaints__card-text">{content.claim.text}</span>
+			</legend>
+
+			<div class="complaints__fields">
+				<FormField
+					id="c-type"
+					name="claimType"
+					label="Tipo de reclamación"
+					as="select"
+					options={[...claimTypes]}
+					help={
+						'Elija "Reclamo" si la disconformidad es con el producto o servicio.\nElija "Queja" si la disconformidad es con la atención, u otros aspectos no relacionados con el producto o servicio.'
+					}
+					required
+					messages={{ required: 'Elija el tipo de reclamación.' }}
+				/>
+				<FormField
+					id="c-detail"
+					name="detail"
+					label="Detalle del reclamo"
+					as="textarea"
+					help="Detalle por favor el motivo de su reclamación."
+					required
+					minlength={10}
+					maxlength={L.text}
+					messages={{
+						required: 'Cuéntenos el motivo de su reclamación.',
+						invalid: 'Cuéntenos un poco más (al menos 10 caracteres).',
+					}}
+				/>
+				<FormField
+					id="c-request"
+					name="request"
+					label="Su pedido es"
+					as="textarea"
+					help="Cuéntenos qué espera como solución a su reclamación."
+					required
+					maxlength={L.text}
+					messages={{ required: 'Cuéntenos qué solución espera.' }}
+				/>
+			</div>
+		</fieldset>
+
+		<!-- Consentimiento y envío -->
+		<div class="complaints__footer">
+			<p class="complaints__consent-text">
+				{content.consentText}
+				<a href={`${routes.legal}#proteccion-de-datos`}>política de privacidad</a> y nuestros
+				<a href={`${routes.legal}#condiciones-generales`}>términos y condiciones</a>.
+			</p>
+
+			<FormCheck
+				id="c-consent"
+				name="consent"
+				required
+				messages={{
+					required: 'Para enviar la reclamación debe aceptar el tratamiento de sus datos.',
+				}}
+			>
+				He leído y acepto el tratamiento de mis datos personales según lo descrito.
+			</FormCheck>
+
+			<p class="complaints__status" role="alert" data-complaints-status></p>
+
+			<Button
+				type="submit"
+				variant="primary"
+				size="sm"
+				block
+				class="complaints__submit"
+				data-complaints-submit
+			>
+				<span data-label-idle>{content.submit}</span>
+				<span data-label-busy hidden>
+					{content.sending}
+				</span>
+			</Button>
+
+			<aside class="complaints__next" aria-labelledby="c-next-title">
+				<h2 id="c-next-title" class="complaints__next-title">
+					{content.next.title}
+				</h2>
+				<ul role="list" class="complaints__next-list">
+					{content.next.items.map((item) => (
+						<li>{item}</li>
+					))}
+				</ul>
+			</aside>
+		</div>
+	</form>
+
+	<!-- Constancia (se muestra al registrar la reclamación) -->
+	<section class="complaints__success" data-complaints-success hidden aria-labelledby="c-success-title">
+		<span class="complaints__success-icon" aria-hidden="true">
+			<Icon name="check" size={32} />
+		</span>
+		<h2 id="c-success-title" class="complaints__success-title" tabindex="-1">
+			{content.success.title}
+		</h2>
+		<dl class="complaints__receipt">
+			<div>
+				<dt>{content.success.code}</dt>
+				<dd data-success-code></dd>
+			</div>
+			<div>
+				<dt>{content.success.date}</dt>
+				<dd data-success-date></dd>
+			</div>
+		</dl>
+		<p class="complaints__success-text" data-success-sent>
+			{content.success.emailBefore} <strong data-success-email></strong>. {content.success.deadline}
+		</p>
+		<p class="complaints__success-text" data-success-failed hidden>
+			{content.success.emailFailed} {content.success.deadline}
+		</p>
+		<div class="complaints__success-actions">
+			<Button variant="primary" size="sm" data-complaints-print icon={null}>
+				{content.success.print}
+			</Button>
+			<Button href={routes.home} tone="dark" size="sm">
+				{content.success.home}
+			</Button>
+		</div>
+	</section>
+</div>
+
+<script>
+	import { ApiError, enableLiveValidation, postJson, setFieldError, validateForm } from '@scripts/forms';
+
+	interface ComplaintResponse {
+		code: string;
+		date: string;
+		emailSent: boolean;
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-complaints]').forEach((root) => {
+		const form = root.querySelector<HTMLFormElement>('[data-complaints-form]');
+		const success = root.querySelector<HTMLElement>('[data-complaints-success]');
+		const status = root.querySelector<HTMLElement>('[data-complaints-status]');
+		const submit = root.querySelector<HTMLButtonElement>('[data-complaints-submit]');
+		const guardian = root.querySelector<HTMLElement>('[data-complaints-guardian]');
+		const minor = root.querySelector<HTMLInputElement>('input[name="isMinor"]');
+		if (!form || !success || !submit) return;
+
+		// Código de identificación de esta hoja (se confirma en el servidor)
+		const id = crypto.randomUUID();
+		root.querySelectorAll('[data-complaint-code]').forEach((element) => (element.textContent = id));
+		const idInput = form.querySelector<HTMLInputElement>('[data-complaint-id]');
+		if (idInput) idInput.value = id;
+
+		const startedAt = Date.now();
+		enableLiveValidation(form);
+
+		// "Soy menor de edad" muestra los datos del padre, madre o apoderado
+		const syncGuardian = () => {
+			if (!guardian || !minor) return;
+			guardian.hidden = !minor.checked;
+			guardian.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
+				input.disabled = !minor.checked;
+				if (!minor.checked) setFieldError(input, '');
+			});
+		};
+		minor?.addEventListener('change', syncGuardian);
+		syncGuardian();
+
+		const setBusy = (busy: boolean) => {
+			submit.toggleAttribute('aria-disabled', busy);
+			form.toggleAttribute('aria-busy', busy);
+			submit.querySelector<HTMLElement>('[data-label-idle]')!.hidden = busy;
+			submit.querySelector<HTMLElement>('[data-label-busy]')!.hidden = !busy;
+		};
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			if (submit.hasAttribute('aria-disabled')) return;
+			if (status) status.textContent = '';
+			if (!validateForm(form)) return;
+
+			const data = Object.fromEntries(new FormData(form).entries());
+			setBusy(true);
+
+			try {
+				const result = await postJson<ComplaintResponse>('/api/reclamaciones/', {
+					...data,
+					isMinor: minor?.checked ?? false,
+					consent: true,
+					elapsedMs: Date.now() - startedAt,
+				});
+
+				success.querySelector('[data-success-code]')!.textContent = result.code;
+				success.querySelector('[data-success-date]')!.textContent = new Date(
+					result.date,
+				).toLocaleString('es-PE', { dateStyle: 'long', timeStyle: 'short' });
+				success.querySelector('[data-success-email]')!.textContent = String(data.email ?? '');
+				success.querySelector<HTMLElement>('[data-success-sent]')!.hidden = !result.emailSent;
+				success.querySelector<HTMLElement>('[data-success-failed]')!.hidden = result.emailSent;
+
+				form.hidden = true;
+				success.hidden = false;
+				success.querySelector<HTMLElement>('#c-success-title')?.focus();
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			} catch (error) {
+				const message =
+					error instanceof ApiError
+						? error.message
+						: 'Ocurrió un error inesperado. Inténtalo de nuevo.';
+				if (error instanceof ApiError && error.field) {
+					const field = form.querySelector<HTMLInputElement>(`[name="${error.field}"]`);
+					if (field) {
+						setFieldError(field, message);
+						field.focus();
+					}
+				}
+				if (status) status.textContent = message;
+			} finally {
+				setBusy(false);
+			}
+		});
+
+		root.querySelector('[data-complaints-print]')?.addEventListener('click', () => window.print());
+	});
+</script>
+
+<style>
+	.complaints {
+		--complaints-text: #2c3030;
+
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+		width: 100%;
+		max-width: 29.5rem; /* 472px */
+		margin-inline: auto;
+		color: var(--text-on-light);
+	}
+
+	/* ----- Encabezado ----- */
+	.complaints__header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-2);
+		padding-block: var(--space-9) var(--space-7); /* 64px 40px */
+		text-align: center;
+	}
+
+	/* Figma: Poppins Bold 36, azul */
+	.complaints__title {
+		font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+		line-height: 1.2;
+		color: var(--color-blue-title);
+	}
+
+	.complaints__code {
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		overflow-wrap: anywhere;
+	}
+
+	.complaints__company {
+		display: flex;
+		flex-direction: column;
+		margin-top: var(--space-5);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+	}
+
+	.complaints__company strong {
+		font-size: var(--font-size-sm);
+		color: var(--color-blue);
+	}
+
+	/* ----- Formulario ----- */
+	.complaints__form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4); /* 16px entre tarjetas */
+	}
+
+	.complaints__trap {
+		position: absolute;
+		left: -10000px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
+	/* Tarjeta blanca (Figma: radio 40, padding 40/32) */
+	.complaints__card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5); /* 24px */
+		min-width: 0;
+		margin: 0;
+		padding: var(--space-7) var(--space-6); /* 40px 32px */
+		border: 0;
+		border-radius: var(--radius-2xl);
+		background-color: var(--surface-white);
+	}
+
+	.complaints__card-heading {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		float: left; /* hace que <legend> se comporte como un bloque normal dentro del fieldset */
+		width: 100%;
+		margin-bottom: var(--space-5);
+		padding: 0;
+	}
+
+	.complaints__card-heading + * {
+		clear: both;
+	}
+
+	/* Figma: Poppins Bold 24/24, azul */
+	.complaints__card-title {
+		font-size: var(--font-size-h4);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+		color: var(--color-blue-title);
+	}
+
+	/* Figma: Poppins Regular 14/18 */
+	.complaints__card-text {
+		font-size: var(--font-size-sm);
+		line-height: 1.125rem;
+		color: var(--complaints-text);
+	}
+
+	.complaints__fields {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.complaints__row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--space-3);
+	}
+
+	/* Campos de media columna: menos margen interno para que la etiqueta quepa entera */
+	.complaints__row :global(.form-field__input) {
+		padding-inline: var(--space-4) var(--space-4);
+		font-size: var(--font-size-sm);
+	}
+
+	.complaints__row :global(select.form-field__input) {
+		padding-inline-end: 2.5rem;
+	}
+
+	.complaints__row :global(.form-field__label) {
+		left: var(--space-4);
+		right: var(--space-4);
+		font-size: var(--font-size-sm);
+	}
+
+	.complaints__row :global(.form-field--select .form-field__label) {
+		right: 2.25rem;
+	}
+
+	.complaints__row :global(.form-field__chevron) {
+		right: var(--space-4);
+	}
+
+	.complaints__guardian[hidden] {
+		display: none;
+	}
+
+	/* ----- Pie: consentimiento, botón e información ----- */
+	.complaints__footer {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6); /* 32px */
+		margin-top: var(--space-2);
+		padding-inline: var(--space-3);
+	}
+
+	.complaints__consent-text {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+
+	.complaints__consent-text a {
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.complaints__consent-text a:hover {
+		color: var(--color-blue-title);
+	}
+
+	.complaints__status {
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: rgb(255 26 48 / 0.08);
+		color: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+	}
+
+	.complaints__status:empty {
+		display: none;
+	}
+
+	/* Botón amarillo (Figma: alto 60, radio 12, texto #002546 16px) */
+	.complaints :global(.complaints__submit) {
+		min-height: 3.75rem;
+		border-radius: var(--radius-md);
+		font-size: var(--font-size-md);
+		color: #002546;
+	}
+
+	.complaints :global(.complaints__submit[aria-disabled]) {
+		opacity: 0.7;
+		cursor: progress;
+		pointer-events: none;
+	}
+
+	/* "¿Qué sucede después…?" (Figma: borde 1px, radio 28, padding 24) */
+	.complaints__next {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		padding: var(--space-5);
+		border: 1px solid rgb(44 48 48 / 0.56);
+		border-radius: 1.75rem;
+	}
+
+	.complaints__next-title {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		text-wrap: wrap;
+	}
+
+	.complaints__next-list {
+		margin: 0;
+		padding: 0;
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--complaints-text);
+	}
+
+	/* ----- Constancia ----- */
+	.complaints__success {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-5);
+		padding: var(--space-8) var(--space-6);
+		border-radius: var(--radius-2xl);
+		background-color: var(--surface-white);
+		text-align: center;
+	}
+
+	.complaints__success[hidden] {
+		display: none;
+	}
+
+	.complaints__success-icon {
+		display: grid;
+		place-items: center;
+		width: 4rem;
+		height: 4rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-green);
+		color: var(--color-pure-white);
+	}
+
+	.complaints__success-title {
+		font-size: var(--font-size-h4);
+		color: var(--color-blue-title);
+	}
+
+	.complaints__success-title:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	.complaints__receipt {
+		display: grid;
+		gap: var(--space-3);
+		width: 100%;
+		margin: 0;
+	}
+
+	.complaints__receipt div {
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: #f4f6fa;
+	}
+
+	.complaints__receipt dt {
+		font-size: var(--font-size-xs);
+		color: var(--complaints-text);
+	}
+
+	.complaints__receipt dd {
+		margin: 0;
+		font-weight: var(--font-weight-semibold);
+		overflow-wrap: anywhere;
+	}
+
+	.complaints__success-text {
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: var(--complaints-text);
+	}
+
+	.complaints__success-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-3);
+	}
+
+	/* ----- Móvil ----- */
+	@media (max-width: 640px) {
+		.complaints__card {
+			padding: var(--space-6) var(--space-5);
+			border-radius: var(--radius-xl);
+		}
+
+		.complaints__row {
+			grid-template-columns: 1fr;
+		}
+
+		.complaints__footer {
+			padding-inline: 0;
+		}
+	}
+
+	/* ----- Impresión: solo la constancia ----- */
+	@media print {
+		.complaints__success-actions {
+			display: none;
+		}
+	}
+</style>

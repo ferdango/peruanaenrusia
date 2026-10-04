@@ -1,20 +1,20 @@
 /**
  * Blog — publicaciones (videos + artículos)
  * --------------------------------------------------------------------------
- * Une los videos (src/data/videos.ts) y los artículos (src/data/articles.ts)
- * en una sola lista de "publicaciones" para:
- *   - Portada del blog → "Novedades" (publicaciones con `featured: true`)
+ * Une los videos y los artículos en una sola lista de "publicaciones" para:
+ *   - Portada del blog → "Novedades" (publicaciones destacadas)
  *   - /blog/[slug]/    → una página por publicación
  *   - "Temas relacionados" al final de cada publicación
  *
- * Para agregar contenido no se edita este archivo: agrega el video o el
- * artículo en su archivo de datos y aparece aquí automáticamente.
+ * Los videos y artículos vienen de la capa de contenido (src/lib/content/):
+ * de WordPress si está configurado o, si no, de src/data/videos.ts y
+ * src/data/articles.ts. Para agregar contenido no se edita este archivo.
  */
-import type { ImageMetadata } from 'astro';
+import type { ImageSource } from '@lib/content/images';
 
-import { articles, type Article } from './articles';
+import type { Article } from './articles';
 import { routes } from './navigation';
-import { videos, type Video } from './videos';
+import type { Video } from './videos';
 
 /** Anclas (id) de las secciones de la portada del blog */
 export const blogSectionIds = {
@@ -35,7 +35,7 @@ interface BlogPostBase {
 	/** Fecha de publicación (AAAA-MM-DD) */
 	date: string;
 	/** Imagen de la tarjeta (miniatura del video o foto del artículo) */
-	image: ImageMetadata;
+	image: ImageSource;
 	/** Etiqueta de la categoría (se muestra en "Temas relacionados") */
 	category: string;
 }
@@ -64,41 +64,42 @@ const fromArticle = (article: Article): BlogPost => ({
 	article,
 });
 
-/** Todas las publicaciones, de la más reciente a la más antigua */
-export const blogPosts: BlogPost[] = [...videos.map(fromVideo), ...articles.map(fromArticle)].sort((a, b) =>
-	b.date.localeCompare(a.date),
-);
-
-// Un video y un artículo no pueden compartir slug (tendrían la misma URL)
-const repeatedSlugs = blogPosts
-	.map((post) => post.slug)
-	.filter((slug, index, slugs) => slugs.indexOf(slug) !== index);
-
-if (repeatedSlugs.length > 0) {
-	throw new Error(
-		`[blog] Hay publicaciones con el mismo slug: ${repeatedSlugs.join(', ')}. ` +
-			'Cambia el slug en src/data/videos.ts o src/data/articles.ts.',
+/**
+ * Une videos y artículos en publicaciones, de la más reciente a la más antigua.
+ * Falla si dos publicaciones comparten slug (tendrían la misma URL).
+ */
+export function buildBlogPosts(videos: Video[], articles: Article[]): BlogPost[] {
+	const posts = [...videos.map(fromVideo), ...articles.map(fromArticle)].sort((a, b) =>
+		b.date.localeCompare(a.date),
 	);
+
+	const repeatedSlugs = posts
+		.map((post) => post.slug)
+		.filter((slug, index, slugs) => slugs.indexOf(slug) !== index);
+
+	if (repeatedSlugs.length > 0) {
+		throw new Error(
+			`[blog] Hay publicaciones con el mismo slug: ${repeatedSlugs.join(', ')}. ` +
+				'Cambia el slug del video o del artículo.',
+		);
+	}
+
+	return posts;
 }
 
 /** ¿La publicación está marcada como destacada? */
 const isFeatured = (post: BlogPost) => (post.type === 'video' ? post.video.featured : post.article.featured);
 
 /**
- * Publicaciones de "Novedades": las marcadas con `featured: true`.
+ * Publicaciones de "Novedades": las destacadas.
  * Si ninguna está marcada, se muestran las 6 más recientes.
  */
-export function getFeaturedPosts(): BlogPost[] {
-	const featured = blogPosts.filter(isFeatured);
-	return featured.length > 0 ? featured : blogPosts.slice(0, 6);
-}
-
-/** Artículos de "Clásicos" (`classic: true`), en el orden de src/data/articles.ts */
-export function getClassicArticles(): Article[] {
-	return articles.filter((article) => article.classic);
+export function selectFeaturedPosts(posts: BlogPost[]): BlogPost[] {
+	const featured = posts.filter(isFeatured);
+	return featured.length > 0 ? featured : posts.slice(0, 6);
 }
 
 /** "Temas relacionados": las publicaciones más recientes, sin la actual */
-export function getRelatedPosts(currentSlug: string, limit = 6): BlogPost[] {
-	return blogPosts.filter((post) => post.slug !== currentSlug).slice(0, limit);
+export function selectRelatedPosts(posts: BlogPost[], currentSlug: string, limit = 6): BlogPost[] {
+	return posts.filter((post) => post.slug !== currentSlug).slice(0, limit);
 }

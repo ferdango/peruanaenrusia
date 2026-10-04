@@ -14,7 +14,7 @@
  * Uso:
  *   <TestimonyHero testimonial={testimonial} storyHref="#mi-historia" nextHref="#conoce-mi-historia" />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
@@ -64,8 +64,8 @@ const portrait = testimonial.portrait ?? { src: testimonial.avatar, alt: `Foto d
 	</div>
 
 	<div class="testimony-hero__media">
-		<Image
-			src={portrait.src}
+		<MediaImage
+			image={portrait.src}
 			alt={portrait.alt}
 			widths={[480, 760, 1100, 1500]}
 			sizes="(max-width: 640px) 100vw, 50vw"

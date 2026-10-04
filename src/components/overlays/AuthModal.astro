@@ -24,6 +24,11 @@
  * en móvil (sin diseño en Figma) es una hoja a pantalla completa sin imagen.
  *
  * Los textos de cada paso están en `steps` y `fields` (abajo).
+ *
+ * Backend: el botón de Google lleva a /api/auth/google/ y los formularios
+ * llaman a /api/auth/email/* (ver src/scripts/auth-flow.ts y src/pages/api/auth/).
+ * Para abrir el modal desde cualquier página con un aviso: /?login=1
+ * (opcional: &auth_error=… y &next=/ruta/ a la que volver).
  */
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
@@ -210,6 +215,9 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 							)}
 						</p>
 					</div>
+
+					<!-- Avisos de error (Google cancelado, correo no disponible…) -->
+					<p class="auth-step__alert" role="alert" data-auth-alert />
 
 					{step.kind === 'intro' ? (
 						<div class="auth-step__body">
@@ -577,6 +585,29 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 		line-height: 1.25rem;
 		color: color-mix(in srgb, var(--color-black) 74%, transparent);
 		text-align: center;
+	}
+
+	/* Aviso de error del paso (vacío no ocupa espacio) */
+	.auth-step__alert {
+		margin-block: calc(-1 * var(--space-4)) calc(-1 * var(--space-2));
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: rgb(255 26 48 / 0.08);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		color: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+	}
+
+	.auth-step__alert:empty {
+		display: none;
+	}
+
+	/* Botón "Continuar" mientras se espera la respuesta del servidor */
+	.auth-step :global(.btn[aria-disabled='true']) {
+		opacity: 0.7;
+		cursor: progress;
+		pointer-events: none;
 	}
 
 	/* Confirmación de "Volver a enviarlo" (vacía no ocupa espacio) */

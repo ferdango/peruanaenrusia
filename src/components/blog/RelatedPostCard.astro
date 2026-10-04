@@ -9,7 +9,7 @@
  * Uso:
  *   <RelatedPostCard post={post} />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import type { BlogPost } from '@data/blog';
 import { detailRoutes } from '@data/navigation';
@@ -25,7 +25,7 @@ const { post, headingLevel: Heading = 'h3', class: className } = Astro.props;
 ---
 
 <article class:list={['related-card', className]}>
-	<Image src={post.image} alt="" widths={[120, 240]} sizes="120px" class="related-card__image" />
+	<MediaImage image={post.image} alt="" widths={[120, 240]} sizes="120px" class="related-card__image" />
 
 	<div class="related-card__body">
 		<p class="related-card__category">{post.category}</p>

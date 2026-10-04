@@ -9,7 +9,8 @@
  * - El ítem de la página actual se resalta en celeste (--text-link-active).
  * - En pantallas medianas/pequeñas el menú central se oculta y se accede a
  *   todas las páginas desde el botón ☰ (menú lateral).
- * - 👤 abre el modal de inicio de sesión (id "auth-modal").
+ * - 👤 abre el modal de inicio de sesión (id "auth-modal"); con sesión
+ *   iniciada lleva al portal (src/scripts/session-ui.ts y auth-flow.ts).
  * - 🇪🇸 ES abre el selector de idioma (id "language-modal").
  */
 import { Image } from 'astro:assets';
@@ -63,8 +64,15 @@ const currentPath = Astro.url.pathname;
 
 		<!-- Derecha: cuenta + menú -->
 		<div class="site-header__actions">
-			<button type="button" class="site-header__icon-button" data-dialog-open="auth-modal">
-				<Icon name="account" size={36} title="Iniciar sesión" />
+			<button
+				type="button"
+				class="site-header__icon-button"
+				data-dialog-open="auth-modal"
+				aria-label="Iniciar sesión"
+				title="Iniciar sesión"
+				data-session-label="Ir a mi proceso"
+			>
+				<Icon name="account" size={36} />
 			</button>
 
 			<button

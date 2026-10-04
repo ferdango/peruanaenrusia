@@ -18,7 +18,7 @@
  * imágenes vienen del diseño). Confirma las universidades con las que trabaja
  * Peruana en Rusia y reemplaza las imágenes por las de cada una.
  */
-import type { ImageMetadata } from 'astro';
+import type { ImageSource } from '@lib/content/images';
 
 import campusPhoto from '@assets/images/universities/lomonosov-campus.jpg';
 import lomonosovLogo from '@assets/images/universities/lomonosov-logo.png';
@@ -31,7 +31,7 @@ export type UniversityAccent = 'skyblue' | 'green' | 'yellow' | 'blue';
 
 /** Foto con su texto alternativo (describe lo que se ve en la imagen) */
 export interface UniversityPhoto {
-	src: ImageMetadata;
+	src: ImageSource;
 	alt: string;
 }
 
@@ -48,9 +48,9 @@ export interface University {
 	name: string;
 	city: string;
 	/** Logo de la universidad (PNG con fondo transparente) */
-	logo: ImageMetadata;
+	logo: ImageSource;
 	/** Foto principal (tarjeta y, si no hay `cover`, cabecera de la ficha) */
-	image: ImageMetadata;
+	image: ImageSource;
 	/** Aparece en "Universidades destacadas" de la página de inicio */
 	featured?: boolean;
 	/** Sitio web oficial (botón "Ir al sitio web" de la ficha) */
@@ -219,11 +219,3 @@ export const universities: University[] = [
 		image: campusPhoto,
 	},
 ];
-
-/** Universidades marcadas como destacadas (Home) */
-export const featuredUniversities = universities.filter((university) => university.featured);
-
-/** Busca una universidad por su slug */
-export function getUniversity(slug: string): University | undefined {
-	return universities.find((university) => university.slug === slug);
-}

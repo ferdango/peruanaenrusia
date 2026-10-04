@@ -1,0 +1,183 @@
+---
+/**
+ * TestimonyHighlight — Cita destacada sobre la forma celeste
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › "Mask group" (1732:2074):
+ * fondo gris claro, la forma celeste de "reloj de arena" de la marca (las
+ * bandas superior e inferior unidas por un cuello con la estrella de 4
+ * puntas), la frase del estudiante en grande y su nombre abajo a la derecha.
+ * Móvil: UI Mobile › Caso de éxito: la misma forma recortada al ancho de la
+ * pantalla (se ve el cuello al centro) y la frase en varias líneas.
+ *
+ * La forma (src/assets/graphics/shapes/shape-hourglass-highlight.svg) es el
+ * mismo vector de la marca que usan los consejos de la ficha de universidad,
+ * estirado como en el diseño de esta sección (lienzo de 1512 × 890).
+ *
+ * Uso: <TestimonyHighlight testimonial={testimonial} />
+ */
+import Shape from '@assets/graphics/shapes/shape-hourglass-highlight.svg';
+import StarRed from '@assets/graphics/stars/star-red-small.svg';
+import StarYellow from '@assets/graphics/stars/star-yellow-small.svg';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	testimonial: Testimonial;
+}
+
+const { testimonial } = Astro.props;
+---
+
+{testimonial.highlight && (
+	<section class="testimony-highlight" aria-label={`Frase de ${testimonial.name}`}>
+		<div class="testimony-highlight__decor" aria-hidden="true">
+			<Shape class="testimony-highlight__shape" preserveAspectRatio="xMidYMid slice" />
+			<StarYellow class="testimony-highlight__star testimony-highlight__star--yellow" />
+			<StarRed class="testimony-highlight__star testimony-highlight__star--red" />
+		</div>
+
+		<figure class="testimony-highlight__inner">
+			<blockquote class="testimony-highlight__quote">
+				<p>“{testimonial.highlight}”</p>
+			</blockquote>
+			<figcaption class="testimony-highlight__author">
+				<strong class="testimony-highlight__name">{testimonial.name}</strong>
+				<span>{testimonial.role}</span>
+			</figcaption>
+		</figure>
+	</section>
+)}
+
+<style>
+	.testimony-highlight {
+		position: relative;
+		isolation: isolate;
+		display: grid;
+		align-items: center;
+		min-height: 55.625rem; /* 890px */
+		overflow: clip;
+		background-color: var(--surface-light);
+		color: var(--text-on-light);
+	}
+
+	/* ----- Forma celeste: lienzo de 1512 × 890 centrado ----- */
+	.testimony-highlight__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		z-index: -1;
+		width: 1512px;
+		height: 100%;
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.testimony-highlight__shape {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		max-width: none;
+	}
+
+	.testimony-highlight__star {
+		position: absolute;
+		max-width: none;
+	}
+
+	.testimony-highlight__star--yellow {
+		left: 1268px;
+		top: 219px;
+		width: 17px;
+		height: auto;
+	}
+
+	.testimony-highlight__star--red {
+		left: 180px;
+		top: 625px;
+		width: 16px;
+		height: auto;
+	}
+
+	/* ----- Frase ----- */
+	.testimony-highlight__inner {
+		display: grid;
+		gap: var(--space-8);
+		width: 100%;
+		max-width: calc(80rem + 2 * var(--gutter)); /* 1280px */
+		margin: 0 auto;
+		padding: var(--space-10) var(--gutter);
+	}
+
+	/* Figma: Poppins Bold ~100/107, azul de títulos, centrada */
+	.testimony-highlight__quote {
+		max-width: 75rem; /* 1200px: cortes de línea como en Figma */
+		margin: 0 auto;
+		font-size: clamp(2.5rem, 0.6rem + 5.9vw, 6.25rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.07;
+		color: var(--color-blue-title);
+		text-align: center;
+		text-wrap: balance;
+	}
+
+	/* Nombre y carrera, abajo a la derecha (Figma: 16/20 y 14/20) */
+	.testimony-highlight__author {
+		display: flex;
+		flex-direction: column;
+		justify-self: end;
+		max-width: 13.5rem; /* 216px */
+		margin-right: calc(9.5rem - var(--gutter));
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+	}
+
+	.testimony-highlight__name {
+		font-size: var(--font-size-md);
+		color: var(--color-blue-title);
+	}
+
+	/* ===== Tablet y móvil: la forma se recorta al ancho de la pantalla ===== */
+	@media (max-width: 1100px) {
+		.testimony-highlight__decor {
+			left: 0;
+			width: 100%;
+			transform: none;
+		}
+
+		.testimony-highlight__star {
+			display: none;
+		}
+
+		.testimony-highlight__author {
+			margin-right: 0;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.testimony-highlight {
+			min-height: 55.4375rem; /* 887px */
+		}
+
+		.testimony-highlight__inner {
+			gap: var(--space-9);
+			padding-block: var(--space-9);
+		}
+
+		.testimony-highlight__quote {
+			font-size: 2.5rem; /* 40px */
+			line-height: 1.1;
+		}
+
+		/* En móvil el nombre va centrado bajo la frase, sobre la banda celeste */
+		.testimony-highlight__author {
+			justify-self: center;
+			max-width: 13.5rem;
+			font-size: var(--font-size-md);
+			line-height: 1.375rem;
+		}
+
+		.testimony-highlight__name {
+			font-size: 1.125rem;
+		}
+	}
+</style>

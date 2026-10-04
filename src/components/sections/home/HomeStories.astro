@@ -9,7 +9,9 @@ import VideoCard from '@components/cards/VideoCard.astro';
 import Button from '@components/ui/Button.astro';
 import Carousel from '@components/ui/Carousel.astro';
 import { routes } from '@data/navigation';
-import { videos } from '@data/videos';
+import { getVideos } from '@lib/content';
+
+const videos = await getVideos();
 
 // ----- Contenido de la sección -----
 const content = {

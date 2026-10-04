@@ -11,14 +11,15 @@
  *   <BlogClassics />
  */
 import ArticleCard from '@components/blog/ArticleCard.astro';
-import { blogSectionIds, getClassicArticles } from '@data/blog';
+import { blogSectionIds } from '@data/blog';
+import { getClassicArticles } from '@lib/content';
 
 // ----- Contenido de la sección -----
 const content = {
 	title: 'Clásicos',
 };
 
-const articles = getClassicArticles();
+const articles = await getClassicArticles();
 ---
 
 {articles.length > 0 && (

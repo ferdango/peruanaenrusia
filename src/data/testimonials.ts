@@ -17,7 +17,7 @@
  * Reemplázalo por testimonios reales y autorizados por cada estudiante antes
  * de publicar el sitio.
  */
-import type { ImageMetadata } from 'astro';
+import type { ImageSource } from '@lib/content/images';
 
 import type { CountryCode } from '@data/countries';
 
@@ -34,7 +34,7 @@ import galleryRedSquare from '@assets/images/testimonials/case-gallery-red-squar
 
 /** Foto con su texto alternativo (describe lo que se ve en la imagen) */
 export interface TestimonialPhoto {
-	src: ImageMetadata;
+	src: ImageSource;
 	alt: string;
 }
 
@@ -67,7 +67,7 @@ export interface Testimonial {
 	/** Carrera y universidad, ej. "Estudiante de Medicina en la Universidad de Moscú" */
 	role: string;
 	country: CountryCode;
-	avatar: ImageMetadata;
+	avatar: ImageSource;
 	/** Frase corta que se muestra en la tarjeta */
 	quote: string;
 
@@ -166,8 +166,3 @@ export const testimonials: Testimonial[] = [
 	{ ...exampleCase, slug: 'caso-de-ejemplo-7' },
 	{ ...exampleCase, slug: 'caso-de-ejemplo-8' },
 ];
-
-/** Busca un testimonio por su slug */
-export function getTestimonial(slug: string): Testimonial | undefined {
-	return testimonials.find((testimonial) => testimonial.slug === slug);
-}

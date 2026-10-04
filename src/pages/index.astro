@@ -9,6 +9,8 @@
  * src/components/sections/home/.
  */
 import SiteLayout from '@layouts/SiteLayout.astro';
+import { getFaqs } from '@lib/content';
+import { faqSchema } from '@lib/seo/schema';
 
 import HomeHero from '@components/sections/home/HomeHero.astro';
 import HomeIntro from '@components/sections/home/HomeIntro.astro';
@@ -23,9 +25,12 @@ import HomeCommunityGrid from '@components/sections/home/HomeCommunityGrid.astro
 import HomeCommunityGallery from '@components/sections/home/HomeCommunityGallery.astro';
 import HomeStories from '@components/sections/home/HomeStories.astro';
 import HomeFaq from '@components/sections/home/HomeFaq.astro';
+
+// Preguntas frecuentes como datos estructurados (schema.org FAQPage)
+const faqs = await getFaqs();
 ---
 
-<SiteLayout>
+<SiteLayout jsonLd={[faqSchema(faqs)]}>
 	<HomeHero />
 	<HomeIntro />
 	<HomeFounder />

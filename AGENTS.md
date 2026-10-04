@@ -2,6 +2,7 @@
 
 Sitio web de Peruana en Rusia (Astro 7 + CSS con design tokens).
 Antes de modificar el proyecto, lee `docs/GUIA-DESARROLLO.md` (estructura, convenciones y cómo agregar módulos).
+El contenido editable se pide a `src/lib/content/` (WordPress o datos locales) y el código de servidor vive en `src/lib/server/` y `src/pages/api/` (ver `docs/`).
 
 ## Development
 

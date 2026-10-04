@@ -16,14 +16,14 @@
 import VideoCard from '@components/cards/VideoCard.astro';
 import Carousel from '@components/ui/Carousel.astro';
 import { blogSectionIds } from '@data/blog';
-import { getVideosByDate } from '@data/videos';
+import { getVideos } from '@lib/content';
 
 // ----- Contenido de la sección -----
 const content = {
 	title: 'Videoblogs',
 };
 
-const videos = getVideosByDate();
+const videos = await getVideos();
 ---
 
 <section class="blog-videoblogs" id={blogSectionIds.videoblogs} aria-labelledby="blog-videoblogs-title">

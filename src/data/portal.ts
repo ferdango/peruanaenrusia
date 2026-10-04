@@ -47,9 +47,6 @@ export const student = {
 	email: 'tucorreo@gmail.com',
 };
 
-/** Inicial del avatar del header (primera letra del nombre) */
-export const studentInitial = student.firstName.charAt(0).toUpperCase();
-
 /* ==========================================================================
    3. STEPPER (Registro → Pago → Mi Proceso)
    ========================================================================== */

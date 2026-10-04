@@ -9,7 +9,7 @@
  *
  * Uso: <UniversityCover university={university} />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import type { University } from '@data/universities';
 
@@ -23,8 +23,8 @@ const cover = university.cover ?? { src: university.image, alt: `Foto de la ${un
 ---
 
 <figure class="university-cover">
-	<Image
-		src={cover.src}
+	<MediaImage
+		image={cover.src}
 		alt={cover.alt}
 		widths={[640, 1266, 2000]}
 		sizes="(max-width: 1266px) 100vw, 1266px"

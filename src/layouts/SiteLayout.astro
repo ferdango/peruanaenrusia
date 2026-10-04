@@ -1,0 +1,53 @@
+---
+/**
+ * SiteLayout
+ * --------------------------------------------------------------------------
+ * Layout del sitio público: header + contenido + footer, más los elementos
+ * globales (botón de WhatsApp, menú lateral, modales y aviso de cookies).
+ *
+ * Uso en una página (src/pages/…):
+ *
+ *   ---
+ *   import SiteLayout from '@layouts/SiteLayout.astro';
+ *   ---
+ *   <SiteLayout title="Blog" description="…">
+ *       <MiSeccion />
+ *   </SiteLayout>
+ */
+import BaseLayout, { type Props as BaseProps } from './BaseLayout.astro';
+
+import SiteHeader from '@components/layout/SiteHeader.astro';
+import SiteFooter from '@components/layout/SiteFooter.astro';
+import SideMenu from '@components/layout/SideMenu.astro';
+import WhatsAppButton from '@components/layout/WhatsAppButton.astro';
+
+import AuthModal from '@components/overlays/AuthModal.astro';
+import LanguageModal from '@components/overlays/LanguageModal.astro';
+import CookieBanner from '@components/overlays/CookieBanner.astro';
+
+interface Props extends BaseProps {
+	/** Oculta el botón flotante de WhatsApp (por defecto visible) */
+	hideWhatsApp?: boolean;
+}
+
+const { hideWhatsApp = false, ...baseProps } = Astro.props;
+---
+
+<BaseLayout {...baseProps}>
+	<slot name="head" slot="head" />
+
+	<SiteHeader />
+
+	<main id="contenido">
+		<slot />
+	</main>
+
+	<SiteFooter />
+
+	<!-- Elementos globales (fuera del flujo de la página) -->
+	{!hideWhatsApp && <WhatsAppButton />}
+	<SideMenu />
+	<AuthModal />
+	<LanguageModal />
+	<CookieBanner />
+</BaseLayout>

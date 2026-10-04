@@ -1,0 +1,18 @@
+{
+	"extends": "astro/tsconfigs/strict",
+	"include": [".astro/types.d.ts", "**/*"],
+	"exclude": ["dist"],
+	"compilerOptions": {
+		// Alias para importar sin rutas relativas largas (../../..)
+		// Ejemplo: import Button from '@components/ui/Button.astro';
+		"paths": {
+			"@assets/*": ["./src/assets/*"],
+			"@components/*": ["./src/components/*"],
+			"@data/*": ["./src/data/*"],
+			"@layouts/*": ["./src/layouts/*"],
+			"@scripts/*": ["./src/scripts/*"],
+			"@styles/*": ["./src/styles/*"],
+			"@utils/*": ["./src/utils/*"]
+		}
+	}
+}

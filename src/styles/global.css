@@ -1,0 +1,9 @@
+/* ==========================================================================
+   ESTILOS GLOBALES — punto de entrada
+   Se importa una sola vez en src/layouts/BaseLayout.astro.
+   El resto de estilos vive dentro de cada componente (<style> con alcance local).
+   ========================================================================== */
+
+@import './tokens.css';
+@import './base.css';
+@import './utilities.css';

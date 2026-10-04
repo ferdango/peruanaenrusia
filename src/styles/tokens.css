@@ -1,0 +1,152 @@
+/* ==========================================================================
+   DESIGN TOKENS — Peruana en Rusia
+   --------------------------------------------------------------------------
+   Única fuente de verdad para colores, tipografía, espaciados, radios y
+   sombras. Los valores salen del Manual de Marca (colores corporativos) y
+   de las variables del diseño en Figma.
+
+   Regla: en los componentes NUNCA escribas un color o tamaño "a mano" si
+   existe un token. Usa siempre var(--token).
+   ========================================================================== */
+
+:root {
+	/* ----------------------------------------------------------------------
+	   1. COLORES DE MARCA (Manual de marca · Colores corporativos)
+	   ---------------------------------------------------------------------- */
+
+	/* Principales */
+	--color-blue: #007afc; /* Azul principal   · R0   G122 B252 */
+	--color-red: #ff1a30; /* Rojo principal   · R255 G26  B48  */
+	--color-white: #f4f4f4; /* Blanco de marca  · R244 G244 B244 */
+
+	/* Secundarios */
+	--color-orange: #ff7b23; /* Naranja          · R255 G123 B35  */
+	--color-skyblue: #00c0fc; /* Celeste          · R0   G192 B252 */
+	--color-green: #00736a; /* Verde            · R0   G115 B106 */
+	--color-pink: #ffa2a4; /* Rosado           · R255 G162 B164 */
+	--color-yellow: #fbbd1d; /* Amarillo         · R251 G189 B29  */
+	--color-blue-2: #1991ff; /* Azul alterno 1   · R25  G145 B255 */
+	--color-blue-3: #199af4; /* Azul alterno 2   · R25  G154 B244 */
+	--color-pink-light: #fecacc; /* Rosado claro     · R254 G202 B204 */
+	--color-pink-pale: #ffe3e5; /* Rosado pálido    · R255 G227 B229 */
+
+	/* Colores de interfaz web (variables de Figma) */
+	--color-blue-title: #125ba8; /* Títulos azules sobre fondos claros */
+	--color-black: #171a1a; /* Fondo oscuro principal del sitio */
+	--color-pure-white: #ffffff;
+
+	/* ----------------------------------------------------------------------
+	   2. COLORES SEMÁNTICOS (úsalos en los componentes)
+	   ---------------------------------------------------------------------- */
+
+	/* Superficies (fondos de sección y tarjetas) */
+	--surface-dark: var(--color-black);
+	--surface-dark-raised: #222626; /* Tarjeta destacada sobre fondo oscuro */
+	--surface-dark-pill: #2a353a; /* Píldora de idioma del header */
+	--surface-light: var(--color-white);
+	--surface-white: var(--color-pure-white);
+
+	/* Texto */
+	--text-on-dark: var(--color-white);
+	--text-on-dark-soft: rgb(244 244 244 / 0.8);
+	--text-on-dark-muted: rgb(244 244 244 / 0.64);
+	--text-on-light: var(--color-black);
+	--text-heading-light: var(--color-blue-title);
+	--text-link-active: var(--color-skyblue); /* Ítem activo del menú */
+
+	/* Bordes */
+	--border-on-dark: rgb(244 244 244 / 0.12);
+	--border-on-dark-strong: rgb(244 244 244 / 0.4);
+
+	/* Estado de foco accesible (teclado) */
+	--focus-ring: 0 0 0 3px rgb(0 192 252 / 0.6);
+
+	/* ----------------------------------------------------------------------
+	   3. TIPOGRAFÍA
+	   El diseño web usa Poppins (Google Fonts, licencia libre OFL).
+	   El Manual de marca define Aeonik como fuente institucional: si se
+	   adquiere su licencia web, basta con cambiar --font-family-base.
+	   ---------------------------------------------------------------------- */
+
+	--font-family-base: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	--font-weight-extrabold: 800;
+
+	/* Escala tipográfica (desktop = valores de Figma; se reducen en móvil) */
+	--font-size-display: clamp(2.75rem, 1.6rem + 4.9vw, 5rem); /* 80px  · "Nuestro Blog" */
+	--font-size-h1: clamp(2rem, 1.35rem + 2.6vw, 3rem); /* 48px  · Títulos de sección */
+	--font-size-h2: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem); /* 40px  · Hero */
+	--font-size-h3: clamp(1.375rem, 1.15rem + 0.9vw, 1.75rem); /* 28px  · Títulos de tarjeta */
+	--font-size-h4: clamp(1.125rem, 1rem + 0.5vw, 1.5rem); /* 24px */
+	--font-size-lg: 1.125rem; /* 18px  · Párrafo destacado */
+	--font-size-md: 1rem; /* 16px  · Párrafo base / botones */
+	--font-size-nav: 0.9375rem; /* 15px  · Navegación */
+	--font-size-sm: 0.875rem; /* 14px  · Textos secundarios */
+	--font-size-xs: 0.75rem; /* 12px */
+
+	--line-height-tight: 1.1;
+	--line-height-heading: 1.2;
+	--line-height-body: 1.6;
+
+	/* ----------------------------------------------------------------------
+	   4. ESPACIADO Y LAYOUT
+	   ---------------------------------------------------------------------- */
+
+	--space-1: 0.25rem; /*  4px */
+	--space-2: 0.5rem; /*  8px */
+	--space-3: 0.75rem; /* 12px */
+	--space-4: 1rem; /* 16px */
+	--space-5: 1.5rem; /* 24px */
+	--space-6: 2rem; /* 32px */
+	--space-7: 2.5rem; /* 40px */
+	--space-8: 3rem; /* 48px */
+	--space-9: 4rem; /* 64px */
+	--space-10: 5rem; /* 80px */
+
+	/* Ancho máximo del contenido (1512px de Figma − 2 × 80px de margen) */
+	--container-max: 84.5rem; /* 1352px */
+	/* Margen lateral de página: 16px en móvil → 80px en desktop */
+	--gutter: clamp(1rem, 5.3vw, 5rem);
+	/* Espaciado vertical estándar de las secciones (80px en desktop) */
+	--section-padding-y: clamp(3.5rem, 2.5rem + 3.5vw, 5rem);
+
+	/* Altura del header fijo */
+	--header-height: 4.25rem; /* 68px */
+
+	/* ----------------------------------------------------------------------
+	   5. RADIOS, SOMBRAS, CAPAS Y MOVIMIENTO
+	   ---------------------------------------------------------------------- */
+
+	--radius-sm: 0.5rem; /*  8px · Botones */
+	--radius-md: 0.75rem; /* 12px */
+	--radius-lg: 1.5rem; /* 24px · Tarjetas */
+	--radius-xl: 2rem; /* 32px · Hero / tarjetas de video */
+	--radius-2xl: 2.5rem; /* 40px · Tarjetas de universidad */
+	--radius-pill: 999px;
+
+	--shadow-float: 0 4px 24px rgb(0 0 0 / 0.36);
+
+	--z-header: 100;
+	--z-floating: 150;
+	--z-drawer: 200;
+	--z-modal: 300;
+	--z-toast: 400;
+
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--duration-fast: 150ms;
+	--duration-base: 250ms;
+	--duration-slow: 400ms;
+}
+
+/* Si el usuario prefiere menos movimiento, desactivamos las animaciones */
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--duration-fast: 0ms;
+		--duration-base: 0ms;
+		--duration-slow: 0ms;
+	}
+}

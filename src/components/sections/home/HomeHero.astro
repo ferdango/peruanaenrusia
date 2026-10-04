@@ -1,0 +1,373 @@
+---
+/**
+ * HomeHero — Video de presentación
+ * --------------------------------------------------------------------------
+ * Figma: Home › "Frame 23" (portada) y "MacBook Pro 14 - 15" (video en
+ * reproducción, con controles "Pausa" y "Mute").
+ *
+ * VIDEO: coloca el archivo en /public/videos/ y escribe su ruta en
+ * `videoSrc` (ej. '/videos/presentacion.mp4'). Mientras no exista, el botón
+ * ▶ abre el canal de YouTube de la marca.
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import { site } from '@data/site';
+import poster from '@assets/images/home/hero-video-poster.jpg';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: '¡Estudia en Rusia este 2026!',
+	subtitle: '¿Quieres conocernos? Mira el video completo y obtén beneficios adicionales',
+	cta: 'Postular ahora',
+};
+
+/** Ruta del video (vacío = todavía no hay video) */
+const videoSrc = '';
+
+const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
+---
+
+<section class="home-hero" aria-label="Video de presentación">
+	<div class="home-hero__card" data-hero>
+		<!-- Medio: póster + video (fondo de la tarjeta) -->
+		<div class="home-hero__media">
+			<Image
+				src={poster}
+				alt="Grecia Kristal presentando Peruana en Rusia"
+				class="home-hero__poster"
+				widths={[480, 960, 1352, 1920]}
+				sizes="(max-width: 1512px) 100vw, 1352px"
+				loading="eager"
+				fetchpriority="high"
+			/>
+			{videoSrc && <video class="home-hero__video" src={videoSrc} playsinline preload="none" data-hero-video />}
+		</div>
+
+		<!-- Botón ▶ grande -->
+		{
+			videoSrc ? (
+				<button type="button" class="home-hero__play" data-hero-play aria-label="Reproducir video">
+					<Icon name="play" size={108} />
+				</button>
+			) : (
+				<a
+					href={youtubeChannel}
+					class="home-hero__play"
+					target="_blank"
+					rel="noopener"
+					aria-label="Ver video en YouTube"
+				>
+					<Icon name="play" size={108} />
+				</a>
+			)
+		}
+
+		<!-- Texto (portada) -->
+		<div class="home-hero__content">
+			<h1 class="home-hero__title">{content.title}</h1>
+			<p class="home-hero__subtitle">{content.subtitle}</p>
+			<Button class="home-hero__cta" data-dialog-open="auth-modal">{content.cta}</Button>
+		</div>
+
+		<!-- Controles (visibles mientras el video se reproduce) -->
+		<div class="home-hero__controls" data-hero-controls hidden>
+			<div class="home-hero__control-group">
+				<button type="button" class="hero-control" data-hero-toggle>
+					<span class="hero-control__circle">
+						<Icon name="pause" size={32} class="hero-control__icon-pause" />
+						<Icon name="play" size={24} class="hero-control__icon-play" />
+					</span>
+					<span class="hero-control__label" data-label-pause="Pausa" data-label-play="Reproducir">Pausa</span>
+				</button>
+
+				<button type="button" class="hero-control hero-control--mute" data-hero-mute aria-pressed="false">
+					<span class="hero-control__circle">
+						<Icon name="volume-mute" size={28} class="hero-control__icon-muted" />
+						<Icon name="volume" size={28} class="hero-control__icon-sound" />
+					</span>
+					<span class="hero-control__label">Mute</span>
+				</button>
+			</div>
+
+			<Button size="md" class="home-hero__cta" data-dialog-open="auth-modal">{content.cta}</Button>
+		</div>
+	</div>
+</section>
+
+<script>
+	/**
+	 * Reproductor del video del hero:
+	 * ▶ reproduce · "Pausa" alterna pausa/reproducción · "Mute" silencia.
+	 */
+	document.querySelectorAll<HTMLElement>('[data-hero]').forEach((hero) => {
+		const video = hero.querySelector<HTMLVideoElement>('[data-hero-video]');
+		const playButton = hero.querySelector<HTMLButtonElement>('[data-hero-play]');
+		const controls = hero.querySelector<HTMLElement>('[data-hero-controls]');
+		const toggleButton = hero.querySelector<HTMLButtonElement>('[data-hero-toggle]');
+		const muteButton = hero.querySelector<HTMLButtonElement>('[data-hero-mute]');
+		const toggleLabel = toggleButton?.querySelector<HTMLElement>('.hero-control__label');
+
+		if (!video || !playButton || !controls) return;
+
+		const setPlayingUI = (isPlaying: boolean) => {
+			hero.classList.toggle('is-playing', isPlaying);
+			hero.classList.toggle('is-paused', !isPlaying && !video.ended && video.currentTime > 0);
+			if (toggleLabel) {
+				toggleLabel.textContent = isPlaying ? toggleLabel.dataset.labelPause! : toggleLabel.dataset.labelPlay!;
+			}
+		};
+
+		playButton.addEventListener('click', () => {
+			controls.hidden = false;
+			video.play();
+		});
+
+		toggleButton?.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
+
+		muteButton?.addEventListener('click', () => {
+			video.muted = !video.muted;
+			muteButton.setAttribute('aria-pressed', String(video.muted));
+		});
+
+		video.addEventListener('play', () => setPlayingUI(true));
+		video.addEventListener('pause', () => setPlayingUI(false));
+		video.addEventListener('ended', () => {
+			controls.hidden = true;
+			hero.classList.remove('is-playing', 'is-paused');
+			video.currentTime = 0;
+		});
+	});
+</script>
+
+<style>
+	.home-hero {
+		padding: 1.75rem var(--gutter) 0; /* 28px bajo el header */
+	}
+
+	/* ----- Tarjeta redondeada que contiene todo ----- */
+	.home-hero__card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		max-width: var(--container-max);
+		aspect-ratio: 1352 / 775;
+		margin-inline: auto;
+		padding: clamp(5rem, 11.9vw, 11.25rem) var(--space-10) 1.75rem;
+		border-radius: var(--radius-xl);
+		overflow: hidden;
+	}
+
+	/* ----- Póster / video a pantalla completa dentro de la tarjeta ----- */
+	.home-hero__media {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+
+	.home-hero__poster,
+	.home-hero__video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.home-hero__video {
+		opacity: 0;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+
+	/* Degradado oscuro sobre la imagen para que el texto se lea bien */
+	.home-hero__media::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to bottom, rgb(23 26 26 / 0.4) 14.8%, rgb(23 26 26 / 0.96) 103%);
+		transition: opacity var(--duration-slow) var(--ease-out);
+		pointer-events: none;
+	}
+
+	/* ----- Botón ▶ circular ----- */
+	.home-hero__play {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: clamp(7.5rem, 18.5vw, 17.5rem); /* hasta 280px */
+		aspect-ratio: 1;
+		border: 2px solid rgb(244 244 244 / 0.8);
+		border-radius: var(--radius-pill);
+		color: rgb(244 244 244 / 0.64);
+		transition:
+			transform var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			opacity var(--duration-base) var(--ease-out);
+	}
+
+	.home-hero__play :global(svg) {
+		width: 38.5%;
+		height: auto;
+	}
+
+	.home-hero__play:hover {
+		transform: scale(1.05);
+		color: var(--color-white);
+	}
+
+	/* ----- Texto ----- */
+	.home-hero__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		text-align: center;
+		transition: opacity var(--duration-base) var(--ease-out);
+	}
+
+	.home-hero__title {
+		font-size: var(--font-size-h2);
+		line-height: 1.1;
+		color: var(--color-pure-white);
+	}
+
+	.home-hero__subtitle {
+		max-width: 36rem; /* 576px */
+		line-height: 1.75rem;
+	}
+
+	.home-hero :global(.home-hero__cta) {
+		opacity: 0.8;
+	}
+
+	.home-hero :global(.home-hero__cta:hover) {
+		opacity: 1;
+	}
+
+	/* ----- Controles del video ----- */
+	.home-hero__controls {
+		position: absolute;
+		inset: auto 0 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		padding: var(--space-8) var(--space-10) var(--space-4);
+		background: linear-gradient(to bottom, rgb(23 26 26 / 0) 0%, rgb(23 26 26 / 0.96) 100%);
+	}
+
+	.home-hero__controls[hidden] {
+		display: none;
+	}
+
+	.home-hero__control-group {
+		display: flex;
+		align-items: center;
+		gap: 1.75rem; /* 28px */
+	}
+
+	.hero-control {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-1);
+		color: var(--color-white);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.hero-control__circle {
+		display: grid;
+		place-items: center;
+		width: 3.5rem; /* 56px */
+		height: 3.5rem;
+		border: 2px solid var(--color-white);
+		border-radius: var(--radius-pill);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	/* Íconos alternos según el estado */
+	.hero-control__icon-play,
+	.hero-control__icon-sound,
+	.home-hero.is-paused .hero-control__icon-pause,
+	.hero-control--mute[aria-pressed='false'] .hero-control__icon-muted {
+		display: none;
+	}
+
+	.home-hero.is-paused .hero-control__icon-play,
+	.hero-control--mute[aria-pressed='false'] .hero-control__icon-sound {
+		display: block;
+	}
+
+	/* "Mute" activado: círculo claro con borde azul (como en el diseño) */
+	.hero-control--mute[aria-pressed='true'] .hero-control__circle {
+		background-color: var(--color-white);
+		border-color: var(--color-blue-title);
+		color: var(--color-black);
+	}
+
+	/* ----- Estado: reproduciendo ----- */
+	.home-hero__card:is(.is-playing, .is-paused) .home-hero__video {
+		opacity: 1;
+	}
+
+	.home-hero__card:is(.is-playing, .is-paused) .home-hero__media::after,
+	.home-hero__card:is(.is-playing, .is-paused) .home-hero__play,
+	.home-hero__card:is(.is-playing, .is-paused) .home-hero__content {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	/* ----- Móvil: el texto pasa debajo del video (Figma móvil) ----- */
+	@media (max-width: 640px) {
+		.home-hero {
+			padding: 0;
+		}
+
+		.home-hero__card {
+			display: grid;
+			grid-template-columns: 100%;
+			aspect-ratio: auto;
+			padding: 0;
+			border-radius: 0;
+		}
+
+		/* Video y botón ▶ comparten la primera fila */
+		.home-hero__media {
+			position: relative;
+			grid-area: 1 / 1;
+			aspect-ratio: 360 / 440;
+		}
+
+		.home-hero__play {
+			grid-area: 1 / 1;
+			place-self: center;
+		}
+
+		.home-hero__content {
+			padding: var(--space-7) var(--gutter) var(--space-6);
+		}
+
+		.home-hero__title {
+			font-size: 1.75rem;
+		}
+
+		.home-hero__content :global(.home-hero__cta) {
+			width: 100%;
+		}
+
+		.home-hero__controls {
+			inset: auto 0 auto;
+			top: 0;
+			aspect-ratio: 360 / 440;
+			justify-content: flex-end;
+		}
+	}
+</style>

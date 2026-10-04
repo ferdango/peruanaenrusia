@@ -1,0 +1,137 @@
+---
+/**
+ * HomeSuccessCases — "Nuestros casos de éxito"
+ * --------------------------------------------------------------------------
+ * Figma: Home › "Frame 628099".
+ *
+ * Desktop: muro de 4 columnas escalonadas (tipo masonry) que se desvanece
+ *          arriba y abajo, como en el diseño.
+ * Móvil/tablet: el mismo listado se convierte en un carrusel.
+ *
+ * Los testimonios vienen de src/data/testimonials.ts.
+ */
+import TestimonialCard from '@components/cards/TestimonialCard.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { testimonials } from '@data/testimonials';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Nuestros casos de éxito',
+	subtitle: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+};
+
+/** El muro del diseño muestra 8 tarjetas */
+const visibleTestimonials = testimonials.slice(0, 8);
+---
+
+<section class="home-cases section" id="casos-de-exito" aria-labelledby="home-cases-title">
+	<header class="home-cases__header container">
+		<h2 id="home-cases-title" class="home-cases__title">{content.title}</h2>
+		<p class="home-cases__subtitle">{content.subtitle}</p>
+	</header>
+
+	<div class="home-cases__wall">
+		<Carousel label={content.title} gap={16} class="home-cases__carousel">
+			{visibleTestimonials.map((testimonial) => <TestimonialCard testimonial={testimonial} />)}
+		</Carousel>
+	</div>
+</section>
+
+<style>
+	.home-cases {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-9);
+		background-color: var(--surface-dark);
+	}
+
+	.home-cases__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.17;
+	}
+
+	/* En desktop el diseño no muestra subtítulo */
+	.home-cases__subtitle {
+		display: none;
+		font-size: var(--font-size-md);
+		line-height: 1.75rem;
+	}
+
+	.home-cases__wall {
+		position: relative;
+	}
+
+	/* ===== Desktop: muro escalonado de 4 columnas ===== */
+	@media (min-width: 1100px) {
+		/* El carrusel se transforma en una grilla (los controles se ocultan solos) */
+		.home-cases :global(.home-cases__carousel .carousel__track) {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			column-gap: 1.0625rem; /* 17px */
+			row-gap: 1.125rem; /* 18px */
+			max-width: calc(var(--container-max) + 2 * var(--gutter));
+			margin-inline: auto;
+			padding-inline: var(--gutter);
+			/* Espacio para las columnas desplazadas hacia abajo */
+			padding-bottom: 16.75rem; /* 268px */
+			overflow: visible;
+			scroll-snap-type: none;
+		}
+
+		.home-cases :global(.testimonial-card) {
+			--testimonial-card-width: 100%;
+		}
+
+		/* Columnas 2 y 4 desplazadas (valores de Figma) */
+		.home-cases :global(.home-cases__carousel .carousel__track > :nth-child(4n + 2)) {
+			transform: translateY(14.375rem); /* 230px */
+		}
+
+		.home-cases :global(.home-cases__carousel .carousel__track > :nth-child(4n)) {
+			transform: translateY(16.75rem); /* 268px */
+		}
+
+		/* Desvanecido superior e inferior del muro */
+		.home-cases__wall::before,
+		.home-cases__wall::after {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			z-index: 1;
+			pointer-events: none;
+		}
+
+		.home-cases__wall::before {
+			top: -4rem;
+			height: 22.5rem; /* 360px */
+			background: linear-gradient(to bottom, var(--surface-dark), rgb(23 26 26 / 0));
+		}
+
+		.home-cases__wall::after {
+			bottom: -5rem;
+			height: 25.5rem; /* 408px */
+			background: linear-gradient(to top, var(--surface-dark), rgb(23 26 26 / 0));
+		}
+	}
+
+	/* ===== Móvil / tablet: carrusel centrado con subtítulo ===== */
+	@media (max-width: 1099px) {
+		.home-cases {
+			gap: var(--space-7);
+		}
+
+		.home-cases__header {
+			text-align: center;
+		}
+
+		.home-cases__subtitle {
+			display: block;
+			margin-top: var(--space-3);
+		}
+
+		.home-cases :global(.testimonial-card) {
+			--testimonial-card-width: min(82vw, 20.375rem);
+		}
+	}
+</style>

@@ -1,0 +1,57 @@
+---
+/**
+ * Logo
+ * --------------------------------------------------------------------------
+ * Logotipo oficial de Peruana en Rusia en sus versiones del Manual de marca:
+ *
+ *   variant="vertical"    → Vertical principal (símbolo arriba, texto abajo)
+ *   variant="horizontal"  → Horizontal secundario
+ *   variant="compact"     → Compacto "PeRu" (formatos muy pequeños)
+ *   variant="symbol"      → Solo el símbolo
+ *
+ *   color="brand"  → colores oficiales (rojo #FF1A30 + azul #007AFC)
+ *   color="mono"   → un solo color: hereda el color del texto (blanco sobre
+ *                    fondos oscuros, negro sobre fondos claros, etc.)
+ *
+ * Manual de marca: no modificar colores, no rotar, no deformar y respetar el
+ * área de protección alrededor del logo.
+ *
+ * Uso:
+ *   <Logo variant="vertical" color="mono" width={50} />
+ */
+import LogoVertical from '@assets/brand/logo-vertical.svg';
+import LogoVerticalMono from '@assets/brand/logo-vertical-mono.svg';
+import LogoHorizontal from '@assets/brand/logo-horizontal.svg';
+import LogoHorizontalMono from '@assets/brand/logo-horizontal-mono.svg';
+import LogoCompact from '@assets/brand/logo-compact.svg';
+import SymbolMono from '@assets/brand/symbol.svg';
+import SymbolRed from '@assets/brand/symbol-red.svg';
+
+interface Props {
+	variant?: 'vertical' | 'horizontal' | 'compact' | 'symbol';
+	color?: 'brand' | 'mono';
+	/** Ancho en px. El alto se calcula automáticamente para no deformar el logo */
+	width: number;
+	class?: string;
+}
+
+const { variant = 'vertical', color = 'brand', width, class: className } = Astro.props;
+
+const files = {
+	vertical: { brand: LogoVertical, mono: LogoVerticalMono },
+	horizontal: { brand: LogoHorizontal, mono: LogoHorizontalMono },
+	compact: { brand: LogoCompact, mono: LogoCompact },
+	symbol: { brand: SymbolRed, mono: SymbolMono },
+};
+
+const LogoSvg = files[variant][color];
+const height = Math.round((LogoSvg.height / LogoSvg.width) * width * 100) / 100;
+---
+
+<LogoSvg
+	width={width}
+	height={height}
+	class:list={['logo', className]}
+	role="img"
+	aria-label="Peruana en Rusia"
+/>

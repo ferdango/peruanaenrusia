@@ -1,0 +1,157 @@
+---
+/**
+ * HomeUniversities — "Universidades destacadas"
+ * --------------------------------------------------------------------------
+ * Figma: Home › "Frame 628110".
+ * Carrusel con las universidades marcadas como `featured` en
+ * src/data/universities.ts y dos ondas planas de la marca (azul y naranja).
+ */
+import UniversityCard from '@components/cards/UniversityCard.astro';
+import Button from '@components/ui/Button.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { routes } from '@data/navigation';
+import { featuredUniversities, type UniversityAccent } from '@data/universities';
+import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
+import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Universidades destacadas',
+	subtitle:
+		'Desde planificaciones por temporadas hasta consejos de mejores universidades y conocer sobre nosotros',
+	mobileCta: 'Ver todos los centros',
+};
+
+/** Colores de las formas de las tarjetas, en orden (se repiten si hay más) */
+const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
+---
+
+<section class="home-universities section" id="universidades" aria-labelledby="home-universities-title">
+	<!-- Ondas planas de la marca (decorativas) -->
+	<div class="home-universities__decor" aria-hidden="true">
+		<div class="home-universities__wave home-universities__wave--orange">
+			<WaveOrange />
+		</div>
+		<div class="home-universities__wave home-universities__wave--blue">
+			<WaveBlue />
+		</div>
+	</div>
+
+	<header class="home-universities__header container">
+		<h2 id="home-universities-title" class="home-universities__title">{content.title}</h2>
+		<p class="home-universities__subtitle">{content.subtitle}</p>
+	</header>
+
+	<Carousel label={content.title} gap={24}>
+		{
+			featuredUniversities.map((university, index) => (
+				<UniversityCard university={university} accent={accents[index % accents.length]} />
+			))
+		}
+	</Carousel>
+
+	<div class="home-universities__mobile-cta container">
+		<Button href={routes.universities} size="md">{content.mobileCta}</Button>
+	</div>
+</section>
+
+<style>
+	.home-universities {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-9);
+		overflow: hidden;
+		background-color: var(--surface-dark);
+		--carousel-controls-gap: 2.25rem;
+	}
+
+	/* ----- Encabezado centrado ----- */
+	.home-universities__header {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		max-width: calc(44.1875rem + 2 * var(--gutter)); /* 707px */
+		text-align: center;
+	}
+
+	.home-universities__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.33;
+	}
+
+	.home-universities__subtitle {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+	}
+
+	/* ----- Ondas: se dibujan en un lienzo de 1512px centrado (ancho de Figma) ----- */
+	.home-universities__decor {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 1512px;
+		height: 100%;
+		transform: translateX(-50%);
+		pointer-events: none;
+	}
+
+	.home-universities__wave {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.home-universities__wave :global(svg) {
+		flex: none;
+		max-width: none;
+	}
+
+	.home-universities__wave--orange {
+		left: 657px;
+		top: -99px;
+		width: 1674px;
+		height: 789.5px;
+	}
+
+	.home-universities__wave--orange :global(svg) {
+		width: 1608.4px;
+		height: 363.4px;
+		transform: rotate(163.75deg) skewX(4.69deg);
+	}
+
+	.home-universities__wave--blue {
+		left: -1208px;
+		top: 108px;
+		width: 1800.4px;
+		height: 1241.4px;
+	}
+
+	.home-universities__wave--blue :global(svg) {
+		width: 1810.2px;
+		height: 409px;
+		transform: rotate(150deg) scale(1, -1) skewX(4.69deg);
+	}
+
+	/* ----- Botón "Ver todos los centros" (solo móvil, como en Figma) ----- */
+	.home-universities__mobile-cta {
+		display: none;
+		justify-content: center;
+	}
+
+	@media (max-width: 640px) {
+		.home-universities {
+			gap: var(--space-7);
+		}
+
+		.home-universities__mobile-cta {
+			display: flex;
+		}
+
+		.home-universities__decor {
+			display: none;
+		}
+	}
+</style>

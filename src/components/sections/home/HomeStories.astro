@@ -1,0 +1,90 @@
+---
+/**
+ * HomeStories — "Más historias"
+ * --------------------------------------------------------------------------
+ * Figma: Home › "Frame 628310".
+ * Carrusel de videos (src/data/videos.ts) con botón "Ver todo" hacia el blog.
+ */
+import VideoCard from '@components/cards/VideoCard.astro';
+import Button from '@components/ui/Button.astro';
+import Carousel from '@components/ui/Carousel.astro';
+import { routes } from '@data/navigation';
+import { videos } from '@data/videos';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: 'Más historias',
+	cta: 'Ver todo',
+	mobileCta: 'Ver más',
+};
+---
+
+<section class="home-stories section" id="historias" aria-labelledby="home-stories-title">
+	<header class="home-stories__header container">
+		<h2 id="home-stories-title" class="home-stories__title">{content.title}</h2>
+		<Button href={routes.blog} size="sm" class="home-stories__cta">{content.cta}</Button>
+	</header>
+
+	<Carousel label={content.title} gap={12}>
+		{videos.map((video) => <VideoCard video={video} />)}
+	</Carousel>
+
+	<div class="home-stories__mobile-cta container">
+		<Button href={routes.blog} size="md">{content.mobileCta}</Button>
+	</div>
+</section>
+
+<style>
+	.home-stories {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-9);
+		background-color: var(--surface-dark);
+		--carousel-controls-gap: 1.75rem; /* 28px */
+	}
+
+	.home-stories__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.home-stories__title {
+		font-size: var(--font-size-h1);
+		line-height: 1;
+	}
+
+	/* Botón "Ver todo": 160px de ancho, texto e ícono en los extremos */
+	.home-stories :global(.home-stories__cta) {
+		width: 10rem;
+		justify-content: space-between;
+	}
+
+	.home-stories__mobile-cta {
+		display: none;
+		justify-content: center;
+	}
+
+	@media (max-width: 640px) {
+		.home-stories {
+			gap: var(--space-7);
+		}
+
+		.home-stories__header {
+			justify-content: center;
+		}
+
+		.home-stories :global(.home-stories__cta) {
+			display: none;
+		}
+
+		.home-stories__mobile-cta {
+			display: flex;
+		}
+
+		.home-stories :global(.video-card) {
+			--video-card-width: min(82vw, 20rem);
+		}
+	}
+</style>

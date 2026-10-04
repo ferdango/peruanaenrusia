@@ -1,0 +1,42 @@
+---
+/**
+ * Página de inicio ( / )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Home" · UI Mobile › "Android Large - 1".
+ *
+ * La página es solo una lista ordenada de secciones. Para agregar, quitar o
+ * reordenar bloques, edita esta lista. Cada sección vive en
+ * src/components/sections/home/.
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import HomeHero from '@components/sections/home/HomeHero.astro';
+import HomeIntro from '@components/sections/home/HomeIntro.astro';
+import HomeFounder from '@components/sections/home/HomeFounder.astro';
+import HomeWhyUs from '@components/sections/home/HomeWhyUs.astro';
+import HomeSteps from '@components/sections/home/HomeSteps.astro';
+import HomeStartCta from '@components/sections/home/HomeStartCta.astro';
+import HomeUniversities from '@components/sections/home/HomeUniversities.astro';
+import HomeContactSplit from '@components/sections/home/HomeContactSplit.astro';
+import HomeSuccessCases from '@components/sections/home/HomeSuccessCases.astro';
+import HomeCommunityGrid from '@components/sections/home/HomeCommunityGrid.astro';
+import HomeCommunityGallery from '@components/sections/home/HomeCommunityGallery.astro';
+import HomeStories from '@components/sections/home/HomeStories.astro';
+import HomeFaq from '@components/sections/home/HomeFaq.astro';
+---
+
+<SiteLayout>
+	<HomeHero />
+	<HomeIntro />
+	<HomeFounder />
+	<HomeWhyUs />
+	<HomeSteps />
+	<HomeStartCta />
+	<HomeUniversities />
+	<HomeContactSplit />
+	<HomeSuccessCases />
+	<HomeCommunityGrid />
+	<HomeCommunityGallery />
+	<HomeStories />
+	<HomeFaq />
+</SiteLayout>

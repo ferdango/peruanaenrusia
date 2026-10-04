@@ -1,0 +1,161 @@
+---
+/**
+ * VideoCard
+ * --------------------------------------------------------------------------
+ * Tarjeta de video: miniatura con botón de reproducir, ícono de YouTube,
+ * título y fecha (Figma: "Más historias" y secciones de video del blog).
+ *
+ * Tamaño por defecto 320 × 440 px. Para otros tamaños, define estas
+ * variables CSS desde la sección que la usa:
+ *   --video-card-width        (ancho de la tarjeta)
+ *   --video-card-height       (alto de la tarjeta)
+ *   --video-card-media-height (alto de la miniatura)
+ *
+ * Uso:
+ *   <VideoCard video={video} />
+ */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import { detailRoutes } from '@data/navigation';
+import type { Video } from '@data/videos';
+import { formatDate } from '@utils/format';
+
+interface Props {
+	video: Video;
+	/** Enlace de destino (por defecto, la página del video en el blog) */
+	href?: string;
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const {
+	video,
+	href = detailRoutes.blogPost(video.slug),
+	headingLevel: Heading = 'h3',
+	class: className,
+} = Astro.props;
+---
+
+<article class:list={['video-card', className]}>
+	<div class="video-card__media">
+		<Image src={video.thumbnail} alt="" widths={[320, 640]} sizes="320px" class="video-card__image" />
+		<span class="video-card__play" aria-hidden="true">
+			<Icon name="play" size={24} />
+		</span>
+	</div>
+
+	<div class="video-card__body">
+		<Icon name="youtube-play" size={24} class="video-card__platform" />
+		<Heading class="video-card__title">
+			<a href={href} class="video-card__link">{video.title}</a>
+		</Heading>
+		<p class="video-card__date">
+			<time datetime={video.date}>{formatDate(video.date)}</time>
+		</p>
+	</div>
+</article>
+
+<style>
+	.video-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		width: var(--video-card-width, 20rem); /* 320px */
+		height: var(--video-card-height, 27.5rem); /* 440px */
+		border: 1px solid var(--border-on-dark);
+		border-radius: var(--radius-xl);
+		overflow: hidden;
+		background-color: var(--surface-dark);
+		color: var(--text-on-dark);
+	}
+
+	/* ----- Miniatura + degradado + botón de reproducir ----- */
+	.video-card__media {
+		position: absolute;
+		inset: 0 0 auto;
+		height: var(--video-card-media-height, 20rem); /* 320px */
+	}
+
+	.video-card__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: var(--radius-xl);
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	/* Degradado: la imagen se funde con el fondo oscuro de la tarjeta */
+	.video-card__media::after {
+		content: '';
+		position: absolute;
+		inset: 25% 0 0;
+		background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
+	}
+
+	.video-card__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 2.5rem; /* 40px */
+		height: 2.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		/* Anillo translúcido de 12px alrededor del botón */
+		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		color: var(--color-blue);
+		transform: translate(-50%, -50%);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.video-card:hover .video-card__image {
+		transform: scale(1.04);
+	}
+
+	.video-card:hover .video-card__play {
+		transform: translate(-50%, -50%) scale(1.1);
+	}
+
+	/* ----- Texto ----- */
+	.video-card__body {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		padding: var(--space-4) var(--space-5) var(--space-5);
+	}
+
+	.video-card__title {
+		font-size: var(--font-size-h3);
+		font-weight: var(--font-weight-regular);
+		line-height: 1.15;
+	}
+
+	.video-card__date {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(244 244 244 / 0.75);
+	}
+
+	/* Toda la tarjeta es clicable */
+	.video-card__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+	}
+
+	.video-card__link:focus-visible {
+		box-shadow: none;
+	}
+
+	.video-card:focus-within {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+</style>

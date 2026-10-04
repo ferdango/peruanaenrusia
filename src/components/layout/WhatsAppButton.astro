@@ -1,0 +1,65 @@
+---
+/**
+ * WhatsAppButton
+ * --------------------------------------------------------------------------
+ * Botón flotante de WhatsApp (esquina inferior derecha), visible en todo el
+ * sitio público. El número y el mensaje se configuran en src/data/site.ts.
+ */
+import WhatsAppGraphic from '@assets/graphics/whatsapp-button.svg';
+import { whatsappUrl } from '@data/site';
+---
+
+<a
+	href={whatsappUrl}
+	class="whatsapp-button"
+	target="_blank"
+	rel="noopener"
+	aria-label="Escríbenos por WhatsApp"
+>
+	<!-- El SVG (128px) incluye la sombra; el círculo visible mide 80px -->
+	<WhatsAppGraphic width={128} height={128} aria-hidden="true" />
+</a>
+
+<style>
+	/* El enlace mide lo mismo que el círculo verde (80px) */
+	.whatsapp-button {
+		position: fixed;
+		right: clamp(1rem, 2.6vw, 2.5rem);
+		bottom: clamp(1rem, 2.6vw, 2.5rem);
+		z-index: var(--z-floating);
+		display: block;
+		width: 80px;
+		height: 80px;
+		border-radius: var(--radius-pill);
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	/* El SVG (128px) incluye la sombra: lo desplazamos para centrar el círculo */
+	.whatsapp-button :global(svg) {
+		position: absolute;
+		top: -20px;
+		left: -24px;
+		width: 128px;
+		height: 128px;
+		max-width: none;
+		pointer-events: none;
+	}
+
+	.whatsapp-button:hover {
+		transform: scale(1.06);
+	}
+
+	@media (max-width: 640px) {
+		.whatsapp-button {
+			width: 56px;
+			height: 56px;
+		}
+
+		.whatsapp-button :global(svg) {
+			top: -14px;
+			left: -16.8px;
+			width: 89.6px;
+			height: 89.6px;
+		}
+	}
+</style>

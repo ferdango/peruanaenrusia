@@ -1,0 +1,175 @@
+---
+/**
+ * Carousel
+ * --------------------------------------------------------------------------
+ * Carrusel horizontal accesible (scroll nativo + scroll-snap) con flechas y
+ * puntos de navegación, tal como aparece en el diseño.
+ *
+ * Las tarjetas empiezan alineadas con el contenido de la página y "sangran"
+ * hacia el borde derecho de la pantalla.
+ *
+ * Cada hijo directo del slot es una diapositiva.
+ *
+ * Uso:
+ *   <Carousel label="Universidades destacadas" gap={24}>
+ *       {universities.map((u) => <UniversityCard university={u} />)}
+ *   </Carousel>
+ *
+ * Props:
+ *   label    → nombre accesible del carrusel (obligatorio).
+ *   tone     → "light" (controles blancos, fondos oscuros) · "blue" (controles
+ *              azules, fondos claros).
+ *   gap      → espacio entre tarjetas en px (24 por defecto).
+ *   controls → muestra u oculta flechas y puntos (true por defecto).
+ *
+ * El comportamiento (flechas, puntos, estados) vive en src/scripts/carousel.ts.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+	label: string;
+	tone?: 'light' | 'blue';
+	gap?: number;
+	controls?: boolean;
+	class?: string;
+}
+
+const { label, tone = 'light', gap = 24, controls = true, class: className } = Astro.props;
+---
+
+<div
+	class:list={['carousel', `carousel--${tone}`, className]}
+	style={`--carousel-gap: ${gap}px;`}
+	data-carousel
+	role="region"
+	aria-roledescription="carrusel"
+	aria-label={label}
+>
+	<div class="carousel__track" data-carousel-track tabindex="0">
+		<slot />
+	</div>
+
+	{
+		controls && (
+			<div class="carousel__controls" data-carousel-controls hidden>
+				<button class="carousel__arrow" type="button" data-carousel-prev aria-label="Anterior">
+					<Icon name="chevron-left" size={24} />
+				</button>
+
+				<div class="carousel__dots" data-carousel-dots />
+
+				<button class="carousel__arrow" type="button" data-carousel-next aria-label="Siguiente">
+					<Icon name="chevron-right" size={24} />
+				</button>
+			</div>
+		)
+	}
+</div>
+
+<script>
+	import { initCarousels } from '@scripts/carousel';
+	initCarousels();
+</script>
+
+<style>
+	.carousel {
+		/* Color de flechas y punto activo */
+		--carousel-color: var(--color-white);
+		/* Color de los puntos inactivos */
+		--carousel-dot: rgb(255 247 255 / 0.15);
+		/* Margen izquierdo: alinea la primera tarjeta con el contenido de la página */
+		--carousel-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		/* Espacio entre las tarjetas y los controles (36px por defecto) */
+		gap: var(--carousel-controls-gap, 2.25rem);
+	}
+
+	.carousel--blue {
+		--carousel-color: var(--color-blue-title);
+		--carousel-dot: rgb(18 91 168 / 0.2);
+	}
+
+	/* ----- Pista con scroll horizontal ----- */
+	.carousel__track {
+		display: flex;
+		gap: var(--carousel-gap);
+		padding-inline: var(--carousel-inset);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--carousel-inset);
+		scrollbar-width: none; /* Firefox */
+	}
+
+	.carousel__track::-webkit-scrollbar {
+		display: none; /* Chrome / Safari */
+	}
+
+	.carousel__track:focus-visible {
+		border-radius: 0;
+	}
+
+	/* Cada diapositiva (hijo directo del slot) */
+	.carousel__track > :global(*) {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
+
+	/* ----- Controles: flechas + puntos ----- */
+	.carousel__controls {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-4);
+		color: var(--carousel-color);
+	}
+
+	.carousel__controls[hidden] {
+		display: none;
+	}
+
+	.carousel__arrow {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border: 1px solid currentColor;
+		border-radius: var(--radius-pill);
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			background-color var(--duration-base) var(--ease-out);
+	}
+
+	.carousel__arrow:hover {
+		background-color: color-mix(in srgb, currentColor 12%, transparent);
+	}
+
+	.carousel__arrow:disabled {
+		opacity: 0.35;
+		cursor: default;
+	}
+
+	.carousel__dots {
+		display: flex;
+		align-items: center;
+		gap: var(--space-1);
+	}
+
+	/* Los puntos se crean desde JavaScript (dependen del ancho de pantalla) */
+	.carousel__dots :global(.carousel__dot) {
+		width: 1rem;
+		height: 1rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--carousel-dot);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			transform var(--duration-base) var(--ease-out);
+	}
+
+	.carousel__dots :global(.carousel__dot[aria-current='true']) {
+		background-color: var(--carousel-color);
+	}
+</style>

@@ -1,0 +1,194 @@
+---
+/**
+ * Button
+ * --------------------------------------------------------------------------
+ * Botón o enlace con los estilos del sistema de diseño.
+ * Si recibe `href` se renderiza como <a>; si no, como <button>.
+ *
+ * Variantes (variant):
+ *   "outline"   → fondo transparente, borde y texto del color `tone`, con la
+ *                 "rayita" de la marca a la derecha (ej. "Postular ahora").
+ *   "primary"   → fondo amarillo de marca y texto oscuro (ej. "Continuar").
+ *   "secondary" → fondo gris translúcido y texto claro (ej. "Iniciar proceso").
+ *   "light"     → fondo claro y texto azul oscuro (ej. "Contáctate ahora").
+ *
+ * Tonos (tone) — solo afectan a la variante "outline":
+ *   "light" (defecto) → blanco, para fondos oscuros o de color.
+ *   "blue"            → azul de títulos, para fondos claros.
+ *   "dark"            → negro, para fondos claros.
+ *
+ * Tamaños (size): "sm" = 48px · "md" = 60px · "lg" = 70px de alto.
+ *
+ * Uso:
+ *   <Button href="/universidades/">Ver universidades</Button>
+ *   <Button variant="primary" type="submit" block>Enviar reclamación</Button>
+ *   <Button tone="blue" size="md" href="#contacto">Quiero empezar ahora</Button>
+ */
+import type { HTMLAttributes } from 'astro/types';
+import Icon, { type IconName } from './Icon.astro';
+
+type Variant = 'outline' | 'primary' | 'secondary' | 'light';
+type Tone = 'light' | 'blue' | 'dark';
+type Size = 'sm' | 'md' | 'lg';
+
+interface Props extends Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'type'> {
+	href?: string;
+	type?: 'button' | 'submit' | 'reset';
+	variant?: Variant;
+	tone?: Tone;
+	size?: Size;
+	/** Ícono a la derecha del texto. Por defecto la "rayita" (minus) en outline. `null` = sin ícono */
+	icon?: IconName | null;
+	/** Ocupa todo el ancho disponible */
+	block?: boolean;
+	class?: string;
+}
+
+const {
+	href,
+	type = 'button',
+	variant = 'outline',
+	tone = 'light',
+	size = 'lg',
+	icon = variant === 'outline' ? 'minus' : null,
+	block = false,
+	class: className,
+	...attrs
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const iconSize = size === 'sm' ? 16 : 32;
+---
+
+<Tag
+	href={href}
+	type={href ? undefined : type}
+	class:list={['btn', `btn--${variant}`, `btn--tone-${tone}`, `btn--${size}`, { 'btn--block': block }, className]}
+	{...attrs}
+>
+	<span class="btn__label"><slot /></span>
+	{icon && <Icon name={icon} size={iconSize} class="btn__icon" />}
+</Tag>
+
+<style>
+	/* ----- Base ----- */
+	.btn {
+		--btn-color: var(--color-white);
+
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-4);
+		padding: var(--space-3) var(--space-5);
+		border: 1px solid transparent;
+		border-radius: var(--radius-sm);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		text-align: center;
+		white-space: nowrap;
+		cursor: pointer;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			opacity var(--duration-base) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.btn:active {
+		transform: scale(0.98);
+	}
+
+	.btn:disabled,
+	.btn[aria-disabled='true'] {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+
+	.btn__icon {
+		flex-shrink: 0;
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	/* La "rayita" de la marca se estira un poco al pasar el cursor */
+	.btn:hover .btn__icon {
+		transform: scaleX(1.25);
+	}
+
+	/* ----- Tamaños ----- */
+	.btn--sm {
+		min-height: 3rem; /* 48px */
+		font-size: var(--font-size-sm);
+	}
+
+	.btn--md {
+		min-height: 3.75rem; /* 60px */
+		padding-inline: var(--space-4);
+	}
+
+	.btn--lg {
+		min-height: 4.375rem; /* 70px */
+		min-width: 15rem; /* 240px */
+	}
+
+	.btn--block {
+		width: 100%;
+	}
+
+	/* ----- Variante: outline ----- */
+	.btn--outline {
+		color: var(--btn-color);
+		border-color: currentColor;
+		background-color: transparent;
+	}
+
+	.btn--outline:hover {
+		background-color: color-mix(in srgb, currentColor 10%, transparent);
+	}
+
+	.btn--tone-light {
+		--btn-color: var(--color-white);
+	}
+
+	.btn--tone-blue {
+		--btn-color: var(--color-blue-title);
+	}
+
+	.btn--tone-dark {
+		--btn-color: var(--color-black);
+	}
+
+	/* ----- Variante: primary (amarillo de marca) ----- */
+	.btn--primary {
+		color: var(--color-black);
+		background-color: var(--color-yellow);
+	}
+
+	.btn--primary:hover {
+		background-color: color-mix(in srgb, var(--color-yellow) 88%, var(--color-black));
+	}
+
+	/* ----- Variante: secondary (gris translúcido) ----- */
+	.btn--secondary {
+		color: var(--color-white);
+		background-color: rgb(244 244 244 / 0.2);
+		border-color: rgb(244 244 244 / 0.6);
+		backdrop-filter: blur(8px);
+	}
+
+	.btn--secondary:hover {
+		background-color: rgb(244 244 244 / 0.3);
+	}
+
+	/* ----- Variante: light (fondo claro) ----- */
+	.btn--light {
+		color: #002546;
+		background-color: #e5f4f2;
+		border-radius: var(--radius-md);
+	}
+
+	.btn--light:hover {
+		background-color: var(--color-pure-white);
+	}
+</style>

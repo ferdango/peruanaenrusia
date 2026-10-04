@@ -1,0 +1,154 @@
+---
+/**
+ * TestimonialCard
+ * --------------------------------------------------------------------------
+ * Tarjeta de caso de éxito: foto, bandera, nombre, carrera, cita y botón
+ * "Ver caso de éxito" (Figma: "Nuestros casos de éxito").
+ *
+ * Al pasar el cursor (o con el foco del teclado) la tarjeta se "activa":
+ * fondo gris, comillas azules y botón destacado, como en el diseño.
+ *
+ * Uso:
+ *   <TestimonialCard testimonial={testimonial} />
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import { countries } from '@data/countries';
+import { detailRoutes } from '@data/navigation';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	testimonial: Testimonial;
+	headingLevel?: 'h2' | 'h3';
+	class?: string;
+}
+
+const { testimonial, headingLevel: Heading = 'h3', class: className } = Astro.props;
+const country = countries[testimonial.country];
+const href = detailRoutes.successCase(testimonial.slug);
+---
+
+<article class:list={['testimonial-card', className]}>
+	<header class="testimonial-card__header">
+		<div class="testimonial-card__images">
+			<Image src={testimonial.avatar} alt="" width={56} height={56} class="testimonial-card__avatar" />
+			<Image src={country.flag} alt={country.name} width={40} height={40} class="testimonial-card__flag" />
+		</div>
+
+		<div class="testimonial-card__person">
+			<Heading class="testimonial-card__name">{testimonial.name}</Heading>
+			<p class="testimonial-card__role">{testimonial.role}</p>
+		</div>
+	</header>
+
+	<Icon name="quote" width={14} height={16} class="testimonial-card__quote-icon" />
+
+	<blockquote class="testimonial-card__quote">
+		<p>{testimonial.quote}</p>
+	</blockquote>
+
+	<Button href={href} size="md" block class="testimonial-card__button">
+		Ver caso de éxito
+		<span class="visually-hidden"> de {testimonial.name}</span>
+	</Button>
+</article>
+
+<style>
+	.testimonial-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		width: var(--testimonial-card-width, 20.375rem); /* 326px */
+		padding: 1.75rem var(--space-5); /* 28px 24px */
+		border: 1px solid var(--border-on-dark);
+		border-radius: var(--radius-lg);
+		background-color: transparent;
+		color: var(--text-on-dark);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	/* ----- Encabezado ----- */
+	.testimonial-card__header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.testimonial-card__images {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.testimonial-card__avatar {
+		width: 56px;
+		height: 56px;
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.testimonial-card__flag {
+		width: 40px;
+		height: 40px;
+		border-radius: var(--radius-pill);
+	}
+
+	.testimonial-card__person {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.testimonial-card__name {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	.testimonial-card__role {
+		font-size: var(--font-size-sm);
+		line-height: 1.125rem;
+		color: var(--text-on-dark-muted);
+	}
+
+	/* ----- Cita ----- */
+	.testimonial-card__quote-icon {
+		color: rgb(244 244 244 / 0.16);
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	.testimonial-card__quote {
+		margin-bottom: var(--space-4); /* 16 + 16 = 32px hasta el botón */
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+	}
+
+	/* ----- Botón: atenuado hasta que la tarjeta se activa ----- */
+	.testimonial-card :global(.testimonial-card__button) {
+		opacity: 0.4;
+	}
+
+	/* ----- Estado activo (hover / foco) ----- */
+	.testimonial-card:hover,
+	.testimonial-card:focus-within {
+		background-color: var(--surface-dark-raised);
+		border-color: transparent;
+	}
+
+	.testimonial-card:hover .testimonial-card__quote-icon,
+	.testimonial-card:focus-within .testimonial-card__quote-icon {
+		color: var(--color-blue-2);
+	}
+
+	.testimonial-card:hover :global(.testimonial-card__button),
+	.testimonial-card:focus-within :global(.testimonial-card__button) {
+		opacity: 1;
+		background-color: var(--surface-dark);
+		border-color: var(--border-on-dark-strong);
+	}
+</style>

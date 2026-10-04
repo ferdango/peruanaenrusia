@@ -1,0 +1,64 @@
+---
+/**
+ * Icon
+ * --------------------------------------------------------------------------
+ * Renderiza en línea un ícono SVG de la carpeta src/assets/icons/.
+ * El nombre del ícono es el nombre del archivo (sin ".svg").
+ *
+ * Los íconos usan `currentColor`, por lo que toman el color del texto del
+ * elemento padre (cámbialo con la propiedad `color` en CSS).
+ *
+ * Uso:
+ *   <Icon name="play" size={24} />
+ *   <Icon name="instagram" size={24} title="Instagram" />   ← con texto accesible
+ *   <Icon name="quote" width={14} height={16} />            ← tamaño no cuadrado
+ *
+ * Para agregar un ícono nuevo: guarda el archivo .svg en src/assets/icons/
+ * (con fill/stroke="currentColor") y úsalo por su nombre. No hay que
+ * registrarlo en ningún otro lugar.
+ *
+ * Íconos disponibles: account, arrow-right, book, chevron-left, chevron-right,
+ * close, facebook, instagram, menu, minus, pause, play, quote, tiktok, volume,
+ * volume-mute, youtube, youtube-play (+ los que se agreguen a la carpeta).
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+// Carga automática de todos los SVG de la carpeta de íconos
+const iconFiles = import.meta.glob<{ default: (props: Record<string, unknown>) => unknown }>(
+	'../../assets/icons/*.svg',
+	{ eager: true },
+);
+
+const icons = Object.fromEntries(
+	Object.entries(iconFiles).map(([path, module]) => [path.split('/').pop()!.replace('.svg', ''), module.default]),
+);
+
+/** Nombre de un ícono = nombre de su archivo en src/assets/icons/ (sin .svg) */
+export type IconName = string;
+
+interface Props extends HTMLAttributes<'svg'> {
+	/** Nombre del ícono (nombre del archivo sin ".svg") */
+	name: IconName;
+	/** Tamaño en px (ancho y alto). Por defecto 24 */
+	size?: number;
+	/** Texto accesible. Si se omite, el ícono es decorativo (aria-hidden) */
+	title?: string;
+}
+
+const { name, size = 24, title, ...attrs } = Astro.props;
+const SvgIcon = icons[name] as any;
+
+if (!SvgIcon) {
+	throw new Error(`[Icon] No existe el ícono "${name}". Revisa src/assets/icons/.`);
+}
+---
+
+<SvgIcon
+	width={size}
+	height={size}
+	role={title ? 'img' : undefined}
+	aria-label={title}
+	aria-hidden={title ? undefined : 'true'}
+	focusable="false"
+	{...attrs}
+/>

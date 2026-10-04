@@ -1,0 +1,32 @@
+{
+	"name": "peruana-en-rusia",
+	"description": "Sitio web de Peruana en Rusia — Tu futuro, sin fronteras.",
+	"type": "module",
+	"version": "1.0.0",
+	"private": true,
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"check": "astro check",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"astro": "astro"
+	},
+	"dependencies": {
+		"@fontsource/poppins": "^5.3.0",
+		"astro": "^7.3.5"
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.9.10",
+		"prettier": "^3.9.9",
+		"prettier-plugin-astro": "^1.1.0",
+		"typescript": "^6.0.3"
+	},
+	"allowScripts": {
+		"esbuild": true
+	}
+}

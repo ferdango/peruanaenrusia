@@ -1,0 +1,208 @@
+---
+/**
+ * SiteFooter
+ * --------------------------------------------------------------------------
+ * Pie de página del sitio público (Figma: "Frame 628030").
+ *
+ *   [Logo]   Acerca de · Casos de éxito · …        (▶) (◎) (f) (♪)
+ *   Copyright © Peruana en Rusia…                  📖 Libro de reclamaciones
+ */
+import Logo from '@components/brand/Logo.astro';
+import Icon from '@components/ui/Icon.astro';
+import { footerNav, routes } from '@data/navigation';
+import { site } from '@data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="site-footer__inner container">
+		<div class="site-footer__top">
+			<a href={routes.home} class="site-footer__logo" aria-label="Peruana en Rusia — Inicio">
+				<Logo variant="vertical" color="mono" width={108} />
+			</a>
+
+			<nav aria-label="Enlaces del pie de página">
+				<ul role="list" class="site-footer__nav">
+					{
+						footerNav.map((link) => (
+							<li>
+								<a href={link.href} class="site-footer__link">
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+
+			<ul role="list" class="site-footer__socials">
+				{
+					site.socials.map((social) => (
+						<li>
+							<a
+								href={social.href}
+								class="site-footer__social"
+								target="_blank"
+								rel="noopener"
+								aria-label={social.label}
+							>
+								<Icon name={social.icon} size={24} />
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<div class="site-footer__bottom">
+			<p class="site-footer__copyright">
+				Copyright © {year} {site.name}. Todos los derechos reservados
+			</p>
+
+			<a href={routes.complaintsBook} class="site-footer__complaints">
+				<Icon name="book" size={32} />
+				Libro de reclamaciones
+			</a>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		background-color: var(--surface-dark);
+		color: var(--text-on-dark);
+		padding-block: var(--space-7);
+	}
+
+	.site-footer__inner {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+	}
+
+	/* ----- Fila superior: logo · enlaces · redes ----- */
+	.site-footer__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.site-footer__logo {
+		display: block;
+		color: var(--color-white);
+	}
+
+	.site-footer__nav {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.site-footer__link {
+		display: block;
+		min-width: 6.25rem; /* 100px */
+		padding: var(--space-4);
+		font-size: var(--font-size-nav);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.75rem;
+		text-align: center;
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	.site-footer__link:hover {
+		color: var(--text-link-active);
+	}
+
+	.site-footer__socials {
+		display: flex;
+		gap: var(--space-3);
+	}
+
+	.site-footer__social {
+		display: grid;
+		place-items: center;
+		width: 3.5rem; /* 56px */
+		height: 3.5rem;
+		border: 1px solid rgb(247 255 247 / 0.4);
+		border-radius: var(--radius-pill);
+		color: #f7fff7;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.site-footer__social:hover {
+		background-color: rgb(247 255 247 / 0.1);
+		border-color: rgb(247 255 247 / 0.8);
+	}
+
+	/* ----- Fila inferior: copyright · libro de reclamaciones ----- */
+	.site-footer__bottom {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.site-footer__copyright {
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
+		color: rgb(247 255 247 / 0.64);
+	}
+
+	.site-footer__complaints {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+		color: rgb(247 255 247 / 0.85);
+		white-space: nowrap;
+	}
+
+	.site-footer__complaints:hover {
+		color: var(--color-white);
+	}
+
+	/* ----- Tablet ----- */
+	@media (max-width: 1100px) {
+		.site-footer__top {
+			flex-wrap: wrap;
+		}
+
+		.site-footer__top nav {
+			order: 3;
+			width: 100%;
+		}
+	}
+
+	/* ----- Móvil: todo apilado y centrado (Figma móvil) ----- */
+	@media (max-width: 640px) {
+		.site-footer__top,
+		.site-footer__bottom {
+			flex-direction: column;
+			text-align: center;
+		}
+
+		.site-footer__top nav {
+			order: 0;
+		}
+
+		.site-footer__nav {
+			flex-direction: column;
+		}
+
+		.site-footer__link {
+			padding-block: var(--space-2);
+		}
+
+		.site-footer__bottom {
+			flex-direction: column-reverse;
+			gap: var(--space-6);
+		}
+	}
+</style>

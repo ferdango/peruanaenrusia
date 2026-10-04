@@ -12,7 +12,9 @@
  */
 import TestimonialCard from '@components/cards/TestimonialCard.astro';
 import Carousel from '@components/ui/Carousel.astro';
-import { testimonials } from '@data/testimonials';
+import { getTestimonials } from '@lib/content';
+
+const testimonials = await getTestimonials();
 
 // ----- Contenido de la sección -----
 const content = {

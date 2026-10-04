@@ -14,7 +14,7 @@
  */
 import RelatedPostCard from '@components/blog/RelatedPostCard.astro';
 import Carousel from '@components/ui/Carousel.astro';
-import { getRelatedPosts } from '@data/blog';
+import { getRelatedPosts } from '@lib/content';
 
 interface Props {
 	/** Slug de la publicación actual (se excluye de la lista) */
@@ -28,7 +28,7 @@ const content = {
 	title: 'Temas relacionados',
 };
 
-const posts = getRelatedPosts(currentSlug);
+const posts = await getRelatedPosts(currentSlug);
 ---
 
 {posts.length > 0 && (

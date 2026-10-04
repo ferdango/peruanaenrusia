@@ -15,9 +15,8 @@
  * Uso:
  *   <FeaturedPostCard post={post} />
  */
-import { Image } from 'astro:assets';
-
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
 import type { BlogPost } from '@data/blog';
 import { detailRoutes } from '@data/navigation';
 import { formatDate } from '@utils/format';
@@ -34,7 +33,13 @@ const isVideo = post.type === 'video';
 
 <article class:list={['featured-card', { 'featured-card--video': isVideo }, className]}>
 	<div class="featured-card__media">
-		<Image src={post.image} alt="" widths={[480, 960]} sizes="480px" class="featured-card__image" />
+		<MediaImage
+			image={post.image}
+			alt=""
+			widths={[480, 960]}
+			sizes="480px"
+			class="featured-card__image"
+		/>
 		{isVideo && (
 			<span class="featured-card__play" aria-hidden="true">
 				<Icon name="play" size={24} />

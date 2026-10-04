@@ -16,7 +16,7 @@
  *   - slug:     identificador en la URL (/blog/{slug}/), en minúsculas, sin
  *               tildes y con guiones. No puede repetirse con el de un video.
  *   - date:     fecha de publicación (AAAA-MM-DD).
- *   - author:   clave de un autor de src/data/authors.ts.
+ *   - author:   autor de src/data/authors.ts (ej. authors['jose-quinteros']).
  *   - excerpt:  bajada que aparece bajo el título.
  *   - image:    foto principal (src/assets/images/blog/), mínimo 1536 px de
  *               ancho. `imageAlt` describe la foto para lectores de pantalla.
@@ -29,9 +29,9 @@
  * diseño de Figma (textos, fechas, autor y fotos). Reemplázalos por los
  * artículos reales antes de publicar el sitio.
  */
-import type { ImageMetadata } from 'astro';
+import type { ImageSource } from '@lib/content/images';
 
-import type { AuthorId } from './authors';
+import { authors, type Author } from './authors';
 import imageFraud from '@assets/images/blog/fraude-financiero.jpg';
 import imageOurPath from '@assets/images/blog/como-encontrar-nuestro-camino.jpg';
 
@@ -39,7 +39,9 @@ import imageOurPath from '@assets/images/blog/como-encontrar-nuestro-camino.jpg'
 export type ArticleBlock =
 	| { type: 'paragraph'; text: string }
 	| { type: 'heading'; text: string }
-	| { type: 'list'; items: string[] };
+	| { type: 'list'; items: string[] }
+	/** HTML ya saneado (contenido que llega de WordPress) */
+	| { type: 'html'; html: string };
 
 export interface Article {
 	/** Identificador único, se usa en la URL: /blog/{slug}/ */
@@ -49,12 +51,12 @@ export interface Article {
 	category: string;
 	/** Fecha de publicación (AAAA-MM-DD) */
 	date: string;
-	/** Autor (clave de src/data/authors.ts) */
-	author?: AuthorId;
+	/** Autor (nombre y foto) */
+	author?: Author;
 	/** Bajada: resumen corto bajo el título (también se usa para buscadores) */
 	excerpt: string;
 	/** Foto principal (también se usa como miniatura en las tarjetas) */
-	image: ImageMetadata;
+	image: ImageSource;
 	/** Descripción de la foto para lectores de pantalla */
 	imageAlt: string;
 	body: ArticleBlock[];
@@ -88,7 +90,7 @@ function ourPathExample(slug: string): Article {
 		title: 'Cómo encontrar nuestro camino',
 		category: 'Vida en Rusia',
 		date: '2025-05-07',
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 		excerpt:
 			'Lorem ipsum dolor sit amet consectetur. Risus sodales elit metus gravida consectetur. Amet adipiscing accumsan id in ullamcorper lectus.',
 		image: imageOurPath,
@@ -104,7 +106,7 @@ export const articles: Article[] = [
 		title: 'Fraude financiero: qué es, tipos y cómo prevenirlo',
 		category: 'Transformación Digital',
 		date: '2023-07-04',
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 		excerpt:
 			'Conoce cómo el fraude financiero impacta a personas y empresas y cómo un sistema tecnológico puede mitigar este riesgo efectivamente en tu negocio.',
 		image: imageFraud,
@@ -139,8 +141,3 @@ export const articles: Article[] = [
 	ourPathExample('como-encontrar-nuestro-camino-7'),
 	ourPathExample('como-encontrar-nuestro-camino-8'),
 ];
-
-/** Busca un artículo por su slug */
-export function getArticle(slug: string): Article | undefined {
-	return articles.find((article) => article.slug === slug);
-}

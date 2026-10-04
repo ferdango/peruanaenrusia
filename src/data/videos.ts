@@ -21,9 +21,9 @@
  * referencia (la miniatura viene del diseño). Reemplázalos por los videos
  * reales.
  */
-import type { ImageMetadata } from 'astro';
+import type { ImageSource } from '@lib/content/images';
 
-import type { AuthorId } from './authors';
+import { authors, type Author } from './authors';
 import thumbnailEp1 from '@assets/images/videos/conoce-peru-ep1.jpg';
 
 export interface Video {
@@ -32,11 +32,11 @@ export interface Video {
 	title: string;
 	/** Fecha de publicación (AAAA-MM-DD) */
 	date: string;
-	thumbnail: ImageMetadata;
+	thumbnail: ImageSource;
 	/** Código del video en YouTube (opcional mientras no esté publicado) */
 	youtubeId?: string;
-	/** Autor (clave de src/data/authors.ts). Si se omite, no se muestra */
-	author?: AuthorId;
+	/** Autor (nombre y foto). Si se omite, no se muestra */
+	author?: Author;
 	/** Resumen corto para buscadores y redes sociales (opcional) */
 	description?: string;
 	/** true = aparece en "Novedades" (portada del blog) */
@@ -49,7 +49,7 @@ export const videos: Video[] = [
 		title: 'EP1: Conoce PeRu',
 		date: '2025-05-07',
 		thumbnail: thumbnailEp1,
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 		featured: true,
 	},
 	{
@@ -57,7 +57,7 @@ export const videos: Video[] = [
 		title: 'EP2: Conoce PeRu',
 		date: '2025-05-14',
 		thumbnail: thumbnailEp1,
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 		featured: true,
 	},
 	{
@@ -65,30 +65,20 @@ export const videos: Video[] = [
 		title: 'EP3: Conoce PeRu',
 		date: '2025-05-21',
 		thumbnail: thumbnailEp1,
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 	},
 	{
 		slug: 'ep4-conoce-peru',
 		title: 'EP4: Conoce PeRu',
 		date: '2025-05-28',
 		thumbnail: thumbnailEp1,
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 	},
 	{
 		slug: 'ep5-conoce-peru',
 		title: 'EP5: Conoce PeRu',
 		date: '2025-06-04',
 		thumbnail: thumbnailEp1,
-		author: 'jose-quinteros',
+		author: authors['jose-quinteros'],
 	},
 ];
-
-/** Busca un video por su slug */
-export function getVideo(slug: string): Video | undefined {
-	return videos.find((video) => video.slug === slug);
-}
-
-/** Videos ordenados del más reciente al más antiguo */
-export function getVideosByDate(): Video[] {
-	return [...videos].sort((a, b) => b.date.localeCompare(a.date));
-}

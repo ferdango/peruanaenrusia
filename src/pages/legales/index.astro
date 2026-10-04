@@ -1,0 +1,41 @@
+---
+/**
+ * Legales ( /legales/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Legales" (961:654). El archivo de Figma no tiene
+ * versión móvil: en móvil el texto ocupa todo el ancho.
+ *
+ * Términos y condiciones, privacidad (Ley N° 29733), cookies y Libro de
+ * reclamaciones. El texto sale de la página "Legales" de WordPress o, si no
+ * está configurado, de src/data/legal.ts.
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import LegalContent from '@components/sections/legal/LegalContent.astro';
+import { routes } from '@data/navigation';
+import { getLegalPage } from '@lib/content';
+import { breadcrumbSchema } from '@lib/seo/schema';
+
+const page = await getLegalPage();
+
+const meta = {
+	description:
+		'Términos y condiciones de uso, política de privacidad y protección de datos personales (Ley N° 29733), cookies y Libro de reclamaciones de Peruana en Rusia.',
+};
+---
+
+<SiteLayout
+	title={page.title}
+	description={meta.description}
+	jsonLd={[
+		breadcrumbSchema(
+			[
+				{ name: 'Inicio', path: routes.home },
+				{ name: page.title, path: routes.legal },
+			],
+			Astro.site,
+		),
+	]}
+>
+	<LegalContent page={page} />
+</SiteLayout>

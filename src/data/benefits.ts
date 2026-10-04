@@ -15,6 +15,10 @@ import type { ImageMetadata } from 'astro';
 import imageStudents from '@assets/images/home/why-us-students.jpg';
 import imageAdvisory from '@assets/images/home/why-us-advisory.jpg';
 import imageSupport from '@assets/images/home/why-us-support.jpg';
+import avatar1 from '@assets/images/home/why-us-avatar-1.png';
+import avatar2 from '@assets/images/home/why-us-avatar-2.png';
+import avatar3 from '@assets/images/home/why-us-avatar-3.png';
+import avatar4 from '@assets/images/home/why-us-avatar-4.png';
 
 export interface Benefit {
 	title: string;
@@ -22,6 +26,12 @@ export interface Benefit {
 	/** Foto de la tarjeta (366 × 248 px; composición de la marca con la persona) */
 	image: ImageMetadata;
 }
+
+/**
+ * Fotos de estudiantes junto a "+100 estudiantes cambiaron sus vidas".
+ * Círculos de 48 px con el borde celeste incluido en la imagen (PNG de 96 × 96 px).
+ */
+export const studentAvatars: ImageMetadata[] = [avatar1, avatar2, avatar3, avatar4];
 
 export const benefits: Benefit[] = [
 	{

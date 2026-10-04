@@ -1,0 +1,46 @@
+# ==========================================================================
+# Apache / LiteSpeed (ej. hosting compartido de Hostinger)
+# --------------------------------------------------------------------------
+# Solo aplica si se publica la carpeta estática dist/client en un hosting sin
+# Node.js. En ese caso el inicio de sesión, el portal y el Libro de
+# reclamaciones necesitan el servidor Node (ver docs/DESPLIEGUE.md).
+# Fuente única de las cabeceras: config/security-headers.mjs
+# ==========================================================================
+
+Options -Indexes
+ServerSignature Off
+
+# Forzar HTTPS
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteCond %{HTTPS} !=on
+	RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+	RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Página 404 propia
+ErrorDocument 404 /404.html
+
+<IfModule mod_headers.c>
+	Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "DENY"
+	Header always set Content-Security-Policy "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), browsing-topics=()"
+	Header always set Cross-Origin-Opener-Policy "same-origin"
+	Header always set Cross-Origin-Resource-Policy "same-site"
+	Header always set X-Permitted-Cross-Domain-Policies "none"
+	Header unset X-Powered-By
+
+</IfModule>
+
+# Archivos con hash en el nombre (/_astro/…): caché de 1 año
+<If "%{REQUEST_URI} =~ m#^/_astro/#">
+	Header set Cache-Control "public, max-age=31536000, immutable"
+</If>
+
+# Bloquea archivos sensibles
+<FilesMatch "(^\.|\.(env|log|ini|sh|bak|sql)$)">
+	Require all denied
+</FilesMatch>

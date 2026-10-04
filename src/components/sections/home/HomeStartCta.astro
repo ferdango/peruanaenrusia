@@ -2,12 +2,25 @@
 /**
  * HomeStartCta — "¿Quieres iniciar tu proceso ahora?"
  * --------------------------------------------------------------------------
- * Figma: Home › "Group 6" (1388:4725)
+ * Figma: Home › "Group 6" (1388:4725) · UI Mobile › "Frame 628099" (1729:1909).
  *
- * TODO (en construcción): implementar según el diseño.
+ * Usa el bloque compartido StartCta (tono celeste). El botón abre el modal de
+ * acceso en el paso "Crear mi cuenta" para empezar el proceso.
+ *
+ * Uso: <HomeStartCta /> (página de inicio, después de HomeSteps).
  */
+import StartCta from '@components/sections/shared/StartCta.astro';
+
+// ----- Contenido de la sección -----
+const content = {
+	title: '¿Quieres iniciar tu proceso ahora?',
+	text: 'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+	cta: {
+		label: 'Quiero empezar ahora',
+		mobileLabel: 'Empezar ahora',
+		authView: 'register' as const,
+	},
+};
 ---
 
-<section class="section container" id="empezar" aria-label="¿Quieres iniciar tu proceso ahora?">
-	<!-- ¿Quieres iniciar tu proceso ahora? -->
-</section>
+<StartCta id="empezar" tone="light" title={content.title} text={content.text} cta={content.cta} />

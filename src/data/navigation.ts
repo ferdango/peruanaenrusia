@@ -6,6 +6,8 @@
  * actualizan automáticamente.
  */
 
+import { withBase } from '@utils/url';
+
 export interface NavLink {
 	label: string;
 	href: string;
@@ -16,30 +18,33 @@ export interface NavLink {
 	activeOn?: string[];
 }
 
-/** Rutas principales del sitio (evita escribir URLs a mano en los componentes) */
+/**
+ * Rutas principales del sitio (evita escribir URLs a mano en los componentes).
+ * Incluyen la subcarpeta de publicación si la hay (ver src/utils/url.ts).
+ */
 export const routes = {
-	home: '/',
-	successCases: '/#casos-de-exito',
-	universities: '/universidades/',
-	blog: '/blog/',
-	faq: '/#preguntas-frecuentes',
-	legal: '/legales/',
-	complaintsBook: '/libro-de-reclamaciones/',
-	infoTalks: '/blog/#videoblogs',
-	portal: '/portal/mi-proceso/',
+	home: withBase('/'),
+	successCases: withBase('/#casos-de-exito'),
+	universities: withBase('/universidades/'),
+	blog: withBase('/blog/'),
+	faq: withBase('/#preguntas-frecuentes'),
+	legal: withBase('/legales/'),
+	complaintsBook: withBase('/libro-de-reclamaciones/'),
+	infoTalks: withBase('/blog/#videoblogs'),
+	portal: withBase('/portal/mi-proceso/'),
 } as const;
 
 /** URLs de las páginas de detalle (se construyen a partir del slug) */
 export const detailRoutes = {
-	university: (slug: string) => `/universidades/${slug}/`,
-	successCase: (slug: string) => `/casos-de-exito/${slug}/`,
-	blogPost: (slug: string) => `/blog/${slug}/`,
+	university: (slug: string) => withBase(`/universidades/${slug}/`),
+	successCase: (slug: string) => withBase(`/casos-de-exito/${slug}/`),
+	blogPost: (slug: string) => withBase(`/blog/${slug}/`),
 };
 
 /** Menú principal del header (desktop) */
 export const mainNav: NavLink[] = [
-	{ label: 'Sobre nosotros', href: routes.home, activeOn: ['/'] },
-	{ label: 'Casos de éxito', href: routes.successCases, activeOn: ['/casos-de-exito/'] },
+	{ label: 'Sobre nosotros', href: routes.home, activeOn: [routes.home] },
+	{ label: 'Casos de éxito', href: routes.successCases, activeOn: [withBase('/casos-de-exito/')] },
 	{ label: 'Universidades', href: routes.universities },
 	{ label: 'Blog', href: routes.blog },
 	{ label: 'FAQ', href: routes.faq },
@@ -75,5 +80,8 @@ export function isActiveLink(link: NavLink, currentPath: string): boolean {
 	// salvo que se indique explícitamente con `activeOn`.
 	const targets = link.activeOn ?? (link.href.includes('#') ? [] : [link.href]);
 
-	return targets.some((target) => (target === '/' ? currentPath === '/' : currentPath.startsWith(target)));
+	// El inicio solo se marca en la portada (todas las rutas empiezan por él)
+	return targets.some((target) =>
+		target === routes.home ? currentPath === routes.home : currentPath.startsWith(target),
+	);
 }

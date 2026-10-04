@@ -16,7 +16,10 @@
  */
 import UniversityCard from '@components/cards/UniversityCard.astro';
 import Button from '@components/ui/Button.astro';
-import { universities, type UniversityAccent } from '@data/universities';
+import type { UniversityAccent } from '@data/universities';
+import { getUniversities } from '@lib/content';
+
+const universities = await getUniversities();
 
 // ----- Contenido de la sección -----
 const content = {

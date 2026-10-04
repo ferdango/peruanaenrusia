@@ -24,6 +24,13 @@
  * en móvil (sin diseño en Figma) es una hoja a pantalla completa sin imagen.
  *
  * Los textos de cada paso están en `steps` y `fields` (abajo).
+ *
+ * Backend: el botón de Google lleva a /api/auth/google/ y los formularios
+ * llaman a /api/auth/email/* (ver src/scripts/auth-flow.ts y src/pages/api/auth/).
+ * En la versión estática (GitHub Pages) el acceso es una demostración y el
+ * panel muestra un aviso (ver src/scripts/auth-api.ts).
+ * Para abrir el modal desde cualquier página con un aviso: /?login=1
+ * (opcional: &auth_error=… y &next=/ruta/ a la que volver).
  */
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
@@ -31,7 +38,11 @@ import AuthArt from './AuthArt.astro';
 import AuthField from './AuthField.astro';
 import AuthGoogleButton from './AuthGoogleButton.astro';
 import { routes } from '@data/navigation';
-import type { AuthStep } from '@scripts/auth-flow';
+import type { AuthStep } from '@scripts/auth-api';
+import { DEPLOY_TARGET } from 'astro:env/client';
+
+/** Versión estática (sin servidor): el inicio de sesión es una demostración */
+const isDemoAuth = DEPLOY_TARGET === 'static';
 
 // ----- Textos comunes -----
 const content = {
@@ -50,6 +61,10 @@ const content = {
 		before: 'He leído y acepto la ',
 		link: 'Política de Privacidad',
 		after: ' y protección de datos de Peruana en Rusia',
+	},
+	demo: {
+		title: 'Versión de demostración.',
+		text: 'El inicio de sesión es simulado: usa cualquier correo y cualquier código de 6 dígitos. No se envía ningún dato.',
 	},
 };
 
@@ -211,6 +226,9 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 						</p>
 					</div>
 
+					<!-- Avisos de error (Google cancelado, correo no disponible…) -->
+					<p class="auth-step__alert" role="alert" data-auth-alert />
+
 					{step.kind === 'intro' ? (
 						<div class="auth-step__body">
 							<div class="auth-step__group">
@@ -280,6 +298,12 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 					)}
 				</div>
 			))}
+
+			{isDemoAuth && (
+				<p class="auth-modal__demo">
+					<strong>{content.demo.title}</strong> {content.demo.text}
+				</p>
+			)}
 		</div>
 	</div>
 
@@ -354,6 +378,17 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		background-color: var(--surface-light);
+	}
+
+	/* Aviso de la versión estática (GitHub Pages): el acceso es una demostración */
+	.auth-modal__demo {
+		margin-top: var(--space-5);
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: color-mix(in srgb, var(--color-black) 5%, transparent);
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		color: var(--text-on-light);
 	}
 
 	/* ----- Botón cerrar: círculo de 40px fuera de la tarjeta, arriba a la derecha ----- */
@@ -577,6 +612,29 @@ const titleId = (step: StepConfig) => `auth-${step.id}-title`;
 		line-height: 1.25rem;
 		color: color-mix(in srgb, var(--color-black) 74%, transparent);
 		text-align: center;
+	}
+
+	/* Aviso de error del paso (vacío no ocupa espacio) */
+	.auth-step__alert {
+		margin-block: calc(-1 * var(--space-4)) calc(-1 * var(--space-2));
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: rgb(255 26 48 / 0.08);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.25rem;
+		color: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+	}
+
+	.auth-step__alert:empty {
+		display: none;
+	}
+
+	/* Botón "Continuar" mientras se espera la respuesta del servidor */
+	.auth-step :global(.btn[aria-disabled='true']) {
+		opacity: 0.7;
+		cursor: progress;
+		pointer-events: none;
 	}
 
 	/* Confirmación de "Volver a enviarlo" (vacía no ocupa espacio) */

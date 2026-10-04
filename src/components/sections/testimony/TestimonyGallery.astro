@@ -1,0 +1,151 @@
+---
+/**
+ * TestimonyGallery — Publicaciones del estudiante (estilo Instagram)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628102" (1646:245):
+ * 4 fotos verticales (320 × 460, radio 28) repartidas en el ancho del
+ * contenido, con el ícono de Instagram a la derecha y, en las publicaciones
+ * con varias fotos, el ícono de "álbum" a la izquierda.
+ * Móvil: UI Mobile › Caso de éxito: fondo celeste y una foto por vista
+ * (carrusel).
+ *
+ * Cada foto enlaza a su publicación (`href`) o, si no tiene, al perfil de
+ * Instagram de la marca (src/data/site.ts).
+ *
+ * Uso: <TestimonyGallery testimonial={testimonial} />
+ */
+import Carousel from '@components/ui/Carousel.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { site } from '@data/site';
+import type { Testimonial } from '@data/testimonials';
+
+interface Props {
+	testimonial: Testimonial;
+}
+
+const { testimonial } = Astro.props;
+const items = testimonial.gallery ?? [];
+
+const instagramProfile = site.socials.find((social) => social.icon === 'instagram')?.href ?? '#';
+
+// ----- Contenido de la sección -----
+const content = {
+	label: `Publicaciones de ${testimonial.name}`,
+	open: 'Ver la publicación en Instagram (se abre en una pestaña nueva)',
+	album: 'Publicación con varias fotos',
+};
+---
+
+{items.length > 0 && (
+	<section class="testimony-gallery" aria-label={content.label}>
+		<Carousel label={content.label} tone="blue" gap={24} class="testimony-gallery__carousel">
+			{items.map((item) => (
+				<a
+					href={item.href ?? instagramProfile}
+					class="gallery-post"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<MediaImage
+						image={item.src}
+						alt={item.alt}
+						widths={[320, 640, 960]}
+						sizes="(max-width: 640px) 330px, 320px"
+						class="gallery-post__image"
+					/>
+					{item.album && (
+						<Icon
+							name="copy-outline"
+							size={28}
+							class="gallery-post__icon gallery-post__icon--album"
+						/>
+					)}
+					<Icon
+						name="instagram"
+						size={28}
+						class="gallery-post__icon gallery-post__icon--instagram"
+					/>
+					<span class="visually-hidden">
+						{item.album ? `${content.album}. ` : ''}
+						{content.open}
+					</span>
+				</a>
+			))}
+		</Carousel>
+	</section>
+)}
+
+<style>
+	.testimony-gallery {
+		display: grid;
+		align-content: center;
+		min-height: 52.5rem; /* 840px */
+		padding-block: var(--space-10);
+		background-color: var(--surface-white);
+		--carousel-controls-gap: var(--space-7);
+	}
+
+	/* ----- Publicación (320 × 460) ----- */
+	.gallery-post {
+		position: relative;
+		display: block;
+		width: 20rem; /* 320px */
+		height: 28.75rem; /* 460px */
+		overflow: clip;
+		border-radius: 1.75rem; /* 28px */
+	}
+
+	/* Desktop: las 4 fotos repartidas en el ancho del contenido (sin desplazamiento) */
+	@media (min-width: 1101px) {
+		.testimony-gallery :global(.testimony-gallery__carousel .carousel__track) {
+			justify-content: space-between;
+			max-width: calc(var(--container-max) + 2 * var(--gutter));
+			margin-inline: auto;
+			padding-inline: var(--gutter);
+		}
+	}
+
+	.gallery-post__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	.gallery-post:hover .gallery-post__image {
+		transform: scale(1.04);
+	}
+
+	/* Íconos blancos a media altura (Figma: 28px; Instagram a la derecha, álbum a la izquierda) */
+	.gallery-post__icon {
+		position: absolute;
+		top: 13.4375rem; /* 215px */
+		color: var(--color-pure-white);
+		filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.35));
+	}
+
+	.gallery-post__icon--instagram {
+		left: 13.3125rem; /* 213px */
+	}
+
+	.gallery-post__icon--album {
+		left: 1.125rem; /* 18px */
+	}
+
+	/* ===== Móvil: fondo celeste y una foto por vista ===== */
+	@media (max-width: 640px) {
+		.testimony-gallery {
+			min-height: 0;
+			padding-block: var(--space-10);
+			background-color: #def7ff;
+			--carousel-controls-gap: 1.75rem;
+		}
+
+		.gallery-post {
+			width: min(20.625rem, 100vw - 2.5rem); /* 330px */
+			height: auto;
+			aspect-ratio: 330 / 460;
+		}
+	}
+</style>

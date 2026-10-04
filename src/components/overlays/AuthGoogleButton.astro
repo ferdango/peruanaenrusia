@@ -5,23 +5,26 @@
  * Figma: "Modal Login" › botón de Google (1797:4355): borde gris, logo de
  * Google de 28px a la izquierda y texto a 36px del logo.
  *
- * El comportamiento (OAuth con Google, pendiente) se conecta en
- * src/scripts/auth-flow.ts mediante el atributo data-auth-google.
+ * Es un enlace a /api/auth/google/ (inicio de sesión con Google resuelto en
+ * el servidor, ver src/lib/server/google.ts). src/scripts/auth-flow.ts le
+ * agrega el parámetro `next` (la página a la que se vuelve al terminar).
+ * Funciona aunque JavaScript esté desactivado.
  *
  * Uso:
  *   <AuthGoogleButton />
  */
 import Icon from '@components/ui/Icon.astro';
+import { withBase } from '@utils/url';
 
 const label = 'Usa tu cuenta de Google';
 ---
 
-<button type="button" class="auth-google" data-auth-google>
+<a href={withBase('/api/auth/google/')} class="auth-google" data-auth-google rel="nofollow">
 	<span class="auth-google__logo">
 		<Icon name="google" width={23.6463} height={24.4897} />
 	</span>
 	<span>{label}</span>
-</button>
+</a>
 
 <style>
 	/* Figma: alto 52px, padding 12/16 (borde interior), radio 12px, gap 36px */
@@ -49,6 +52,12 @@ const label = 'Usa tu cuenta de Google';
 	.auth-google:hover {
 		border-color: color-mix(in srgb, var(--color-black) 64%, transparent);
 		background-color: color-mix(in srgb, var(--color-black) 4%, transparent);
+	}
+
+	/* Mientras se redirige a Google */
+	.auth-google[aria-busy='true'] {
+		opacity: 0.6;
+		pointer-events: none;
 	}
 
 	/* Recuadro de 28 × 28 px con el logo centrado (Figma: "material-icon-theme:google") */

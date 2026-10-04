@@ -14,14 +14,15 @@
  */
 import FeaturedPostCard from '@components/blog/FeaturedPostCard.astro';
 import Carousel from '@components/ui/Carousel.astro';
-import { blogSectionIds, getFeaturedPosts } from '@data/blog';
+import { blogSectionIds } from '@data/blog';
+import { getFeaturedPosts } from '@lib/content';
 
 // ----- Contenido de la sección -----
 const content = {
 	title: 'Novedades',
 };
 
-const posts = getFeaturedPosts();
+const posts = await getFeaturedPosts();
 ---
 
 <section class="blog-news" id={blogSectionIds.news} aria-labelledby="blog-news-title">

@@ -9,7 +9,9 @@ Esta guía explica cómo está organizado el proyecto y cómo agregar nuevas pá
 | Herramienta                       | Uso                                                                            |
 | --------------------------------- | ------------------------------------------------------------------------------ |
 | [Astro](https://docs.astro.build) | Framework: componentes `.astro` (HTML + CSS + JS) que generan HTML estático    |
-| TypeScript                        | Tipos para datos y scripts (`src/data`, `src/scripts`)                         |
+| `@astrojs/node`                   | Servidor Node.js para las rutas bajo demanda (`/api/*`, `/portal/*`)           |
+| TypeScript                        | Tipos para datos, scripts y servidor (`src/data`, `src/scripts`, `src/lib`)    |
+| `astro:env`                       | Variables de entorno tipadas (ver `.env.example`)                              |
 | CSS con variables (design tokens) | Sin frameworks CSS. Cada componente trae su propio `<style>` con alcance local |
 | `@fontsource/poppins`             | Tipografía del diseño web, autoalojada                                         |
 | Prettier                          | Formato del código (tabulaciones)                                              |
@@ -19,7 +21,9 @@ Comandos:
 ```bash
 npm install          # instalar dependencias
 npm run dev          # servidor de desarrollo → http://localhost:4321
-npm run build        # compilar el sitio estático en /dist
+npm run build        # compilar el sitio en /dist (estático + servidor)
+npm start            # servidor de producción (server.mjs)
+# versión HTML puro para GitHub Pages: DEPLOY_TARGET=static (ver docs/DESPLIEGUE.md)
 npm run preview      # previsualizar la compilación
 npm run check        # revisar tipos y errores
 npm run format       # formatear todo el código
@@ -38,22 +42,33 @@ src/
 │   └── images/              Fotos, organizadas por página o tema
 ├── components/
 │   ├── brand/               Logo
-│   ├── ui/                  Piezas genéricas: Button, Icon, Carousel…
+│   ├── ui/                  Piezas genéricas: Button, Icon, Carousel, MediaImage…
 │   ├── cards/               Tarjetas reutilizables: universidad, testimonio, video…
+│   ├── forms/               Campos de formulario: FormField, FormCheck
 │   ├── layout/              Header, footer, menú lateral, botón de WhatsApp
 │   ├── overlays/            Modales y avisos globales (login, idioma, cookies)
 │   ├── portal/              Componentes del portal del estudiante
-│   └── sections/            Secciones de cada página (una carpeta por página)
-├── data/                    Contenido y configuración (textos, listas, enlaces)
+│   └── sections/            Secciones de cada página (una carpeta por página;
+│                            `shared/` = bloques que usan varias páginas)
+├── data/                    Contenido local y configuración (textos, listas, enlaces)
 ├── layouts/                 Plantillas de página (BaseLayout, SiteLayout, PortalLayout)
+├── lib/
+│   ├── content/             Capa de contenido: WordPress o datos locales
+│   ├── seo/                 Datos estructurados (JSON-LD) e imagen para compartir
+│   └── server/              Código de servidor: sesión, Google, correo, reclamaciones
 ├── pages/                   Rutas del sitio (cada archivo = una URL)
+│   └── api/                 Rutas de servidor (JSON)
 ├── scripts/                 Comportamiento en el navegador (TypeScript)
 ├── styles/                  Estilos globales: tokens, base y utilidades
+├── middleware.ts            Sesión, portal protegido y cabeceras de seguridad
 └── utils/                   Funciones de ayuda (formato de fechas, etc.)
+config/security-headers.mjs  Cabeceras de seguridad (una sola fuente)
+wordpress/peru-headless/     Plugin para el WordPress del contenido
+server.mjs                   Servidor de producción
 ```
 
 Alias de importación (evitan rutas como `../../..`):
-`@assets`, `@components`, `@data`, `@layouts`, `@scripts`, `@styles`, `@utils`.
+`@assets`, `@components`, `@data`, `@layouts`, `@lib`, `@scripts`, `@styles`, `@utils`.
 
 ---
 
@@ -64,6 +79,8 @@ Alias de importación (evitan rutas como `../../..`):
 1. Crea el archivo en `src/pages/` (ej. `src/pages/charlas.astro` → `/charlas/`).
 2. Envuelve el contenido en `SiteLayout` (sitio público) o `PortalLayout` (portal del estudiante).
 3. Si debe aparecer en el menú, agrégala en `src/data/navigation.ts`.
+
+> **Enlaces internos**: usa `routes` / `detailRoutes` (`src/data/navigation.ts`) o `withBase('/charlas/')` (`src/utils/url.ts`); nunca escribas `href="/charlas/"` a mano. El sitio también se publica dentro de una subcarpeta (GitHub Pages: `/peruanaenrusia/`) y esas funciones la agregan.
 
 ```astro
 ---
@@ -116,6 +133,28 @@ const content = {
 
 - **Textos fijos** de la sección → objeto `content` al inicio del componente.
 - **Listas** (tarjetas, preguntas, pasos…) → archivo en `src/data/` (así se editan sin tocar el diseño).
+
+### …contenido editable (blog, universidades, casos, preguntas, legales)
+
+Pide siempre el contenido a la **capa de contenido** (`src/lib/content/`), nunca directamente a `src/data/`. Así el mismo componente funciona con los datos locales o con WordPress (ver [WORDPRESS.md](WORDPRESS.md)):
+
+```astro
+---
+import { getFaqs } from '@lib/content';
+const faqs = await getFaqs();
+---
+```
+
+Las imágenes de ese contenido pueden ser locales o remotas: dibújalas con `<MediaImage image={…} alt="…" />` (mismas props que `<Image />`).
+
+El texto fijo de una sección (títulos, botones) sigue en su objeto `content`; los datos de ejemplo, en `src/data/`.
+
+### …una ruta de servidor (API)
+
+1. Crea el archivo en `src/pages/api/` con `export const prerender = false;`.
+2. Lee el cuerpo con `readJson()` y responde con `json()` / `jsonError()` (`src/lib/server/http.ts`): validan tamaño y formato y evitan la caché.
+3. Valida cada campo en el servidor y limita los intentos con `rateLimit()`.
+4. El middleware ya exige el mismo origen para los envíos (POST/PUT…).
 
 ### …un ícono
 
@@ -179,15 +218,19 @@ Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interf
 
 ## 5. Componentes disponibles
 
-| Componente                    | Uso                                                                                                                                                                    |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ui/Button.astro`             | Botones y enlaces. Variantes `outline` (con la “rayita” de la marca), `primary` (amarillo), `secondary`, `light`. Tonos `light`/`blue`/`dark`. Tamaños `sm`/`md`/`lg`. |
-| `ui/Icon.astro`               | Íconos SVG por nombre.                                                                                                                                                 |
-| `ui/Carousel.astro`           | Carrusel horizontal con flechas y puntos (tono `light` o `blue`).                                                                                                      |
-| `brand/Logo.astro`            | Logotipo oficial.                                                                                                                                                      |
-| `cards/UniversityCard.astro`  | Tarjeta de universidad con forma de color.                                                                                                                             |
-| `cards/TestimonialCard.astro` | Tarjeta de caso de éxito.                                                                                                                                              |
-| `cards/VideoCard.astro`       | Tarjeta de video.                                                                                                                                                      |
+| Componente                       | Uso                                                                                                                                                                    |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ui/Button.astro`                | Botones y enlaces. Variantes `outline` (con la “rayita” de la marca), `primary` (amarillo), `secondary`, `light`. Tonos `light`/`blue`/`dark`. Tamaños `sm`/`md`/`lg`. |
+| `ui/Icon.astro`                  | Íconos SVG por nombre.                                                                                                                                                 |
+| `ui/Carousel.astro`              | Carrusel horizontal con flechas y puntos (tono `light` o `blue`).                                                                                                      |
+| `brand/Logo.astro`               | Logotipo oficial.                                                                                                                                                      |
+| `cards/UniversityCard.astro`     | Tarjeta de universidad con forma de color.                                                                                                                             |
+| `cards/TestimonialCard.astro`    | Tarjeta de caso de éxito.                                                                                                                                              |
+| `cards/VideoCard.astro`          | Tarjeta de video.                                                                                                                                                      |
+| `ui/MediaImage.astro`            | Imagen optimizada del contenido (local o de WordPress).                                                                                                                |
+| `forms/FormField.astro`          | Campo con etiqueta flotante, ayuda y error accesible (texto, lista o texto largo).                                                                                     |
+| `forms/FormCheck.astro`          | Casilla circular de la marca (consentimiento, "Soy menor de edad").                                                                                                    |
+| `sections/shared/StartCta.astro` | Llamado a la acción con dos estudiantes (tono celeste en el Home, verde en los casos de éxito).                                                                        |
 
 ---
 
@@ -196,7 +239,10 @@ Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interf
 - El comportamiento vive en `src/scripts/` y se conecta con el HTML mediante atributos `data-*`.
 - **Modales y menú lateral**: son elementos `<dialog>`. Cualquier botón con `data-dialog-open="id-del-dialog"` lo abre, y uno con `data-dialog-close` lo cierra (ver `src/scripts/dialog.ts`).
 - **Carruseles**: automáticos con el componente `Carousel`.
+- **Formularios**: validación accesible y envío a la API con `src/scripts/forms.ts` (`validateForm`, `postJson`).
+- **Inicio de sesión**: `src/scripts/auth-flow.ts` (modal), `src/scripts/auth-api.ts` (llamadas al servidor; en la versión estática, demostración) y `src/scripts/session-ui.ts` (textos de los botones con sesión iniciada). Para abrir el modal desde una URL: `/?login=1`.
 - Usa `<script>` dentro del componente solo para lógica propia de ese componente.
+- **Seguridad (CSP)**: no uses `<script is:inline>` con código ni atributos como `onclick=`; los scripts normales de Astro ya están permitidos. Las variables CSS en `style=""` sí se pueden usar. Ver [SEGURIDAD.md](SEGURIDAD.md).
 
 ---
 

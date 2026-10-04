@@ -8,6 +8,9 @@
  */
 import PortalLayout from '@layouts/PortalLayout.astro';
 import PaymentForm from '@components/portal/PaymentForm.astro';
+
+// Página bajo demanda: el middleware verifica la sesión antes de mostrarla
+export const prerender = false;
 ---
 
 <PortalLayout

@@ -25,6 +25,8 @@ export interface CommunityPhoto {
 	href?: string;
 	/** Muestra el ícono de Instagram sobre la foto (como la primera foto del diseño) */
 	instagram?: boolean;
+	/** true = la publicación es un video (reel): en móvil se muestra el botón ▶ */
+	video?: boolean;
 }
 
 // ----- Fotos de ejemplo (tomadas del diseño) -----
@@ -54,10 +56,10 @@ export const communityGridPhotos: CommunityPhoto[] = Array.from({ length: 14 }, 
 /** "Una comunidad que cambia vidas": fotos verticales en carrusel */
 export const communityGalleryPhotos: CommunityPhoto[] = [
 	{ ...spief, instagram: true },
-	kremlin,
+	{ ...kremlin, video: true },
 	spief,
-	kremlin,
+	{ ...kremlin, video: true },
 	spief,
-	kremlin,
+	{ ...kremlin, video: true },
 	spief,
 ];

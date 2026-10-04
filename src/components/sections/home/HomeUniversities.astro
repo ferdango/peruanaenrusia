@@ -10,9 +10,12 @@ import UniversityCard from '@components/cards/UniversityCard.astro';
 import Button from '@components/ui/Button.astro';
 import Carousel from '@components/ui/Carousel.astro';
 import { routes } from '@data/navigation';
-import { featuredUniversities, type UniversityAccent } from '@data/universities';
+import type { UniversityAccent } from '@data/universities';
+import { getFeaturedUniversities } from '@lib/content';
 import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
 import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+
+const featuredUniversities = await getFeaturedUniversities();
 
 // ----- Contenido de la sección -----
 const content = {

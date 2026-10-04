@@ -12,9 +12,8 @@
  * Uso:
  *   <UniversityCard university={university} accent="yellow" />
  */
-import { Image } from 'astro:assets';
-
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
 import CardBlob from '@assets/graphics/shapes/card-blob.svg';
 import CardSlope from '@assets/graphics/shapes/card-slope.svg';
 import { detailRoutes } from '@data/navigation';
@@ -44,8 +43,8 @@ const href = detailRoutes.university(university.slug);
 
 <article class:list={['university-card', `university-card--${accent}`, className]}>
 	<!-- Fondo: foto + forma de color -->
-	<Image
-		src={university.image}
+	<MediaImage
+		image={university.image}
 		alt=""
 		class="university-card__photo"
 		widths={[420, 840]}
@@ -59,7 +58,7 @@ const href = detailRoutes.university(university.slug);
 	<!-- Contenido -->
 	<div class="university-card__content">
 		<div class="university-card__logo">
-			<Image src={university.logo} alt={`Logo de ${university.name}`} width={344} />
+			<MediaImage image={university.logo} alt={`Logo de ${university.name}`} width={344} />
 		</div>
 
 		<div class="university-card__info">

@@ -26,6 +26,9 @@ import ProcessUploadStep from '@components/portal/ProcessUploadStep.astro';
 import StepCard from '@components/portal/StepCard.astro';
 import { getProcessStep } from '@data/portal';
 
+// Página bajo demanda: el middleware verifica la sesión antes de mostrarla
+export const prerender = false;
+
 const personalData = getProcessStep('personal-data');
 const states = ['in-progress', 'in-review', 'done'] as const;
 ---

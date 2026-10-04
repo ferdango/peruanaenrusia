@@ -2,21 +2,29 @@
 /**
  * Página de una publicación del blog ( /blog/{slug}/ )
  * --------------------------------------------------------------------------
- * Se genera una página por cada video (src/data/videos.ts) y por cada
- * artículo (src/data/articles.ts), con dos diseños de Figma:
+ * Se genera una página por cada video y por cada artículo (de WordPress o,
+ * si no está configurado, de src/data/), con dos diseños de Figma:
  *   - Video    → "Single Article Video" (1698:165)  · BlogPostVideo
  *   - Artículo → "Single Article Text"  (1584:671)  · BlogPostArticle
  * Al final, "Temas relacionados" (solo móvil, Figma 1096:13).
+ *
+ * SEO: datos estructurados BlogPosting o VideoObject + migas de pan, y
+ * metadatos de artículo (fecha, autor y categoría) para redes sociales.
  */
 import SiteLayout from '@layouts/SiteLayout.astro';
 
 import BlogPostArticle from '@components/sections/blog/BlogPostArticle.astro';
 import BlogPostVideo from '@components/sections/blog/BlogPostVideo.astro';
 import BlogRelated from '@components/sections/blog/BlogRelated.astro';
-import { blogPosts, type BlogPost } from '@data/blog';
+import type { BlogPost } from '@data/blog';
+import { routes } from '@data/navigation';
+import { getBlogPosts } from '@lib/content';
+import { articleSchema, breadcrumbSchema, videoSchema } from '@lib/seo/schema';
+import { shareImageUrl } from '@lib/seo/share-image';
 
-export function getStaticPaths() {
-	return blogPosts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+export async function getStaticPaths() {
+	const posts = await getBlogPosts();
+	return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
 }
 
 interface Props {
@@ -24,12 +32,61 @@ interface Props {
 }
 
 const { post } = Astro.props;
+const path = Astro.url.pathname;
 
 // Descripción para buscadores y redes sociales
-const description = post.type === 'article' ? post.article.excerpt : post.video.description;
+const description =
+	(post.type === 'article' ? post.article.excerpt : post.video.description) ||
+	`${post.title} — ${post.category} en el blog de Peruana en Rusia.`;
+
+const author = post.type === 'article' ? post.article.author : post.video.author;
+const image = await shareImageUrl(post.image, Astro.site);
+
+const jsonLd = [
+	breadcrumbSchema(
+		[
+			{ name: 'Inicio', path: routes.home },
+			{ name: 'Blog', path: routes.blog },
+			{ name: post.title, path },
+		],
+		Astro.site,
+	),
+	post.type === 'article'
+		? articleSchema(
+				{
+					title: post.title,
+					description,
+					path,
+					image,
+					datePublished: post.date,
+					authorName: author?.name,
+					section: post.category,
+				},
+				Astro.site,
+			)
+		: videoSchema(
+				{
+					title: post.title,
+					description,
+					path,
+					thumbnail: image,
+					uploadDate: post.date,
+					youtubeId: post.video.youtubeId,
+				},
+				Astro.site,
+			),
+];
 ---
 
-<SiteLayout title={post.title} description={description} image={post.image.src}>
+<SiteLayout
+	title={post.title}
+	description={description}
+	image={post.image}
+	imageAlt={post.type === 'article' ? post.article.imageAlt : undefined}
+	type="article"
+	article={{ publishedTime: post.date, author: author?.name, section: post.category }}
+	jsonLd={jsonLd}
+>
 	{post.type === 'video' ? (
 		<BlogPostVideo video={post.video} />
 	) : (

@@ -14,9 +14,8 @@
  * Uso:
  *   <VideoCard video={video} />
  */
-import { Image } from 'astro:assets';
-
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
 import { detailRoutes } from '@data/navigation';
 import type { Video } from '@data/videos';
 import { formatDate } from '@utils/format';
@@ -39,7 +38,13 @@ const {
 
 <article class:list={['video-card', className]}>
 	<div class="video-card__media">
-		<Image src={video.thumbnail} alt="" widths={[320, 640]} sizes="320px" class="video-card__image" />
+		<MediaImage
+			image={video.thumbnail}
+			alt=""
+			widths={[320, 640]}
+			sizes="320px"
+			class="video-card__image"
+		/>
 		<span class="video-card__play" aria-hidden="true">
 			<Icon name="play" size={24} />
 		</span>

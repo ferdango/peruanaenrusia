@@ -1,0 +1,242 @@
+---
+/**
+ * Página no encontrada (404)
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "404" (2405:272): foto a todo el ancho con un degradado
+ * oscuro a la izquierda, el mensaje "No pudimos encontrar lo que buscabas"
+ * y tres accesos: "Sobre nosotros" (amarillo), "Iniciar proceso" (abre el
+ * modal de acceso) y "Reservar llamada" (WhatsApp).
+ * El archivo de Figma no tiene versión móvil: en móvil la foto va arriba y
+ * los botones se apilan.
+ *
+ * Astro sirve esta página para cualquier ruta que no exista (no se indexa).
+ */
+import { Image } from 'astro:assets';
+
+import SiteLayout from '@layouts/SiteLayout.astro';
+import { routes } from '@data/navigation';
+import { whatsappUrl } from '@data/site';
+import photo from '@assets/images/errors/not-found-student.jpg';
+
+// ----- Contenido de la página -----
+const content = {
+	title: 'No pudimos encontrar lo que buscabas',
+	text: 'No te preocupes, seguramente esto puede ayudarte a encontrar lo que buscabas:',
+	photoAlt: 'Estudiante revisando su celular frente a un edificio universitario',
+	actions: {
+		about: 'Sobre nosotros',
+		start: 'Iniciar proceso',
+		call: 'Reservar llamada',
+		callHint: ' por WhatsApp (se abre en una pestaña nueva)',
+	},
+};
+---
+
+<SiteLayout title="Página no encontrada" description={content.text} noindex>
+	<section class="not-found" aria-labelledby="not-found-title">
+		<div class="not-found__media">
+			<Image
+				src={photo}
+				alt={content.photoAlt}
+				widths={[640, 1024, 1512, 1734]}
+				sizes="100vw"
+				loading="eager"
+				fetchpriority="high"
+				class="not-found__photo"
+			/>
+		</div>
+
+		<div class="not-found__content">
+			<div class="not-found__text">
+				<h1 id="not-found-title" class="not-found__title">
+					{content.title}
+				</h1>
+				<p class="not-found__lead">{content.text}</p>
+			</div>
+
+			<nav class="not-found__actions" aria-label="Accesos sugeridos">
+				<a
+					href={`${routes.home}#sobre-nosotros`}
+					class="not-found__action not-found__action--primary"
+				>
+					{content.actions.about}
+				</a>
+				<button
+					type="button"
+					class="not-found__action"
+					data-dialog-open="auth-modal"
+					data-auth-view="register"
+				>
+					{content.actions.start}
+				</button>
+				<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="not-found__action">
+					{content.actions.call}
+					<span class="visually-hidden">{content.actions.callHint}</span>
+				</a>
+			</nav>
+		</div>
+	</section>
+</SiteLayout>
+
+<style>
+	/* ----- Foto a todo el ancho (809px de alto en Figma) ----- */
+	.not-found {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		min-height: 50.5625rem; /* 809px */
+		overflow: clip;
+		background-color: var(--surface-dark);
+		color: var(--color-white);
+	}
+
+	.not-found__media {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+
+	.not-found__photo {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: 60% center;
+	}
+
+	/* Degradado oscuro a la izquierda (Figma: 886px, de transparente a negro) */
+	.not-found__media::after {
+		content: '';
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: min(58.6%, 55.375rem); /* 886px */
+		background: linear-gradient(to left, rgb(0 0 0 / 0) 5.135%, #000 111.06%);
+	}
+
+	/* ----- Texto y botones ----- */
+	.not-found__content {
+		display: flex;
+		flex-direction: column;
+		gap: 7.5rem; /* 120px entre el texto y los botones */
+		width: 100%;
+		max-width: calc(var(--container-max) + 2 * var(--gutter));
+		margin-inline: auto;
+		padding: var(--space-10) var(--gutter);
+	}
+
+	.not-found__text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6); /* 32px */
+		max-width: 28.25rem; /* 452px */
+	}
+
+	/* Figma: Poppins Bold 48/56 */
+	.not-found__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1667;
+		color: var(--color-white);
+		text-wrap: wrap;
+	}
+
+	.not-found__lead {
+		line-height: 1.5rem;
+	}
+
+	/* Figma: 3 botones de 78px (946px en total), radio 12, texto 18 */
+	.not-found__actions {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-3);
+		max-width: 59.125rem; /* 946px */
+	}
+
+	.not-found__action {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 4.875rem; /* 78px */
+		padding: var(--space-3) var(--space-4);
+		border: 1px solid #fff7ff;
+		border-radius: var(--radius-md);
+		background-color: #464949;
+		color: var(--color-white);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		text-align: center;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.not-found__action:hover {
+		background-color: #5a5d5d;
+	}
+
+	.not-found__action:active {
+		transform: scale(0.98);
+	}
+
+	.not-found__action--primary {
+		border-color: var(--color-yellow);
+		background-color: var(--color-yellow);
+		color: #002546;
+	}
+
+	.not-found__action--primary:hover {
+		background-color: color-mix(in srgb, var(--color-yellow) 88%, var(--color-black));
+	}
+
+	/* ===== Tablet: el degradado cubre más ancho para que el texto se lea ===== */
+	@media (max-width: 1100px) {
+		.not-found__media::after {
+			width: 100%;
+			background: linear-gradient(to right, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.35));
+		}
+
+		.not-found__content {
+			gap: var(--space-9);
+		}
+	}
+
+	/* ===== Móvil: foto arriba, texto y botones apilados ===== */
+	@media (max-width: 640px) {
+		.not-found {
+			flex-direction: column;
+			align-items: stretch;
+			min-height: 0;
+		}
+
+		.not-found__media {
+			position: relative;
+			inset: auto;
+			aspect-ratio: 360 / 300;
+		}
+
+		.not-found__media::after {
+			inset: auto 0 0;
+			width: 100%;
+			height: 50%;
+			background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
+		}
+
+		.not-found__content {
+			gap: var(--space-7);
+			padding-block: var(--space-6) var(--space-9);
+		}
+
+		.not-found__title {
+			font-size: 2rem;
+			line-height: 1.125;
+		}
+
+		.not-found__actions {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.not-found__action {
+			min-height: 3.75rem;
+			font-size: var(--font-size-md);
+		}
+	}
+</style>

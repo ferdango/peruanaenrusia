@@ -1,0 +1,68 @@
+---
+/**
+ * Libro de reclamaciones ( /libro-de-reclamaciones/ )
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Libro de reclamaciones" (1001:818). El archivo de
+ * Figma no tiene versión móvil: en móvil el formulario ocupa todo el ancho.
+ *
+ * Libro de reclamaciones virtual exigido por el Código de Protección y
+ * Defensa del Consumidor (Ley N° 29571). El formulario y su envío viven en
+ * src/components/sections/complaints/ComplaintsForm.astro.
+ */
+import SiteLayout from '@layouts/SiteLayout.astro';
+
+import ComplaintsForm from '@components/sections/complaints/ComplaintsForm.astro';
+import { routes } from '@data/navigation';
+import { site } from '@data/site';
+import { breadcrumbSchema } from '@lib/seo/schema';
+
+const meta = {
+	title: 'Libro de reclamaciones',
+	description: `Libro de reclamaciones virtual de ${site.legal.companyName} (RUC ${site.legal.ruc}). Registra tu reclamo o queja y recibe una constancia con tu código de seguimiento.`,
+};
+---
+
+<SiteLayout
+	title={meta.title}
+	description={meta.description}
+	jsonLd={[
+		breadcrumbSchema(
+			[
+				{ name: 'Inicio', path: routes.home },
+				{ name: meta.title, path: routes.complaintsBook },
+			],
+			Astro.site,
+		),
+	]}
+>
+	<div class="complaints-page">
+		<noscript>
+			<p class="complaints-page__noscript">
+				Para enviar el formulario necesitas activar JavaScript en tu navegador. También puedes
+				presentar tu reclamación escribiendo a{' '}
+				<a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>.
+			</p>
+		</noscript>
+		<ComplaintsForm />
+	</div>
+</SiteLayout>
+
+<style>
+	/* Fondo celeste de la página (Figma: #DAEEF5) */
+	.complaints-page {
+		padding: 0 var(--gutter) var(--space-10);
+		background-color: #daeef5;
+	}
+
+	.complaints-page__noscript {
+		max-width: 29.5rem;
+		margin: 0 auto;
+		padding-top: var(--space-6);
+		color: var(--text-on-light);
+		text-align: center;
+	}
+
+	.complaints-page__noscript a {
+		text-decoration: underline;
+	}
+</style>

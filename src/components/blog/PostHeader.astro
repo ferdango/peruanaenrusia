@@ -12,23 +12,22 @@
  *   <PostHeader
  *       category={{ label: 'VideoBlogs', href: '/blog/#videoblogs' }}
  *       title="EP1: Conoce PeRu"
- *       author="jose-quinteros"
+ *       author={article.author}
  *       date="2025-05-07"
  *       lead="Bajada opcional…"
  *       align="center"
  *   />
  */
-import { Image } from 'astro:assets';
-
 import Icon from '@components/ui/Icon.astro';
-import { getAuthor, type AuthorId } from '@data/authors';
+import MediaImage from '@components/ui/MediaImage.astro';
+import type { Author } from '@data/authors';
 import { formatShortDate } from '@utils/format';
 
 interface Props {
 	/** Categoría: texto y enlace de regreso */
 	category: { label: string; href: string };
 	title: string;
-	author?: AuthorId;
+	author?: Author;
 	/** Fecha de publicación (AAAA-MM-DD) */
 	date: string;
 	/** Bajada bajo el título (opcional) */
@@ -40,7 +39,7 @@ interface Props {
 }
 
 const { category, title, author, date, lead, align = 'left', titleId, class: className } = Astro.props;
-const authorData = getAuthor(author);
+const authorData = author;
 ---
 
 <header class:list={['post-header', `post-header--${align}`, className]}>
@@ -57,8 +56,8 @@ const authorData = getAuthor(author);
 		{authorData && (
 			<p class="post-header__author">
 				{authorData.avatar && (
-					<Image
-						src={authorData.avatar}
+					<MediaImage
+						image={authorData.avatar}
 						alt=""
 						width={24}
 						height={24}

@@ -51,3 +51,9 @@ const { hideWhatsApp = false, ...baseProps } = Astro.props;
 	<LanguageModal />
 	<CookieBanner />
 </BaseLayout>
+
+<script>
+	// Textos de los botones de acceso cuando hay sesión iniciada
+	import { initSessionUi } from '@scripts/session-ui';
+	initSessionUi();
+</script>

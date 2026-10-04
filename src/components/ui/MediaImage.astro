@@ -1,0 +1,47 @@
+---
+/**
+ * MediaImage
+ * --------------------------------------------------------------------------
+ * Imagen optimizada para el contenido que puede venir de src/assets/ (local)
+ * o del gestor de contenidos (remota, ej. WordPress). Usa el <Image /> de
+ * Astro en ambos casos, así que se optimiza igual (WebP, varios tamaños).
+ *
+ * Uso:
+ *   <MediaImage image={university.image} alt="Campus" widths={[400, 800]} sizes="400px" />
+ *   <MediaImage image={university.logo} alt="Logo" width={344} />
+ */
+import type { ImageMetadata } from 'astro';
+import type { HTMLAttributes } from 'astro/types';
+import { Image } from 'astro:assets';
+
+import { isRemoteImage, type ImageSource } from '@lib/content/images';
+
+interface Props extends Omit<HTMLAttributes<'img'>, 'src' | 'alt' | 'width' | 'height'> {
+	image: ImageSource;
+	alt: string;
+	/** Ancho de salida en px (si se omite, el original) */
+	width?: number;
+	height?: number;
+	/** Anchos a generar para srcset (ej. [400, 800]) */
+	widths?: number[];
+	sizes?: string;
+	quality?: number;
+}
+
+const { image, alt, width, height, ...attrs } = Astro.props;
+
+// Las imágenes remotas necesitan medidas explícitas; si solo se indica el
+// ancho, el alto se calcula manteniendo la proporción original.
+const remoteSize = isRemoteImage(image)
+	? {
+			width: width ?? image.width,
+			height: height ?? (width ? Math.round((image.height * width) / image.width) : image.height),
+		}
+	: undefined;
+---
+
+{isRemoteImage(image) && remoteSize ? (
+	<Image src={image.src} alt={alt} width={remoteSize.width} height={remoteSize.height} {...attrs} />
+) : (
+	<Image src={image as ImageMetadata} alt={alt} width={width} height={height} {...attrs} />
+)}

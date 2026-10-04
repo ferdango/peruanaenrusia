@@ -11,7 +11,7 @@
  *
  * Uso: <UniversityOverview id="de-un-vistazo" university={university} />
  */
-import { Image } from 'astro:assets';
+import MediaImage from '@components/ui/MediaImage.astro';
 
 import Button from '@components/ui/Button.astro';
 import UniversityStarList from './UniversityStarList.astro';
@@ -50,8 +50,8 @@ const isFallback = !hasBody && gallery.length === 0;
 	{gallery.length > 0 && (
 		<div class="university-overview__gallery">
 			{gallery.map((photo) => (
-				<Image
-					src={photo.src}
+				<MediaImage
+					image={photo.src}
 					alt={photo.alt}
 					widths={[480, 640, 1250]}
 					sizes="(max-width: 640px) 100vw, 625px"

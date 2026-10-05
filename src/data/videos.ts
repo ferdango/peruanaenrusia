@@ -25,6 +25,7 @@ import type { ImageSource } from '@lib/content/images';
 
 import { authors, type Author } from './authors';
 import thumbnailEp1 from '@assets/images/videos/conoce-peru-ep1.jpg';
+import featuredVideoCover from '@assets/images/home/featured-video-cover.jpg';
 
 export interface Video {
 	/** Identificador único, se usa en la URL: /blog/{slug}/ */
@@ -82,3 +83,27 @@ export const videos: Video[] = [
 		author: authors['jose-quinteros'],
 	},
 ];
+
+/**
+ * Video destacado del Home
+ * --------------------------------------------------------------------------
+ * Lo reproducen el botón "Ver video" y la tarjeta flotante del hero, y la
+ * sección "Te acompañamos". Se abre en el modal con mini reproductor
+ * (src/components/overlays/VideoModal.astro): se puede minimizar y seguir
+ * navegando mientras se ve.
+ *
+ * Para cambiarlo: escribe el código de YouTube del nuevo video en `youtubeId`
+ * (https://www.youtube.com/watch?v=CODIGO), su título y duración, y reemplaza
+ * la portada (src/assets/images/home/featured-video-cover.jpg, 1280 × 720).
+ */
+export const featuredVideo = {
+	title: '¿Cómo estudiar en Rusia? 2026',
+	youtubeId: '_yIierlvxvQ',
+	channel: 'Kristal | Peruana en Rusia',
+	duration: '2:18',
+	cover: featuredVideoCover,
+	/** Enlace de respaldo (sin JavaScript se abre YouTube) */
+	get url() {
+		return `https://www.youtube.com/watch?v=${this.youtubeId}`;
+	},
+};

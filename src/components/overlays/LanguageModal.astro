@@ -2,8 +2,9 @@
 /**
  * LanguageModal — selector "Idioma y región"
  * --------------------------------------------------------------------------
- * Figma: UI Desktop › "Modal Idiomas" (4028:113): panel oscuro con las
- * opciones de idioma y su bandera; la opción elegida tiene fondo más oscuro.
+ * Figma: UI Desktop › "Modal Idiomas" (4028:113), con el branding del Manual
+ * de marca 2025: cabecera azul con el tubo degradé y la estrella de la marca,
+ * panel blanco y la opción elegida resaltada en azul (con ✓).
  *
  * - En desktop se muestra como un desplegable debajo de la píldora de idioma
  *   del header; en móvil, centrado en la pantalla.
@@ -19,10 +20,16 @@
  */
 import { Image, getImage } from 'astro:assets';
 
+import Icon from '@components/ui/Icon.astro';
 import { languages, defaultLanguage } from '@data/languages';
+import tubeScene from '@assets/graphics/tubes/tube-blue-scene.webp';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
+// ----- Textos -----
 const content = {
 	title: 'Idioma y región',
+	subtitle: 'Elige cómo quieres ver el sitio',
+	close: 'Cerrar',
 };
 
 // Bandera de 24px para la píldora del header: mismos parámetros que usa
@@ -42,9 +49,24 @@ const options = await Promise.all(
 	data-default-language={defaultLanguage}
 >
 	<div class="language-modal__panel">
-		<h2 id="language-modal-title" class="language-modal__title">
-			{content.title}
-		</h2>
+		<!-- Cabecera de marca: azul, tubo degradé y estrella -->
+		<div class="language-modal__header">
+			<Image src={tubeScene} alt="" widths={[480, 960]} sizes="420px" class="language-modal__tube" />
+			<Star class="language-modal__star" aria-hidden="true" />
+			<h2 id="language-modal-title" class="language-modal__title">
+				{content.title}
+			</h2>
+			<p class="language-modal__subtitle">{content.subtitle}</p>
+			<button
+				type="button"
+				class="language-modal__close"
+				data-dialog-close
+				aria-label={content.close}
+				title={content.close}
+			>
+				<Icon name="close" size={12} />
+			</button>
+		</div>
 
 		<ul role="list" class="language-modal__list">
 			{options.map((language) => (
@@ -58,6 +80,15 @@ const options = await Promise.all(
 						data-language-name={language.name}
 						data-language-flag={language.pillFlagSrc}
 					>
+						<Image
+							src={language.flag}
+							alt=""
+							width={28}
+							height={28}
+							densities={[1, 2]}
+							loading="eager"
+							class="language-option__flag"
+						/>
 						<span class="language-option__text">
 							<span
 								class="language-option__label"
@@ -69,15 +100,9 @@ const options = await Promise.all(
 								{language.region}
 							</span>
 						</span>
-						<Image
-							src={language.flag}
-							alt=""
-							width={24}
-							height={24}
-							densities={[1, 2]}
-							loading="eager"
-							class="language-option__flag"
-						/>
+						<span class="language-option__check" aria-hidden="true">
+							<Icon name="check" size={12} />
+						</span>
 					</button>
 				</li>
 			))}
@@ -93,15 +118,12 @@ const options = await Promise.all(
 <style>
 	/* ----- <dialog>: desplegable bajo la píldora del header (posición desde el script) ----- */
 	.language-modal {
-		/* Colores de Figma sin token propio */
-		--language-modal-bg: #141d21; /* Fondo del panel */
-		--language-option-selected: #060b0d; /* Opción elegida */
-		--language-region: #c6caca; /* "gray": región bajo el idioma */
+		--language-ink: #0b1f3a; /* Texto principal del panel */
 
 		position: fixed;
 		inset: var(--language-modal-top, calc(var(--header-height) + var(--space-2))) auto auto
 			var(--language-modal-left, var(--gutter));
-		width: 20.5625rem; /* 329px */
+		width: 21.25rem; /* 340px */
 		max-width: calc(100vw - 2 * var(--space-4));
 		max-height: calc(100dvh - 2 * var(--space-4));
 		margin: 0;
@@ -109,93 +131,192 @@ const options = await Promise.all(
 		border: 0;
 		overflow: visible;
 		background: transparent;
-		color: var(--text-on-dark);
+		color: var(--language-ink);
 	}
 
 	.language-modal::backdrop {
-		background: rgb(0 0 0 / 0.35);
+		background: rgb(11 31 58 / 0.4);
+		backdrop-filter: blur(2px);
 	}
 
 	.language-modal[open] .language-modal__panel {
-		animation: language-modal-in var(--duration-base) var(--ease-out);
+		animation: language-modal-in var(--duration-slow) var(--ease-out);
 	}
 
 	@keyframes language-modal-in {
 		from {
 			opacity: 0;
-			transform: translateY(-8px);
+			transform: translateY(-8px) scale(0.98);
 		}
 	}
 
-	/* Figma: padding 20/16, gap 12, radio 24 */
 	.language-modal__panel {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-white);
+		box-shadow: 0 1.5rem 3.75rem -1.25rem rgb(0 20 60 / 0.5);
+	}
+
+	/* ----- Cabecera azul de la marca ----- */
+	.language-modal__header {
+		position: relative;
+		isolation: isolate;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
-		padding: 1.25rem var(--space-4);
-		border-radius: var(--radius-lg);
-		background-color: var(--language-modal-bg);
-		box-shadow: var(--shadow-float);
+		gap: 0.125rem;
+		overflow: hidden;
+		padding: 1.25rem 1.25rem 1.375rem;
+		/* Azul profundo a la izquierda (contraste del texto) que termina en el tono del tubo */
+		background: linear-gradient(100deg, #0052c4 0%, #0066e8 45%, #007cff 80%);
+		color: var(--color-pure-white);
 	}
 
-	/* Figma: Poppins Bold 16/36, azul #199AF4 */
+	/* Tubo degradé (render oficial de la marca) asomando por la derecha */
+	.language-modal__tube {
+		position: absolute;
+		z-index: -1;
+		top: -40%;
+		right: -48%;
+		width: 125%;
+		max-width: none;
+		height: auto;
+		mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+		pointer-events: none;
+	}
+
+	.language-modal__star {
+		width: 1.125rem;
+		height: 1.125rem;
+		margin-bottom: var(--space-2);
+		color: var(--color-yellow);
+	}
+
 	.language-modal__title {
-		font-size: var(--font-size-md);
+		font-size: 1.25rem;
 		font-weight: var(--font-weight-bold);
-		line-height: 2.25rem;
-		letter-spacing: -0.165px;
-		color: var(--color-blue-3);
+		line-height: 1.625rem;
+		letter-spacing: -0.01em;
+		color: var(--color-pure-white);
 	}
 
-	/* ----- Opción ----- */
+	.language-modal__subtitle {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--color-pure-white);
+	}
+
+	.language-modal__close {
+		position: absolute;
+		top: var(--space-3);
+		right: var(--space-3);
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border: 1px solid rgb(255 255 255 / 0.35);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.14);
+		color: var(--color-pure-white);
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.language-modal__close:hover {
+		background-color: rgb(255 255 255 / 0.28);
+	}
+
+	.language-modal__close:focus-visible {
+		outline: 2px solid var(--color-pure-white);
+		outline-offset: 2px;
+	}
+
+	/* ----- Opciones ----- */
+	.language-modal__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		padding: var(--space-2);
+	}
+
 	.language-option {
 		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: var(--space-4);
+		align-items: center;
+		gap: 0.875rem;
 		width: 100%;
-		padding: var(--space-4);
-		border-radius: 1rem; /* 16px */
-		letter-spacing: -0.165px;
+		padding: var(--space-3);
+		border-radius: 0.875rem;
 		text-align: left;
+		color: var(--language-ink);
 		transition: background-color var(--duration-base) var(--ease-out);
 	}
 
 	.language-option:hover {
-		background-color: color-mix(in srgb, var(--language-option-selected) 55%, transparent);
+		background-color: #f1f5fb;
+	}
+
+	.language-option:focus-visible {
+		outline: 2px solid var(--color-blue);
+		outline-offset: -2px;
 	}
 
 	.language-option[aria-pressed='true'] {
-		background-color: var(--language-option-selected);
+		background-color: #e8f1ff;
+	}
+
+	.language-option__flag {
+		flex-shrink: 0;
+		width: 28px;
+		height: 28px;
+		border-radius: var(--radius-pill);
+		box-shadow:
+			0 0 0 2px var(--surface-white),
+			0 0 0 3px rgb(11 31 58 / 0.1);
 	}
 
 	.language-option__text {
 		display: flex;
+		flex: 1;
 		flex-direction: column;
+		min-width: 0;
 	}
 
 	/* Figma: Charlie Display Semibold 16/24 → Poppins SemiBold */
 	.language-option__label {
 		font-size: var(--font-size-md);
 		font-weight: var(--font-weight-semibold);
-		line-height: 1.5rem;
-		color: var(--color-white);
+		line-height: 1.375rem;
+	}
+
+	.language-option[aria-pressed='true'] .language-option__label {
+		color: var(--color-blue-title);
 	}
 
 	/* Figma: Charlie Display Regular 14/16 → Poppins Regular */
 	.language-option__region {
 		font-size: var(--font-size-sm);
-		line-height: 1rem;
-		color: var(--language-region);
+		line-height: 1.125rem;
+		color: rgb(11 31 58 / 0.66);
 	}
 
-	/* Bandera de 24px a 22px del borde superior de la opción (Figma) */
-	.language-option__flag {
+	/* ✓ en un círculo azul: solo en la opción elegida */
+	.language-option__check {
+		display: grid;
 		flex-shrink: 0;
-		width: 24px;
-		height: 24px;
-		margin-top: 6px;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
 		border-radius: var(--radius-pill);
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+		opacity: 0;
+		scale: 0.6;
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			scale var(--duration-base) var(--ease-out);
+	}
+
+	.language-option[aria-pressed='true'] .language-option__check {
+		opacity: 1;
+		scale: 1;
 	}
 
 	/* ----- Móvil: centrado en la pantalla ----- */

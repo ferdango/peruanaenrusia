@@ -1,0 +1,323 @@
+---
+/**
+ * VideoModal — reproductor de video con mini reproductor
+ * --------------------------------------------------------------------------
+ * Se abre con cualquier enlace o botón que tenga data-video-open y una fuente:
+ *
+ *   <a href="https://www.youtube.com/watch?v=CODIGO" data-video-open
+ *      data-video-youtube="CODIGO" data-video-title="Título">Ver video</a>
+ *
+ *   (o data-video-src="/videos/archivo.mp4" para un video propio)
+ *
+ * Estados (src/scripts/video-modal.ts):
+ *   - Ampliado: centrado sobre la página, con fondo oscuro y el foco dentro.
+ *   - Minimizado: mini reproductor flotante abajo a la izquierda; el video
+ *     sigue reproduciéndose mientras la persona navega y hace scroll.
+ *   - Cerrado: se quita el reproductor (el video se detiene).
+ *
+ * Clic fuera del video (o "Seguir navegando") lo minimiza; Esc o la X lo
+ * cierran. Sin JavaScript, el enlace abre el video en YouTube.
+ * YouTube se inserta desde youtube-nocookie.com (permitido en la CSP).
+ */
+import Icon from '@components/ui/Icon.astro';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+// ----- Textos -----
+const content = {
+	title: 'Video',
+	minimize: 'Seguir navegando',
+	minimizeHint: 'Minimizar el video y seguir navegando',
+	expand: 'Ampliar el video',
+	close: 'Cerrar el video',
+};
+---
+
+<div class="video-modal" data-video-modal data-state="closed" hidden>
+	<div class="video-modal__backdrop" data-video-minimize aria-hidden="true"></div>
+
+	<div
+		class="video-modal__window"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="video-modal-title"
+		tabindex="-1"
+	>
+		<div class="video-modal__bar">
+			<p class="video-modal__heading">
+				<Star class="video-modal__star" aria-hidden="true" />
+				<span id="video-modal-title" class="video-modal__title" data-video-title>
+					{content.title}
+				</span>
+			</p>
+
+			<div class="video-modal__actions">
+				<button
+					type="button"
+					class="video-modal__button video-modal__button--label"
+					data-video-minimize
+					title={content.minimizeHint}
+				>
+					<Icon name="minimize" size={18} />
+					<span class="video-modal__button-text">{content.minimize}</span>
+				</button>
+				<button
+					type="button"
+					class="video-modal__button"
+					data-video-expand
+					aria-label={content.expand}
+					title={content.expand}
+					hidden
+				>
+					<Icon name="expand" size={18} />
+				</button>
+				<button
+					type="button"
+					class="video-modal__button"
+					data-video-close
+					aria-label={content.close}
+					title={content.close}
+				>
+					<Icon name="close" size={14} />
+				</button>
+			</div>
+		</div>
+
+		<div class="video-modal__frame" data-video-frame></div>
+	</div>
+</div>
+
+<script>
+	import { initVideoModal } from '@scripts/video-modal';
+	initVideoModal();
+</script>
+
+<style>
+	.video-modal {
+		position: fixed;
+		inset: 0;
+		z-index: var(--z-modal);
+		display: grid;
+		place-items: center;
+		padding: var(--space-6) var(--space-4);
+		/* Solo el fondo y la ventana reciben clics */
+		pointer-events: none;
+	}
+
+	.video-modal[hidden] {
+		display: none;
+	}
+
+	/* Mientras el video está ampliado, la página no se desplaza */
+	:global(html.video-modal-open) {
+		overflow: hidden;
+	}
+
+	.video-modal__backdrop {
+		position: absolute;
+		inset: 0;
+		background-color: rgb(6 12 24 / 0.8);
+		backdrop-filter: blur(6px);
+		pointer-events: auto;
+		cursor: zoom-out;
+	}
+
+	.video-modal__window {
+		position: relative;
+		width: min(100%, 64rem);
+		overflow: hidden;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: var(--radius-xl);
+		background-color: #0b1220;
+		box-shadow: 0 2.5rem 5rem -1.5rem rgb(0 0 0 / 0.7);
+		color: var(--color-pure-white);
+		pointer-events: auto;
+		/* Animación entre ampliado y minimizado (View Transitions) */
+		view-transition-name: video-window;
+	}
+
+	.video-modal__window:focus-visible {
+		outline: 2px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+
+	.video-modal__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+	}
+
+	.video-modal__heading {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-width: 0;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.video-modal__star {
+		flex-shrink: 0;
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-yellow);
+	}
+
+	.video-modal__title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.video-modal__actions {
+		display: flex;
+		flex-shrink: 0;
+		gap: var(--space-2);
+	}
+
+	.video-modal__button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		min-width: 2.5rem;
+		height: 2.5rem;
+		padding-inline: var(--space-3);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-pure-white);
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.video-modal__button:hover {
+		background-color: rgb(255 255 255 / 0.2);
+	}
+
+	.video-modal__button:focus-visible {
+		outline: 2px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+
+	.video-modal__button[hidden] {
+		display: none;
+	}
+
+	/* "Seguir navegando" en azul de marca: es la acción que invita a minimizar */
+	.video-modal__button--label {
+		padding-inline: var(--space-4);
+		background-color: var(--color-blue);
+	}
+
+	.video-modal__button--label:hover {
+		background-color: color-mix(in srgb, var(--color-blue) 85%, var(--color-white));
+	}
+
+	.video-modal__frame {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background-color: #000;
+	}
+
+	.video-modal__frame :global(iframe),
+	.video-modal__frame :global(video) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+
+	/* ===== Minimizado: mini reproductor abajo a la izquierda =====
+	   (a la derecha está el botón flotante de WhatsApp) */
+	.video-modal[data-state='mini'] {
+		inset: auto auto max(var(--space-4), env(safe-area-inset-bottom)) var(--space-4);
+		z-index: calc(var(--z-floating) + 10);
+		display: block;
+		padding: 0;
+	}
+
+	.video-modal[data-state='mini'] .video-modal__backdrop {
+		display: none;
+	}
+
+	.video-modal[data-state='mini'] .video-modal__window {
+		width: min(22rem, calc(100vw - 2 * var(--space-4) - 4.5rem));
+		border-radius: var(--radius-lg);
+		box-shadow: 0 1.5rem 3rem -1rem rgb(0 0 0 / 0.65);
+	}
+
+	.video-modal[data-state='mini'] .video-modal__bar {
+		padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+	}
+
+	.video-modal[data-state='mini'] .video-modal__heading {
+		font-size: var(--font-size-xs);
+	}
+
+	.video-modal[data-state='mini'] .video-modal__button {
+		min-width: 2rem;
+		height: 2rem;
+		padding-inline: var(--space-2);
+	}
+
+	/* ===== Animaciones ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.video-modal[data-entering] .video-modal__window {
+			animation: video-modal-in 0.5s var(--ease-out);
+		}
+
+		.video-modal[data-entering] .video-modal__backdrop {
+			animation: video-modal-fade 0.35s var(--ease-out);
+		}
+
+		:global(::view-transition-group(video-window)) {
+			animation-duration: 0.45s;
+			animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+		}
+	}
+
+	@keyframes video-modal-in {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+			scale: 0.94;
+		}
+	}
+
+	@keyframes video-modal-fade {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.video-modal {
+			padding-inline: var(--space-3);
+		}
+
+		.video-modal__window {
+			border-radius: var(--radius-lg);
+		}
+
+		.video-modal__bar {
+			padding-left: var(--space-4);
+		}
+
+		/* En pantallas chicas "Seguir navegando" muestra solo el ícono */
+		.video-modal__button-text {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		.video-modal__button--label {
+			padding-inline: var(--space-3);
+		}
+	}
+</style>

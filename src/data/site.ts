@@ -38,7 +38,7 @@ export const site = {
 
 	// TODO: reemplazar por las URLs reales de las cuentas oficiales.
 	socials: [
-		{ label: 'YouTube', href: 'https://www.youtube.com/', icon: 'youtube' },
+		{ label: 'YouTube', href: 'https://www.youtube.com/@peruanaenrusia', icon: 'youtube' },
 		{ label: 'Instagram', href: 'https://www.instagram.com/', icon: 'instagram' },
 		{ label: 'Facebook', href: 'https://www.facebook.com/', icon: 'facebook' },
 		{ label: 'TikTok', href: 'https://www.tiktok.com/', icon: 'tiktok' },

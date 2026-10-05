@@ -2,62 +2,31 @@
 /**
  * HomeIntro — "Te acompañamos en cada paso de tu camino hacia tu meta"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628097" (1317:194)
- *   · Encabezado: título + párrafo (889:264)
- *   · Tarjetas (1317:193):
- *       1. "Sobre mí" (1317:190): fondo rosado, símbolo de la marca en rojo y
- *          foto recortada de la fundadora.
- *       2. "Te acompañamos…" (1388:4139): foto con la onda naranja de la
- *          marca que pasa POR DETRÁS de la persona (una segunda copia de la
- *          foto, recortada con una máscara, se dibuja encima de la onda).
- * Móvil: Figma UI Mobile › "Frame 628065" (1005:1039): tarjetas apiladas,
- * solo con el botón ▶ centrado.
+ * Figma: Home › "Frame 628097" (1317:194): título + párrafo (889:264) y,
+ * debajo, el video destacado con su portada.
  *
- * El arte de las tarjetas se dibuja con las medidas exactas de Figma
- * expresadas en "píxeles de diseño" (--u) que escalan con el ancho de cada
- * tarjeta (container queries), así la composición nunca se descuadra.
+ * Un solo video, en una tarjeta ancha y cinematográfica: portada real del
+ * video, botón ▶ con pulso, título, canal y duración. La onda naranja y la
+ * estrella de la marca asoman por detrás de la tarjeta.
  *
- * VIDEOS: mientras no existan los videos, el botón ▶ abre el canal de
- * YouTube de la marca (src/data/site.ts → socials).
- *
- * Uso: <HomeIntro /> (página de inicio, después del hero).
+ * Al hacer clic se abre en el modal con mini reproductor
+ * (src/components/overlays/VideoModal.astro): se puede minimizar y seguir
+ * navegando. Sin JavaScript abre YouTube. El video (y su portada) se cambia en
+ * src/data/videos.ts › featuredVideo.
  */
 import { Image } from 'astro:assets';
 
 import Icon from '@components/ui/Icon.astro';
-import { site } from '@data/site';
-import aboutCutout from '@assets/images/home/intro-about-me-cutout.png';
-import storyPhoto from '@assets/images/home/intro-accompaniment-photo.jpg';
-import SymbolShape from '@assets/graphics/shapes/symbol-shape-red.svg';
+import { featuredVideo } from '@data/videos';
 import WaveOrange from '@assets/graphics/waves/wave-orange-intro.svg';
-import FrontMask from '@assets/graphics/shapes/intro-photo-front-mask.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 // ----- Contenido de la sección -----
 const content = {
 	title: 'Te acompañamos en cada paso de tu camino hacia tu meta',
 	text: 'Somos estudiantes peruanos becados en Rusia, que han ganado la beca, estudian y trabajan allá, sabemos todos los pasos a pasar y los errores que no debes cometer.',
-	aboutCard: {
-		label: 'Sobre mí',
-		playLabel: 'Ver el video «Sobre mí» en YouTube',
-	},
-	storyCard: {
-		title: 'Te acompañamos en cada paso de tu camino hacia tu meta',
-		label: 'Sobre mí',
-		playLabel: 'Ver el video «Te acompañamos en cada paso» en YouTube',
-	},
-};
-
-const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
-
-/** Máscara que recorta la "copia delantera" de la foto (hombros sobre la onda) */
-const frontMaskUrl = FrontMask.src;
-
-/** Misma configuración para las dos capas de la foto → el navegador la descarga una sola vez */
-const storyPhotoProps = {
-	src: storyPhoto,
-	alt: '',
-	widths: [640, 1200, 1800],
-	sizes: '(max-width: 640px) 145vw, (max-width: 1512px) 80vw, 1182px',
+	videoLabel: 'Video',
+	watch: 'Ver el video',
 };
 ---
 
@@ -70,56 +39,53 @@ const storyPhotoProps = {
 			<p class="home-intro__text">{content.text}</p>
 		</header>
 
-		<div class="home-intro__cards">
-			<!-- Tarjeta 1: "Sobre mí" -->
-			<article class="intro-card intro-card--about">
-				<div class="intro-card__art" aria-hidden="true">
-					<SymbolShape class="intro-card__symbol" />
-					<Image src={aboutCutout} alt="" width={1080} class="intro-card__cutout" />
-				</div>
+		<div class="home-intro__media">
+			<!-- Recursos de la marca por detrás de la tarjeta (decorativos) -->
+			<WaveOrange class="home-intro__wave" aria-hidden="true" />
+			<Star class="home-intro__star" aria-hidden="true" />
 
-				<a
-					href={youtubeChannel}
-					class="intro-card__play"
-					target="_blank"
-					rel="noopener"
-					aria-label={content.aboutCard.playLabel}
-				>
-					<Icon name="play" size={16} />
-				</a>
+			<a
+				class="intro-video"
+				href={featuredVideo.url}
+				target="_blank"
+				rel="noopener"
+				data-video-open
+				data-video-youtube={featuredVideo.youtubeId}
+				data-video-title={featuredVideo.title}
+			>
+				<Image
+					src={featuredVideo.cover}
+					alt=""
+					widths={[640, 960, 1280]}
+					sizes="(max-width: 1512px) 92vw, 1352px"
+					class="intro-video__cover"
+				/>
+				<span class="intro-video__shade" aria-hidden="true"></span>
 
-				<p class="intro-card__label intro-card__label--strong">{content.aboutCard.label}</p>
-			</article>
+				<span class="intro-video__play" aria-hidden="true">
+					<Icon name="play" size={28} />
+				</span>
 
-			<!-- Tarjeta 2: foto + onda naranja -->
-			<article class="intro-card intro-card--story" style={`--front-mask: url('${frontMaskUrl}')`}>
-				<div class="intro-card__art" aria-hidden="true">
-					<Image {...storyPhotoProps} class="intro-card__photo" />
-					<WaveOrange class="intro-card__wave" />
-					<Image {...storyPhotoProps} class="intro-card__photo intro-card__photo--front" />
-				</div>
-
-				<a
-					href={youtubeChannel}
-					class="intro-card__play"
-					target="_blank"
-					rel="noopener"
-					aria-label={content.storyCard.playLabel}
-				>
-					<Icon name="play" size={16} />
-				</a>
-
-				<div class="intro-card__text">
-					<p class="intro-card__title">{content.storyCard.title}</p>
-					<p class="intro-card__label">{content.storyCard.label}</p>
-				</div>
-			</article>
+				<span class="intro-video__caption">
+					<span class="visually-hidden">{content.watch}:</span>
+					<span class="intro-video__chip">
+						<Icon name="youtube-play" size={16} />
+						{content.videoLabel} · {featuredVideo.duration}
+					</span>
+					<span class="intro-video__title">{featuredVideo.title}</span>
+					<span class="intro-video__channel">{featuredVideo.channel}</span>
+				</span>
+			</a>
 		</div>
 	</div>
 </section>
 
 <style>
 	.home-intro {
+		/* La onda decorativa sobresale de la tarjeta: sin scroll horizontal */
+		overflow-x: clip;
+		/* Más aire arriba: las franjas de lemas se superponen 4.25rem a la sección */
+		padding-top: calc(var(--section-padding-y) + 5.75rem);
 		background-color: var(--surface-dark);
 		color: var(--text-on-dark);
 	}
@@ -149,164 +115,177 @@ const storyPhotoProps = {
 		color: color-mix(in srgb, var(--color-white) 90%, transparent);
 	}
 
-	/* ----- Tarjetas: columnas proporcionales (555 : 769 px en Figma) ----- */
-	.home-intro__cards {
-		display: grid;
-		grid-template-columns: 555fr 769fr;
-		gap: 1.75rem; /* 28px */
-	}
-
-	.intro-card {
+	/* ----- Video ----- */
+	.home-intro__media {
 		position: relative;
 		isolation: isolate;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: space-between;
-		border-radius: var(--radius-2xl); /* 40px */
-		overflow: clip;
-		container-type: inline-size;
 	}
 
-	.intro-card--about {
-		/* 1 "px de diseño" = ancho de la tarjeta / 555 */
-		--u: calc(100cqw / 555);
-
-		aspect-ratio: 555 / 556.159;
-		padding: var(--space-6) var(--space-7); /* 32px 40px */
-		background-color: var(--color-pink-light);
-	}
-
-	.intro-card--story {
-		/* 1 "px de diseño" = ancho de la tarjeta / 769 */
-		--u: calc(100cqw / 769);
-
-		aspect-ratio: 769 / 556;
-		padding: var(--space-7) var(--space-6); /* 40px 32px */
-		background-color: var(--surface-dark-raised);
-	}
-
-	/* ----- Arte de fondo (posiciones de Figma) ----- */
-	.intro-card__art {
+	/* Onda naranja: asoma por arriba a la derecha, detrás de la tarjeta */
+	.home-intro__wave {
 		position: absolute;
-		inset: 0;
 		z-index: -1;
+		top: -14%;
+		right: -6%;
+		width: 52%;
+		height: auto;
+		color: var(--color-orange);
+		transform: rotate(-8deg);
 		pointer-events: none;
 	}
 
-	.intro-card__art > :global(*) {
+	.home-intro__star {
 		position: absolute;
-		max-width: none;
+		z-index: 2;
+		left: -1.25rem;
+		bottom: 12%;
+		width: 2.5rem;
+		height: 2.5rem;
+		color: var(--color-yellow);
+		pointer-events: none;
 	}
 
-	.intro-card__symbol {
-		left: calc(-22.03 * var(--u));
-		top: calc(83.98 * var(--u));
-		width: calc(597.635 * var(--u));
-		height: calc(381.575 * var(--u));
+	.intro-video {
+		position: relative;
+		display: block;
+		overflow: hidden;
+		aspect-ratio: 2 / 1;
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
+		box-shadow: 0 2rem 4rem -2rem rgb(0 0 0 / 0.8);
+		color: var(--color-pure-white);
 	}
 
-	.intro-card__cutout {
-		left: calc(-300.09 * var(--u));
-		top: calc(-508.65 * var(--u));
-		width: calc(1167.933 * var(--u));
-		height: calc(1459.917 * var(--u));
+	.intro-video__cover {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
 		object-fit: cover;
+		object-position: center 38%;
+		transition: scale 0.8s var(--ease-out);
 	}
 
-	.intro-card__photo {
-		left: calc(-83 * var(--u));
-		top: calc(-37.08 * var(--u));
-		width: calc(1182 * var(--u));
-		height: calc(593 * var(--u));
-		object-fit: cover;
+	.intro-video:hover .intro-video__cover {
+		scale: 1.04;
 	}
 
-	/* Onda naranja: rotada y sesgada como en Figma (gira sobre su centro) */
-	.intro-card__wave {
-		left: calc(-14.16 * var(--u));
-		top: calc(-29.1 * var(--u));
-		width: calc(851.525 * var(--u));
-		height: calc(471.048 * var(--u));
-		transform: rotate(21.2deg) skewX(8.54deg);
+	/* Sombra para que el texto se lea sobre cualquier portada */
+	.intro-video__shade {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(to top, rgb(10 14 20 / 0.9) 0%, rgb(10 14 20 / 0.35) 38%, transparent 62%),
+			linear-gradient(to right, rgb(10 14 20 / 0.45) 0%, transparent 45%);
 	}
 
-	/* Copia de la foto recortada: los hombros de la persona tapan la onda */
-	.intro-card__photo--front {
-		-webkit-mask-image: var(--front-mask);
-		mask-image: var(--front-mask);
-		-webkit-mask-repeat: no-repeat;
-		mask-repeat: no-repeat;
-		-webkit-mask-position: calc(415.5 * var(--u)) calc(303 * var(--u));
-		mask-position: calc(415.5 * var(--u)) calc(303 * var(--u));
-		-webkit-mask-size: calc(382.5 * var(--u)) calc(123.5 * var(--u));
-		mask-size: calc(382.5 * var(--u)) calc(123.5 * var(--u));
-	}
-
-	/* ----- Botón ▶ (círculo de 56px + anillo translúcido exterior de 12px) ----- */
-	.intro-card__play {
+	/* Botón ▶: círculo blanco con anillo que late (a la derecha: no tapa a la persona) */
+	.intro-video__play {
+		position: absolute;
+		top: 50%;
+		right: clamp(var(--space-6), 9vw, 10rem);
 		display: grid;
 		place-items: center;
-		flex-shrink: 0;
-		width: 3.5rem; /* 56px */
-		height: 3.5rem;
+		width: clamp(4.5rem, 3.5rem + 3vw, 6.5rem);
+		aspect-ratio: 1;
 		border-radius: var(--radius-pill);
-		background-color: var(--color-white);
-		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		background-color: var(--color-pure-white);
 		color: var(--color-blue);
-		transition: transform var(--duration-base) var(--ease-out);
+		translate: 0 -50%;
+		box-shadow: 0 1rem 2.5rem -0.75rem rgb(0 0 0 / 0.6);
+		transition: scale var(--duration-slow) var(--ease-out);
 	}
 
-	.intro-card__play :global(svg) {
-		flex-shrink: 0;
+	.intro-video__play :global(svg) {
+		margin-left: 0.25rem; /* centro óptico del triángulo */
 	}
 
-	/* Toda la tarjeta es clicable (el enlace se "estira" sobre ella) */
-	.intro-card__play::after {
+	.intro-video__play::before,
+	.intro-video__play::after {
 		content: '';
 		position: absolute;
 		inset: 0;
+		border: 2px solid rgb(255 255 255 / 0.7);
+		border-radius: inherit;
+		opacity: 0;
 	}
 
-	.intro-card:hover .intro-card__play {
-		transform: scale(1.08);
+	.intro-video:hover .intro-video__play {
+		scale: 1.08;
 	}
 
-	/* Foco de teclado: anillo celeste por fuera del anillo translúcido */
-	.intro-card__play:focus-visible {
-		box-shadow:
-			0 0 0 12px rgb(244 244 244 / 0.32),
-			0 0 0 15px var(--color-skyblue);
+	.intro-video:focus-visible {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: 4px;
 	}
 
-	/* ----- Textos ----- */
-	.intro-card__label {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-medium);
-		line-height: 1.5rem; /* 24px */
-		color: var(--text-on-dark-soft);
-	}
-
-	.intro-card__label--strong {
-		font-weight: var(--font-weight-bold);
-		color: var(--text-on-dark);
-	}
-
-	.intro-card__text {
+	/* Título, canal y duración (abajo a la izquierda) */
+	.intro-video__caption {
+		position: absolute;
+		left: clamp(var(--space-5), 4vw, var(--space-9));
+		right: var(--space-5);
+		bottom: clamp(var(--space-5), 3.5vw, var(--space-8));
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-5); /* 24px */
-		max-width: 26.25rem; /* 420px */
+		align-items: flex-start;
+		gap: var(--space-2);
 	}
 
-	.intro-card__title {
-		font-size: 2.25rem; /* 36px */
+	.intro-video__chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.75rem;
+		border: 1px solid rgb(255 255 255 / 0.3);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.14);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.intro-video__chip :global(svg) {
+		color: var(--color-red);
+	}
+
+	.intro-video__title {
+		max-width: 22ch;
+		font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.75rem);
 		font-weight: var(--font-weight-bold);
-		line-height: 2.5rem; /* 40px */
-		color: var(--text-on-dark);
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		text-wrap: balance;
 	}
 
-	/* ===== Tablet: encabezado apilado; tarjetas solo con el botón ▶ ===== */
+	.intro-video__channel {
+		font-size: var(--font-size-sm);
+		color: rgb(255 255 255 / 0.82);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.intro-video__play::before {
+			animation: intro-video-ping 2.6s var(--ease-out) infinite;
+		}
+
+		.intro-video__play::after {
+			animation: intro-video-ping 2.6s 1.3s var(--ease-out) infinite;
+		}
+	}
+
+	@keyframes intro-video-ping {
+		0% {
+			opacity: 0.8;
+			scale: 1;
+		}
+		75%,
+		100% {
+			opacity: 0;
+			scale: 1.7;
+		}
+	}
+
+	/* ===== Tablet: encabezado apilado ===== */
 	@media (max-width: 1100px) {
 		.home-intro__header {
 			flex-direction: column;
@@ -318,21 +297,16 @@ const storyPhotoProps = {
 			flex-basis: auto;
 		}
 
-		.intro-card {
-			align-items: center;
-			justify-content: center;
-		}
-
-		.intro-card__label,
-		.intro-card__text {
-			display: none;
+		.intro-video {
+			aspect-ratio: 16 / 10;
 		}
 	}
 
-	/* ===== Móvil (Figma 1005:1039): tarjetas apiladas ===== */
+	/* ===== Móvil: tarjeta vertical con la persona al centro ===== */
 	@media (max-width: 640px) {
 		.home-intro {
-			padding-block: var(--space-8); /* 48px */
+			/* 48px + lo que se superponen las franjas en móvil (3.25rem) + aire */
+			padding-block: calc(var(--space-8) + 4.75rem) var(--space-8);
 		}
 
 		.home-intro__inner {
@@ -343,23 +317,37 @@ const storyPhotoProps = {
 			line-height: 1.125; /* 36px */
 		}
 
-		.home-intro__cards {
-			grid-template-columns: 100%;
-			gap: var(--space-3); /* 12px */
+		.home-intro__media {
 			/* En el diseño las tarjetas quedan a 12px del borde de la pantalla */
 			margin-inline: calc(-1 * var(--space-1));
 		}
 
-		.intro-card {
-			border-radius: var(--radius-lg); /* 24px */
+		.intro-video {
+			aspect-ratio: 4 / 5;
+			border-radius: var(--radius-lg);
 		}
 
-		.intro-card--about {
-			aspect-ratio: 336 / 321;
+		.intro-video__cover {
+			object-position: 46% center;
 		}
 
-		.intro-card--story {
-			aspect-ratio: 336 / 234.5;
+		/* ▶ en la esquina inferior derecha; el texto le deja espacio */
+		.intro-video__play {
+			top: auto;
+			right: var(--space-5);
+			bottom: var(--space-5);
+			width: 4rem;
+			translate: none;
+		}
+
+		.intro-video__caption {
+			right: 6rem;
+		}
+
+		.home-intro__star {
+			left: -0.5rem;
+			width: 1.75rem;
+			height: 1.75rem;
 		}
 	}
 </style>

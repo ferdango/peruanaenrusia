@@ -7,12 +7,21 @@
  * La página es solo una lista ordenada de secciones. Para agregar, quitar o
  * reordenar bloques, edita esta lista. Cada sección vive en
  * src/components/sections/home/.
+ *
+ * Versión inmersiva (Manual de marca 2025): hero con los tubos degradé de la
+ * marca, franjas con los lemas y movimiento al hacer scroll (apariciones,
+ * parallax, tarjetas con inclinación 3D). El movimiento vive en
+ * src/scripts/home-motion.ts y src/styles/home.css, y solo carga en esta página.
  */
+import '@styles/home.css';
+
 import SiteLayout from '@layouts/SiteLayout.astro';
 import { getFaqs } from '@lib/content';
 import { faqSchema } from '@lib/seo/schema';
 
+import VideoModal from '@components/overlays/VideoModal.astro';
 import HomeHero from '@components/sections/home/HomeHero.astro';
+import HomeMarquee from '@components/sections/home/HomeMarquee.astro';
 import HomeIntro from '@components/sections/home/HomeIntro.astro';
 import HomeFounder from '@components/sections/home/HomeFounder.astro';
 import HomeWhyUs from '@components/sections/home/HomeWhyUs.astro';
@@ -30,8 +39,9 @@ import HomeFaq from '@components/sections/home/HomeFaq.astro';
 const faqs = await getFaqs();
 ---
 
-<SiteLayout jsonLd={[faqSchema(faqs)]}>
+<SiteLayout bodyClass="home" jsonLd={[faqSchema(faqs)]}>
 	<HomeHero />
+	<HomeMarquee />
 	<HomeIntro />
 	<HomeFounder />
 	<HomeWhyUs />
@@ -44,4 +54,13 @@ const faqs = await getFaqs();
 	<HomeCommunityGallery />
 	<HomeStories />
 	<HomeFaq />
+
+	<!-- Reproductor del video destacado (se puede minimizar y seguir navegando) -->
+	<VideoModal />
 </SiteLayout>
+
+<script>
+	// Movimiento del Home: apariciones, parallax, tarjetas 3D y header transparente
+	import { initHomeMotion } from '@scripts/home-motion';
+	initHomeMotion();
+</script>

@@ -5,31 +5,40 @@
  * Figma: Home › "Frame 628098" (1321:46)
  *   · Izquierda (1004:954): título + fotos de estudiantes y "+100 estudiantes
  *     cambiaron sus vidas".
- *   · Derecha (1316:29): carrusel de tarjetas de beneficios (foto con la
- *     composición de la marca + título + texto) y sus controles.
+ *   · Derecha (1316:29): tarjetas de beneficios (foto con la composición de
+ *     la marca + título + texto).
  * Móvil: UI Mobile › "Frame 628098" (1407:1243): título centrado arriba y
- * una tarjeta por vista.
+ * las tarjetas debajo (asoma la siguiente).
+ *
+ * Las tarjetas se deslizan en horizontal con el scroll mientras la sección
+ * cruza la pantalla (src/scripts/home-motion.ts › sliders con scroll,
+ * data-scroll-slider="drift"); no hay flechas ni puntos. Sin JavaScript o con
+ * "reducir movimiento" se deslizan con el dedo.
  *
  * Los beneficios y las fotos de estudiantes vienen de src/data/benefits.ts.
- * El carrusel empieza alineado con la columna derecha y "sangra" hacia el
- * borde derecho de la pantalla, como en el diseño.
+ * La fila empieza alineada con la columna derecha y "sangra" hacia el borde
+ * derecho de la pantalla, como en el diseño.
  *
  * Uso: <HomeWhyUs /> (página de inicio, después de HomeFounder).
  */
 import { Image } from 'astro:assets';
 
-import Carousel from '@components/ui/Carousel.astro';
 import { benefits, studentAvatars } from '@data/benefits';
 
 // ----- Contenido de la sección -----
 const content = {
 	title: '¿Por qué elegir Peruana en Rusia?',
 	socialProof: '+100 estudiantes cambiaron sus vidas',
-	carouselLabel: 'Beneficios de Peruana en Rusia',
+	listLabel: 'Beneficios de Peruana en Rusia',
 };
 ---
 
-<section class="home-why section" id="por-que-elegirnos" aria-labelledby="home-why-title">
+<section
+	class="home-why section"
+	id="por-que-elegirnos"
+	aria-labelledby="home-why-title"
+	data-scroll-slider="drift"
+>
 	<div class="home-why__inner">
 		<header class="home-why__intro">
 			<h2 id="home-why-title" class="home-why__title">
@@ -48,37 +57,42 @@ const content = {
 			</div>
 		</header>
 
-		<div class="home-why__cards">
-			<Carousel label={content.carouselLabel} tone="blue" gap={24} class="home-why__carousel">
+		<div class="home-why__cards" data-slider-viewport>
+			<ul class="home-why__track" role="list" aria-label={content.listLabel} data-slider-track>
 				{benefits.map((benefit) => (
-					<article class="benefit-card">
-						<Image
-							src={benefit.image}
-							alt=""
-							widths={[366, 732]}
-							sizes="(max-width: 640px) 330px, 366px"
-							class="benefit-card__image"
-						/>
-						<div class="benefit-card__body">
-							<h3 class="benefit-card__title">
-								{benefit.title.split('\n').map((line, index) => (
-									<Fragment>
-										{index > 0 && <br />}
-										{line}
-									</Fragment>
-								))}
-							</h3>
-							<p class="benefit-card__text">{benefit.text}</p>
-						</div>
-					</article>
+					<li class="home-why__item" data-slider-item>
+						<article class="benefit-card">
+							<Image
+								src={benefit.image}
+								alt=""
+								widths={[340, 680]}
+								sizes="(max-width: 640px) 300px, 340px"
+								class="benefit-card__image"
+							/>
+							<div class="benefit-card__body">
+								<h3 class="benefit-card__title">
+									{benefit.title.split('\n').map((line, index) => (
+										<Fragment>
+											{index > 0 && <br />}
+											{line}
+										</Fragment>
+									))}
+								</h3>
+								<p class="benefit-card__text">{benefit.text}</p>
+							</div>
+						</article>
+					</li>
 				))}
-			</Carousel>
+			</ul>
 		</div>
 	</div>
 </section>
 
 <style>
 	.home-why {
+		/* Margen interno de la fila: ahí se desvanecen las tarjetas que salen */
+		--why-fade: 2.5rem;
+
 		display: grid;
 		align-content: center;
 		/* Figma: 840px de alto con el contenido centrado */
@@ -93,7 +107,8 @@ const content = {
 		display: grid;
 		grid-template-columns: minmax(0, 31.4375rem) minmax(0, 1fr); /* 503px */
 		align-items: center;
-		column-gap: 7.5rem; /* 120px */
+		/* 120px entre columnas: 80px + 40px de margen interno de la fila (zona de desvanecido) */
+		column-gap: 5rem;
 		/* Margen izquierdo del contenedor estándar; a la derecha no hay margen */
 		padding-left: max(var(--gutter), calc((100% - var(--container-max)) / 2));
 	}
@@ -146,34 +161,55 @@ const content = {
 		line-height: 1.5rem;
 	}
 
-	/* ----- Carrusel ----- */
+	/* ----- Tarjetas ----- */
+	/* Sin slider (sin JavaScript o con "reducir movimiento"): se deslizan con el dedo */
 	.home-why__cards {
 		min-width: 0;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		/* Espacio para que la sombra y la elevación de las tarjetas no se recorten */
+		padding-block: var(--space-3) var(--space-6);
+		padding-left: var(--why-fade);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-6));
 	}
 
-	.home-why :global(.home-why__carousel) {
-		/* La primera tarjeta empieza en el borde de la columna */
-		--carousel-inset: 0px;
-		/* 40px entre las tarjetas y los controles */
-		--carousel-controls-gap: var(--space-7);
+	.home-why__cards::-webkit-scrollbar {
+		display: none;
 	}
 
-	/* Espacio para que la sombra de las tarjetas no se recorte */
-	.home-why :global(.home-why__carousel .carousel__track) {
-		padding-block: var(--space-2) var(--space-4);
-		margin-block: calc(-1 * var(--space-2)) calc(-1 * var(--space-4));
+	.home-why__track {
+		display: flex;
+		gap: var(--space-5); /* 24px */
+		width: max-content;
+		padding-right: var(--gutter);
 	}
 
-	/* Controles centrados bajo las dos primeras tarjetas (columna de 802px) */
-	.home-why :global(.home-why__carousel .carousel__controls) {
-		max-width: 50.125rem; /* 802px */
+	.home-why__item {
+		display: flex;
+		flex-shrink: 0;
+		scroll-snap-align: start;
 	}
 
-	/* ----- Tarjeta de beneficio (366px) ----- */
+	/* Con el slider activo, la fila se desplaza con el scroll (--slider-x) */
+	/* Las tarjetas se desvanecen al salir por la izquierda (sin cortes bruscos) */
+	.home-why:global(.is-scroll-slider) .home-why__cards {
+		overflow: hidden;
+		scroll-snap-type: none;
+		mask-image: linear-gradient(to right, transparent 0, #000 var(--why-fade));
+	}
+
+	.home-why:global(.is-scroll-slider) .home-why__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
+	}
+
+	/* ----- Tarjeta de beneficio (340px) ----- */
 	.benefit-card {
 		display: flex;
 		flex-direction: column;
-		width: 22.875rem; /* 366px */
+		width: 21.25rem; /* 340px */
 		overflow: clip;
 		border-radius: var(--radius-xl); /* 32px */
 		background-color: var(--surface-white);
@@ -183,7 +219,7 @@ const content = {
 
 	.benefit-card__image {
 		width: 100%;
-		aspect-ratio: 366 / 248;
+		aspect-ratio: 16 / 10;
 		object-fit: cover;
 	}
 
@@ -191,21 +227,20 @@ const content = {
 		display: flex;
 		flex: 1;
 		flex-direction: column;
-		gap: var(--space-4); /* 16px */
-		padding: 1.875rem 1.5625rem; /* 30px 25px */
+		gap: var(--space-3); /* 12px */
+		padding: var(--space-5) var(--space-5) var(--space-6); /* 24px 24px 32px */
 	}
 
-	/* Figma: Poppins Bold 24/28 */
+	/* Figma: Poppins Bold 24/28 (algo más compacto) */
 	.benefit-card__title {
-		font-size: var(--font-size-h4);
-		line-height: 1.75rem;
+		font-size: 1.375rem;
+		line-height: 1.625rem;
 		color: var(--text-heading-light);
 		text-wrap: wrap;
 	}
 
 	/* Figma: Poppins Regular 16/24, #363636 */
 	.benefit-card__text {
-		max-width: 19.75rem; /* 316px */
 		font-size: var(--font-size-md);
 		line-height: 1.5rem;
 		color: #363636;
@@ -220,11 +255,6 @@ const content = {
 		.home-why__inner {
 			grid-template-columns: minmax(0, 1fr);
 			row-gap: var(--space-8);
-		}
-
-		.home-why :global(.home-why__carousel .carousel__controls) {
-			max-width: none;
-			padding-right: var(--gutter);
 		}
 	}
 
@@ -255,21 +285,32 @@ const content = {
 			display: none;
 		}
 
-		.home-why :global(.home-why__carousel) {
-			--carousel-inset: var(--gutter);
-			--carousel-controls-gap: 1.75rem; /* 28px */
+		.home-why {
+			--why-fade: var(--gutter);
 		}
 
-		.home-why :global(.home-why__carousel .carousel__controls) {
-			padding-right: 0;
+		.home-why__track {
+			gap: var(--space-3); /* 12px */
 		}
 
+		/* Tarjetas más compactas: asoma la siguiente e invita a seguir */
 		.benefit-card {
-			width: min(20.625rem, 100vw - 2 * var(--gutter)); /* 330px */
+			width: min(18.75rem, 80vw); /* 300px */
+			border-radius: var(--radius-lg);
 		}
 
-		.benefit-card__image {
-			aspect-ratio: 330 / 248;
+		.benefit-card__body {
+			padding: var(--space-4) var(--space-4) var(--space-5);
+		}
+
+		.benefit-card__title {
+			font-size: 1.25rem;
+			line-height: 1.5rem;
+		}
+
+		.benefit-card__text {
+			font-size: 0.9375rem;
+			line-height: 1.4375rem;
 		}
 	}
 </style>

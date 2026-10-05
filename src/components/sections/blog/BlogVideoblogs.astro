@@ -4,8 +4,11 @@
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › Blog (1519:383) › "Frame 628310" (1711:504).
  *
- * Carrusel con todos los videos (src/data/videos.ts), del más reciente al
- * más antiguo. Usa la tarjeta VideoCard en tamaño 320 × 364 px.
+ * Todos los videos (del más reciente al más antiguo) en tarjetas VideoCard de
+ * 320 × 364 px, en una fila que avanza en horizontal con el scroll mientras la
+ * sección cruza la pantalla (src/scripts/motion.ts › data-scroll-slider=
+ * "drift"), sin flechas ni puntos; sin JavaScript se desliza con el dedo.
+ * Cada video se reproduce en el modal del sitio. Botón al canal de YouTube.
  *
  * Tiene el ancla #videoblogs: el ítem "Charlas informativas" del menú
  * lateral y el enlace "← VideoBlogs" de cada video llevan aquí.
@@ -14,43 +17,153 @@
  *   <BlogVideoblogs />
  */
 import VideoCard from '@components/cards/VideoCard.astro';
-import Carousel from '@components/ui/Carousel.astro';
+import Button from '@components/ui/Button.astro';
 import { blogSectionIds } from '@data/blog';
+import { site } from '@data/site';
 import { getVideos } from '@lib/content';
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Videos en YouTube',
 	title: 'Videoblogs',
+	text: 'Recorremos universidades, conversamos con especialistas y te contamos cómo es la vida de un estudiante en Rusia.',
+	cta: 'Ver el canal de YouTube',
+	newTab: '(se abre en una pestaña nueva)',
+	listLabel: 'Todos los videos',
 };
 
 const videos = await getVideos();
+const youtube = site.socials.find((social) => social.icon === 'youtube');
 ---
 
-<section class="blog-videoblogs" id={blogSectionIds.videoblogs} aria-labelledby="blog-videoblogs-title">
-	<h2 id="blog-videoblogs-title" class="blog-videoblogs__title container">
-		{content.title}
-	</h2>
+<section
+	class="blog-videoblogs section"
+	id={blogSectionIds.videoblogs}
+	aria-labelledby="blog-videoblogs-title"
+	data-scroll-slider="drift"
+>
+	<header class="blog-videoblogs__header container">
+		<div class="blog-videoblogs__intro">
+			<p class="blog-videoblogs__eyebrow">{content.eyebrow}</p>
+			<h2 id="blog-videoblogs-title" class="blog-videoblogs__title">
+				{content.title}
+			</h2>
+			<p class="blog-videoblogs__text">{content.text}</p>
+		</div>
+		{youtube && (
+			<Button
+				href={youtube.href}
+				size="md"
+				icon="youtube-play"
+				target="_blank"
+				rel="noopener"
+				class="blog-videoblogs__cta"
+			>
+				{content.cta}
+				<span class="visually-hidden"> {content.newTab}</span>
+			</Button>
+		)}
+	</header>
 
-	<Carousel label={content.title} gap={12}>
-		{videos.map((video) => (
-			<VideoCard video={video} />
-		))}
-	</Carousel>
+	<div class="blog-videoblogs__viewport" data-slider-viewport>
+		<ul class="blog-videoblogs__track" role="list" aria-label={content.listLabel} data-slider-track>
+			{videos.map((video) => (
+				<li class="blog-videoblogs__item" data-slider-item>
+					<VideoCard video={video} modal />
+				</li>
+			))}
+		</ul>
+	</div>
 </section>
 
 <style>
 	.blog-videoblogs {
+		/* Margen del contenido: alinea la primera tarjeta con el texto */
+		--videoblogs-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-5);
-		padding-block: var(--space-9); /* 64px */
-		--carousel-controls-gap: 1.75rem; /* 28px */
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+		overflow: clip;
+	}
+
+	/* ----- Encabezado: texto + botón al canal ----- */
+	.blog-videoblogs__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.blog-videoblogs__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		max-width: 40rem;
+	}
+
+	.blog-videoblogs__eyebrow {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-skyblue);
 	}
 
 	.blog-videoblogs__title {
-		font-size: var(--font-size-h3);
-		line-height: 1.15; /* 32px */
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+	}
+
+	.blog-videoblogs__text {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(244 244 244 / 0.78);
+	}
+
+	.blog-videoblogs :global(.blog-videoblogs__cta) {
+		flex-shrink: 0;
+	}
+
+	/* ----- Fila de videos (se desliza con el dedo sin JavaScript) ----- */
+	.blog-videoblogs__viewport {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--videoblogs-inset);
+		scrollbar-width: none;
+		/* Espacio para la elevación y la sombra de las tarjetas */
+		padding-block: var(--space-3) var(--space-7);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-7));
+	}
+
+	.blog-videoblogs__viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.blog-videoblogs__track {
+		display: flex;
+		gap: var(--space-4);
+		width: max-content;
+		padding-inline: var(--videoblogs-inset);
+	}
+
+	.blog-videoblogs__item {
+		flex-shrink: 0;
+		scroll-snap-align: start;
+	}
+
+	/* Con el slider activo, la fila avanza con el scroll (--slider-x) */
+	.blog-videoblogs:global(.is-scroll-slider) .blog-videoblogs__viewport {
+		overflow: hidden;
+		scroll-snap-type: none;
+	}
+
+	.blog-videoblogs:global(.is-scroll-slider) .blog-videoblogs__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
 	}
 
 	/* Tarjetas de 320 × 364 px con la foto a todo el alto */
@@ -59,23 +172,41 @@ const videos = await getVideos();
 		--video-card-media-height: 22.75rem;
 	}
 
-	/* En el diseño, la fecha va pegada al título (sin el espacio de 8px de la tarjeta) */
-	.blog-videoblogs :global(.video-card__date) {
-		margin-top: calc(-1 * var(--space-2));
-	}
-
-	/* Controles en una fila de 55px (como en Figma) */
-	.blog-videoblogs :global(.carousel__controls) {
-		min-height: 3.4375rem;
+	@media (max-width: 1100px) {
+		.blog-videoblogs__header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
 	}
 
 	@media (max-width: 640px) {
 		.blog-videoblogs {
-			padding-block: var(--space-7);
+			gap: var(--space-6);
+			padding-block: var(--space-9);
+		}
+
+		.blog-videoblogs__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.blog-videoblogs__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.blog-videoblogs__track {
+			gap: var(--space-3);
 		}
 
 		.blog-videoblogs :global(.video-card) {
-			--video-card-width: min(82vw, 20rem);
+			--video-card-width: min(78vw, 18.5rem);
+			--video-card-height: 21rem;
+			--video-card-media-height: 21rem;
+		}
+
+		.blog-videoblogs :global(.blog-videoblogs__cta) {
+			width: 100%;
 		}
 	}
 </style>

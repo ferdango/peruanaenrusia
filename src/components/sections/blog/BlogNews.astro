@@ -2,71 +2,121 @@
 /**
  * BlogNews — "Novedades"
  * --------------------------------------------------------------------------
- * Figma: UI Desktop › Blog (1519:383) › "Frame 628302" (1711:406).
+ * Figma: UI Desktop › Blog (1519:383) › "Novedades" (carrusel de tarjetas
+ * horizontales), con el lenguaje del Home: encabezado con antetítulo y una
+ * cuadrícula de 3 tarjetas (2 en tablet, 1 en móvil), sin flechas ni puntos.
  *
- * Carrusel de tarjetas horizontales con las publicaciones destacadas
- * (videos y artículos con `featured: true`, ver src/data/blog.ts). Las
- * tarjetas de video muestran el botón ▶ y el ícono de YouTube; las de
- * artículos, solo la foto, el título y la fecha.
+ * Publicaciones: las que recibe en `posts` (la página quita la que ya está
+ * destacada en el hero) o, si no recibe, las destacadas de getFeaturedPosts().
+ * Los videos se reproducen en el modal del sitio.
  *
  * Uso: segunda sección de src/pages/blog/index.astro
- *   <BlogNews />
+ *   <BlogNews posts={news} />
  */
 import FeaturedPostCard from '@components/blog/FeaturedPostCard.astro';
-import Carousel from '@components/ui/Carousel.astro';
-import { blogSectionIds } from '@data/blog';
+import { blogSectionIds, type BlogPost } from '@data/blog';
 import { getFeaturedPosts } from '@lib/content';
+
+interface Props {
+	posts?: BlogPost[];
+}
+
+const posts = Astro.props.posts ?? (await getFeaturedPosts());
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Lo último del blog',
 	title: 'Novedades',
+	text: 'Lo más nuevo que publicamos: videos, visitas a universidades y consejos para tu postulación.',
 };
-
-const posts = await getFeaturedPosts();
 ---
 
-<section class="blog-news" id={blogSectionIds.news} aria-labelledby="blog-news-title">
-	<h2 id="blog-news-title" class="blog-news__title container">
-		{content.title}
-	</h2>
+{posts.length > 0 && (
+	<section class="blog-news section" id={blogSectionIds.news} aria-labelledby="blog-news-title">
+		<header class="blog-news__header container">
+			<p class="blog-news__eyebrow">{content.eyebrow}</p>
+			<h2 id="blog-news-title" class="blog-news__title">
+				{content.title}
+			</h2>
+			<p class="blog-news__text">{content.text}</p>
+		</header>
 
-	<Carousel label={content.title} gap={12}>
-		{posts.map((post) => (
-			<FeaturedPostCard post={post} />
-		))}
-	</Carousel>
-</section>
+		<ul class="blog-news__grid container" role="list">
+			{posts.map((post) => (
+				<li class="blog-news__item">
+					<FeaturedPostCard post={post} modal />
+				</li>
+			))}
+		</ul>
+	</section>
+)}
 
 <style>
-	/* `position: relative` hace que la sección se pinte sobre las ondas del hero */
 	.blog-news {
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-5);
-		padding-block: var(--space-9); /* 64px */
-		--carousel-controls-gap: 1.75rem; /* 28px */
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+	}
+
+	.blog-news__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.blog-news__eyebrow {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-skyblue);
 	}
 
 	.blog-news__title {
-		font-size: var(--font-size-h3);
-		line-height: 1.15; /* 32px */
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
 	}
 
-	/* Controles: flechas de 40px en una fila de 55px (como en Figma) */
-	.blog-news :global(.carousel__controls) {
-		min-height: 3.4375rem;
+	.blog-news__text {
+		max-width: 40rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(244 244 244 / 0.78);
 	}
 
-	.blog-news :global(.carousel__arrow) {
-		width: 2.5rem;
-		height: 2.5rem;
+	.blog-news__grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: clamp(var(--space-5), 2vw, var(--space-6));
+	}
+
+	@media (max-width: 1100px) {
+		.blog-news__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
 
 	@media (max-width: 640px) {
 		.blog-news {
-			padding-block: var(--space-7);
-			--featured-card-width: min(85vw, 30rem);
+			gap: var(--space-6);
+			padding-block: var(--space-9);
+		}
+
+		.blog-news__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.blog-news__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.blog-news__grid {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-4);
 		}
 	}
 </style>

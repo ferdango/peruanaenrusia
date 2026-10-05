@@ -1,9 +1,11 @@
 /**
- * Movimiento de la portada (solo Home)
+ * Movimiento de las páginas inmersivas (Home y Blog)
  * --------------------------------------------------------------------------
- * Da vida al Home sin librerías externas:
+ * Da vida a las páginas con body.motion sin librerías externas (cada regla
+ * actúa solo si encuentra sus elementos en la página):
  *
- *   1. (El header transparente sobre el hero es solo CSS: src/styles/home.css.)
+ *   1. (El header transparente sobre el hero es solo CSS: src/styles/motion.css,
+ *      con body.hero-overlay.)
  *   2. Hero: parallax con el puntero (--px / --py) y con el scroll (--hero-scroll).
  *   3. Apariciones al hacer scroll (REVEALS): títulos palabra por palabra,
  *      textos y tarjetas que entran en cascada.
@@ -20,7 +22,7 @@
  *      scroll.
  *
  * Todo se configura en las listas de abajo (selectores de cada sección), sin
- * tocar los componentes. Estilos: src/styles/home.css.
+ * tocar los componentes. Estilos: src/styles/motion.css.
  *
  * Accesibilidad y rendimiento:
  *   - Con "reducir movimiento" no se activa nada: el contenido se ve completo y
@@ -116,6 +118,16 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-stories__text', effect: 'up', delay: 180 },
 	{ selector: '.story-feature', effect: 'clip', delay: 120 },
 	{ selector: '.story-item', effect: 'up', stagger: 100, delay: 200 },
+	// Blog: Novedades y Videoblogs (el hero entra con su propia animación al cargar)
+	{ selector: '.blog-news__eyebrow', effect: 'up' },
+	{ selector: '.blog-news__title', effect: 'words', delay: 80 },
+	{ selector: '.blog-news__text', effect: 'up', delay: 180 },
+	{ selector: '.post-tile', effect: 'up', stagger: 120 },
+	{ selector: '.blog-videoblogs__eyebrow', effect: 'up' },
+	{ selector: '.blog-videoblogs__title', effect: 'words', delay: 80 },
+	{ selector: '.blog-videoblogs__text', effect: 'up', delay: 180 },
+	{ selector: '.blog-videoblogs__cta', effect: 'fade', delay: 300 },
+	{ selector: '.video-card', effect: 'up', stagger: 90 },
 	// Preguntas frecuentes
 	{ selector: '.home-faq__title', effect: 'words' },
 	{ selector: '.faq-video', effect: 'up', delay: 150 },
@@ -157,6 +169,9 @@ const TILT = [
 	'.gallery-photo',
 	'.tiktok-card',
 	'.story-feature',
+	'.post-tile',
+	'.video-card',
+	'.blog-hero__feature',
 ].join(', ');
 
 /* ==========================================================================
@@ -749,10 +764,10 @@ function initUniversityGallery(): void {
    Inicio
    ========================================================================== */
 
-export function initHomeMotion(): void {
+export function initMotion(): void {
 	const root = document.documentElement;
-	if (root.dataset.homeMotion === 'ready') return;
-	root.dataset.homeMotion = 'ready';
+	if (root.dataset.motion === 'ready') return;
+	root.dataset.motion = 'ready';
 
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 

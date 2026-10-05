@@ -6,20 +6,31 @@
  * no tiene una versión móvil del blog: en móvil se adaptan las secciones
  * siguiendo el estilo del resto de páginas móviles.
  *
- * Secciones (src/components/sections/blog/):
- *   1. BlogHero        → "Nuestro Blog"
- *   2. BlogNews        → "Novedades" (publicaciones destacadas)
- *   3. BlogVideoblogs  → "Videoblogs" (#videoblogs, todos los videos)
- *   4. BlogClassics    → "Clásicos" (artículos de texto)
+ * Con el mismo lenguaje que el Home: el header es transparente sobre el hero
+ * (body.hero-overlay) y la página usa el mismo movimiento (body.motion:
+ * src/scripts/motion.ts y src/styles/motion.css): apariciones al hacer
+ * scroll, filas que avanzan con el scroll y videos en el modal.
  *
- * Contenido: src/data/videos.ts y src/data/articles.ts.
+ * Secciones:
+ *   1. BlogHero        → "Nuestro Blog" + la publicación más reciente
+ *   2. BlogNews        → "Novedades" (destacadas, sin la del hero)
+ *   3. BlogVideoblogs  → "Videoblogs" (#videoblogs, todos los videos)
+ *   4. HomeSocial      → "Redes sociales" (videos cortos de TikTok)
+ *   5. BlogClassics    → "Clásicos" (solo si hay artículos marcados)
+ *
+ * Contenido: src/data/videos.ts y src/data/articles.ts (o WordPress).
  */
-import SiteLayout from '@layouts/SiteLayout.astro';
+import '@styles/motion.css';
 
+import SiteLayout from '@layouts/SiteLayout.astro';
+import { getBlogPosts, getFeaturedPosts } from '@lib/content';
+
+import VideoModal from '@components/overlays/VideoModal.astro';
 import BlogHero from '@components/sections/blog/BlogHero.astro';
 import BlogNews from '@components/sections/blog/BlogNews.astro';
 import BlogVideoblogs from '@components/sections/blog/BlogVideoblogs.astro';
 import BlogClassics from '@components/sections/blog/BlogClassics.astro';
+import HomeSocial from '@components/sections/home/HomeSocial.astro';
 
 // ----- Metadatos de la página -----
 const meta = {
@@ -27,11 +38,35 @@ const meta = {
 	description:
 		'Videoblogs, charlas informativas y artículos para estudiar en Rusia: historias, consejos y todo lo que necesitas saber antes de viajar.',
 };
+
+/** Cuántas publicaciones muestra "Novedades" */
+const NEWS_COUNT = 3;
+
+// La más reciente va destacada en el hero; "Novedades" muestra las destacadas
+// sin esa (y, si faltan, las siguientes más recientes)
+const posts = await getBlogPosts();
+const [latest] = posts;
+const featured = (await getFeaturedPosts()).filter((post) => post.slug !== latest?.slug);
+const featuredSlugs = new Set(featured.map((post) => post.slug));
+const news = [
+	...featured,
+	...posts.filter((post) => post.slug !== latest?.slug && !featuredSlugs.has(post.slug)),
+].slice(0, NEWS_COUNT);
 ---
 
-<SiteLayout title={meta.title} description={meta.description}>
-	<BlogHero />
-	<BlogNews />
+<SiteLayout title={meta.title} description={meta.description} bodyClass="blog motion hero-overlay">
+	<BlogHero featured={latest} />
+	<BlogNews posts={news} />
 	<BlogVideoblogs />
+	<HomeSocial />
 	<BlogClassics />
+
+	<!-- Reproductor de los videos (se puede minimizar y seguir navegando) -->
+	<VideoModal />
 </SiteLayout>
+
+<script>
+	// Movimiento compartido con el Home: apariciones, filas con el scroll, tarjetas 3D
+	import { initMotion } from '@scripts/motion';
+	initMotion();
+</script>

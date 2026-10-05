@@ -3,7 +3,7 @@
 El modal **"Inicia sesión o regístrate en segundos"** ofrece dos formas de entrar al portal del estudiante, ambas sin contraseñas:
 
 1. **"Usa tu cuenta de Google"** → OAuth 2.0 / OpenID Connect con Google.
-2. **"Continuar manualmente"** → un código de 6 dígitos que llega al correo.
+2. **"Continuar con mi correo"** → un código de 6 dígitos que llega al correo.
 
 Las dos entran a la **misma cuenta** si usan el mismo correo.
 
@@ -106,7 +106,7 @@ npm run dev
 ```
 
 1. Abre <http://localhost:4321/?login=1>.
-2. "Continuar manualmente" → escribe un correo → (cuenta nueva) escribe tu nombre.
+2. "Continuar con mi correo" → escribe un correo → (cuenta nueva) escribe tu nombre.
 3. Copia el código que aparece en la terminal y escríbelo: entrarás al portal.
 
 Para revisar el diseño del portal sin iniciar sesión: `PORTAL_DEMO=true` en `.env` (**nunca en producción**).

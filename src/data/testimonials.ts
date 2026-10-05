@@ -31,6 +31,8 @@ import stepPortrait from '@assets/images/testimonials/case-step-portrait-red-swe
 import stepStudentPhone from '@assets/images/testimonials/case-step-student-phone.jpg';
 import galleryEconomicForum from '@assets/images/testimonials/case-gallery-economic-forum.jpg';
 import galleryRedSquare from '@assets/images/testimonials/case-gallery-red-square.jpg';
+import successCaseCover from '@assets/images/videos/caso-de-exito-becado-en-rusia.jpg';
+import studentTruthCover from '@assets/images/social/tiktok-7635277713447767317.jpg';
 
 /** Foto con su texto alternativo (describe lo que se ve en la imagen) */
 export interface TestimonialPhoto {
@@ -153,6 +155,28 @@ const exampleCase: Omit<Testimonial, 'slug'> = {
 	closing: {
 		quote: 'Es increíble el cambio en mi vida, no me esperaba poder llegar hasta aquí',
 		text: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur g elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur.',
+	},
+};
+
+/**
+ * Historias en video (reales) de "Nuestros casos de éxito" en el Home:
+ * el caso de éxito del canal de YouTube y el testimonio de un alumno en
+ * TikTok. Se reproducen en el modal del sitio.
+ */
+export const successVideos = {
+	youtube: {
+		youtubeId: 'A_tz23sIFXk',
+		title: 'Caso de éxito: becado en Rusia gracias a Peruana en Rusia',
+		kicker: 'Caso de éxito',
+		duration: '1:21',
+		cover: successCaseCover,
+	},
+	tiktok: {
+		tiktokId: '7635277713447767317',
+		title: '¿Es seguro estudiar en Rusia? Un alumno cuenta su experiencia',
+		kicker: 'Testimonio',
+		views: '93,4 mil',
+		cover: studentTruthCover,
 	},
 };
 

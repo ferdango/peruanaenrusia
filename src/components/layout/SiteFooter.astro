@@ -10,6 +10,7 @@
  *   ～～～～ líneas planas de la marca (se dibujan con el scroll) ～～～～
  *   [Logo] texto + redes      Explora · enlaces      Contacto · teléfono…
  *   Copyright © … · RUC              🇵🇪 · · · 🇷🇺   📖 Libro de reclamaciones
+ *                       Diseñado por [Wuality] (enlace a wuality.agency)
  *
  * - Fondo azul profundo de la marca (contraste AA con el texto blanco).
  * - Las líneas (src/assets/graphics/waves/brand-lines.svg) se dibujan
@@ -31,6 +32,7 @@ import Star from '@assets/graphics/stars/star-4-point.svg';
 import FlagPe from '@assets/graphics/flags/pe.svg';
 import FlagRu from '@assets/graphics/flags/ru.svg';
 import flagPe from '@assets/images/flags/pe.png';
+import wualityLogo from '@assets/graphics/credits/wuality-logo.webp';
 
 // ----- Textos -----
 const content = {
@@ -43,6 +45,11 @@ const content = {
 	contactTitle: 'Contacto',
 	route: 'Del Perú a Rusia',
 	complaints: 'Libro de reclamaciones',
+	credit: {
+		label: 'Diseñado por',
+		name: 'Wuality',
+		href: 'https://wuality.agency/',
+	},
 };
 
 const year = new Date().getFullYear();
@@ -187,6 +194,21 @@ const year = new Date().getFullYear();
 			{content.complaints}
 		</a>
 	</div>
+
+	<!-- Crédito del diseño: Wuality (agencia) -->
+	<div class="site-footer__credit container">
+		<a
+			href={content.credit.href}
+			class="site-footer__credit-link"
+			target="_blank"
+			rel="noopener"
+			aria-label={`${content.credit.label} ${content.credit.name} ${content.newTab}`}
+		>
+			<span class="site-footer__credit-label">{content.credit.label}</span>
+			<Image src={wualityLogo} alt="" width={104} densities={[1, 2]} class="site-footer__credit-logo" />
+			<Icon name="external-link" size={14} class="site-footer__credit-icon" />
+		</a>
+	</div>
 </footer>
 
 <script>
@@ -248,7 +270,7 @@ const year = new Date().getFullYear();
 	}
 
 	.site-footer__star--pink {
-		bottom: clamp(8rem, 12vw, 10rem);
+		bottom: clamp(12rem, 16vw, 14rem);
 		left: clamp(1rem, 3vw, 3rem);
 		width: 1rem;
 		color: var(--color-pink);
@@ -521,6 +543,73 @@ const year = new Date().getFullYear();
 		color: var(--color-yellow);
 	}
 
+	/* ===== Crédito: "Diseñado por Wuality" (píldora de vidrio con el logo) ===== */
+	.site-footer__credit {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--space-5);
+	}
+
+	.site-footer__credit-link {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: 0.5rem 0.875rem 0.5rem 1.125rem;
+		overflow: hidden;
+		border: 1px solid rgb(255 255 255 / 0.22);
+		border-radius: var(--radius-pill);
+		background-color: rgb(4 18 48 / 0.32);
+		backdrop-filter: blur(10px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgb(255 255 255 / 0.78);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			background-color var(--duration-base) var(--ease-out),
+			translate var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+
+	/* Brillo que cruza la píldora al pasar el cursor */
+	.site-footer__credit-link::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.22) 50%, transparent 70%);
+		translate: -120% 0;
+		transition: translate 0.8s var(--ease-out);
+		pointer-events: none;
+	}
+
+	.site-footer__credit-link:hover {
+		border-color: rgb(255 255 255 / 0.5);
+		background-color: rgb(4 18 48 / 0.5);
+		box-shadow: 0 0.75rem 2rem -0.75rem rgb(255 56 50 / 0.55);
+		translate: 0 -2px;
+	}
+
+	.site-footer__credit-link:hover::before {
+		translate: 120% 0;
+	}
+
+	.site-footer__credit-logo {
+		display: block;
+		width: 6.5rem; /* 104px */
+		height: auto;
+	}
+
+	.site-footer__credit-link :global(.site-footer__credit-icon) {
+		color: rgb(255 255 255 / 0.6);
+		transition: translate var(--duration-base) var(--ease-out);
+	}
+
+	.site-footer__credit-link:hover :global(.site-footer__credit-icon) {
+		translate: 2px -2px;
+	}
+
 	/* ===== Movimiento (sin "reducir movimiento") ===== */
 	@media (prefers-reduced-motion: no-preference) {
 		.site-footer__tube {
@@ -623,6 +712,16 @@ const year = new Date().getFullYear();
 		.site-footer__star--sky {
 			top: 8rem;
 			right: 1rem;
+		}
+
+		/* Abajo no hay espacio libre: pisaría el copyright */
+		.site-footer__star--pink {
+			display: none;
+		}
+
+		/* A la izquierda, lejos del botón flotante de WhatsApp */
+		.site-footer__credit {
+			justify-content: flex-start;
 		}
 
 		.site-footer__actions {

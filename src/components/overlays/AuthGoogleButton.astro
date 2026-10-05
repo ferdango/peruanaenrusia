@@ -2,8 +2,8 @@
 /**
  * AuthGoogleButton — botón "Usa tu cuenta de Google"
  * --------------------------------------------------------------------------
- * Figma: "Modal Login" › botón de Google (1797:4355): borde gris, logo de
- * Google de 28px a la izquierda y texto a 36px del logo.
+ * Figma: "Modal Login" › botón de Google (1797:4355): borde gris y logo de
+ * Google de 28px a la izquierda; el texto va centrado.
  *
  * Es un enlace a /api/auth/google/ (inicio de sesión con Google resuelto en
  * el servidor, ver src/lib/server/google.ts). src/scripts/auth-flow.ts le
@@ -27,31 +27,40 @@ const label = 'Usa tu cuenta de Google';
 </a>
 
 <style>
-	/* Figma: alto 52px, padding 12/16 (borde interior), radio 12px, gap 36px */
+	/* Figma: alto 52px, radio 12px y logo de 28px a la izquierda; el texto va centrado
+	   (igual que "Continuar con mi correo") */
 	.auth-google {
+		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 2.25rem;
+		justify-content: center;
 		width: 100%;
 		min-height: 3.25rem;
-		padding: calc(var(--space-3) - 1px) calc(var(--space-4) - 1px);
-		border: 1px solid color-mix(in srgb, var(--color-black) 40%, transparent);
+		padding: calc(var(--space-3) - 1px) calc(var(--space-4) + 28px);
+		border: 1px solid color-mix(in srgb, var(--color-black) 22%, transparent);
 		border-radius: var(--radius-md);
-		background-color: transparent;
+		background-color: var(--surface-white);
+		box-shadow: 0 1px 2px rgb(23 26 26 / 0.04);
 		/* Figma: Circular Std Medium 15/20 → Poppins Medium */
 		font-size: var(--font-size-nav);
 		font-weight: var(--font-weight-medium);
 		line-height: 1.25rem;
 		color: var(--text-on-light);
-		text-align: left;
+		text-align: center;
 		transition:
 			background-color var(--duration-base) var(--ease-out),
-			border-color var(--duration-base) var(--ease-out);
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-base) var(--ease-out);
 	}
 
 	.auth-google:hover {
-		border-color: color-mix(in srgb, var(--color-black) 64%, transparent);
-		background-color: color-mix(in srgb, var(--color-black) 4%, transparent);
+		border-color: color-mix(in srgb, var(--color-black) 45%, transparent);
+		box-shadow: 0 0.5rem 1.25rem -0.75rem rgb(23 26 26 / 0.35);
+	}
+
+	.auth-google:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 2px;
 	}
 
 	/* Mientras se redirige a Google */
@@ -62,10 +71,13 @@ const label = 'Usa tu cuenta de Google';
 
 	/* Recuadro de 28 × 28 px con el logo centrado (Figma: "material-icon-theme:google") */
 	.auth-google__logo {
+		position: absolute;
+		top: 50%;
+		left: calc(var(--space-4) - 1px);
 		display: grid;
-		flex-shrink: 0;
 		place-items: center;
 		width: 28px;
 		height: 28px;
+		translate: 0 -50%;
 	}
 </style>

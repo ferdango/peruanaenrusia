@@ -13,6 +13,10 @@
  *   4. Ondas roja y celeste.
  *   5. Estrella de marca en un círculo blanco.
  *
+ * Al abrir el modal la foto se acerca, las ondas (trazos con pathLength
+ * 100) se dibujan y la estrella flota y gira despacio. Con "reducir
+ * movimiento" todo queda quieto.
+ *
  * Si el contenedor es más angosto que 419 px (tablet) la composición se
  * centra y se recorta por los lados. Es decorativa: aria-hidden.
  *
@@ -146,5 +150,71 @@ import StarBadge from '@assets/graphics/stars/star-badge-red.svg';
 		top: 400px;
 		width: 74px;
 		height: 74px;
+	}
+
+	.auth-art__star :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	/* ----- Movimiento al abrir el modal ----- */
+	@media (prefers-reduced-motion: no-preference) {
+		:global(.auth-modal[open]) .auth-art__photo {
+			animation: auth-art-photo 1.4s var(--ease-out) both;
+		}
+
+		:global(.auth-modal[open]) .auth-art__wave :global(.brand-line) {
+			stroke-dasharray: 100 100;
+			animation: auth-art-draw 1.3s var(--ease-out) 0.3s both;
+		}
+
+		:global(.auth-modal[open]) .auth-art__wave--skyblue :global(.brand-line) {
+			animation-delay: 0.5s;
+		}
+
+		:global(.auth-modal[open]) .auth-art__star {
+			animation: auth-art-float 6s ease-in-out 0.8s infinite;
+		}
+
+		:global(.auth-modal[open]) .auth-art__star :global(svg) {
+			animation:
+				auth-art-pop 0.7s var(--ease-out) 0.6s both,
+				auth-art-spin 28s linear 1.3s infinite;
+		}
+	}
+
+	@keyframes auth-art-photo {
+		from {
+			scale: 1.08;
+		}
+	}
+
+	@keyframes auth-art-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes auth-art-float {
+		50% {
+			translate: 0 -8px;
+		}
+	}
+
+	@keyframes auth-art-pop {
+		from {
+			opacity: 0;
+			scale: 0.4;
+		}
+	}
+
+	@keyframes auth-art-spin {
+		to {
+			rotate: 360deg;
+		}
 	}
 </style>

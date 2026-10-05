@@ -98,12 +98,18 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.contact-split__cta', effect: 'fade', delay: 450 },
 	{ selector: '.contact-split__media', effect: 'clip' },
 	// Casos de éxito
-	{ selector: '.home-cases__title', effect: 'words' },
-	{ selector: '.home-cases__subtitle', effect: 'up', delay: 150 },
+	{ selector: '.home-cases__eyebrow', effect: 'up' },
+	{ selector: '.home-cases__title', effect: 'words', delay: 80 },
+	{ selector: '.home-cases__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.home-cases__stat', effect: 'up', stagger: 100, delay: 260 },
+	{ selector: '.case-video', effect: 'clip', stagger: 160 },
 	{ selector: '.testimonial-card', effect: 'scale', stagger: 80 },
-	// Comunidad
-	{ selector: '.home-community__title', effect: 'words' },
-	{ selector: '.community-photo', effect: 'clip', stagger: 90 },
+	// Comunidad (mosaico de momentos)
+	{ selector: '.home-community__eyebrow', effect: 'up' },
+	{ selector: '.home-community__title', effect: 'words', delay: 80 },
+	{ selector: '.home-community__text', effect: 'up', delay: 180 },
+	{ selector: '.moment__card', effect: 'clip', stagger: 90 },
+	{ selector: '.home-community__join', effect: 'up', delay: 200 },
 	{ selector: '.home-gallery__title', effect: 'words' },
 	{ selector: '.gallery-photo', effect: 'up', stagger: 100 },
 	// Redes sociales (TikTok)
@@ -129,9 +135,12 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.blog-videoblogs__cta', effect: 'fade', delay: 300 },
 	{ selector: '.video-card', effect: 'up', stagger: 90 },
 	// Preguntas frecuentes
-	{ selector: '.home-faq__title', effect: 'words' },
-	{ selector: '.faq-video', effect: 'up', delay: 150 },
+	{ selector: '.home-faq__eyebrow', effect: 'up' },
+	{ selector: '.home-faq__title', effect: 'words', delay: 80 },
+	{ selector: '.home-faq__text', effect: 'up', delay: 180 },
 	{ selector: '.faq-item', effect: 'up', stagger: 80 },
+	{ selector: '.faq-video', effect: 'up', delay: 120 },
+	{ selector: '.faq-help', effect: 'up', delay: 220 },
 	// Flechas y puntos de todos los carruseles
 	{ selector: '#contenido .carousel__controls', effect: 'fade', delay: 250 },
 ];
@@ -164,8 +173,8 @@ const TILT = [
 	'.intro-video',
 	'.benefit-card',
 	'.step-card__inner',
-	'.testimonial-card',
-	'.community-photo',
+	'.case-video',
+	'.moment__card',
 	'.gallery-photo',
 	'.tiktok-card',
 	'.story-feature',

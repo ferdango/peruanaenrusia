@@ -2,18 +2,21 @@
 /**
  * TestimonialCard
  * --------------------------------------------------------------------------
- * Tarjeta de caso de éxito: foto, bandera, nombre, carrera, cita y botón
- * "Ver caso de éxito" (Figma: "Nuestros casos de éxito").
+ * Tarjeta de caso de éxito (Figma: "Nuestros casos de éxito"), con el
+ * lenguaje del Manual de marca 2025: comillas de la marca, la cita destacada
+ * y, abajo, la persona (foto con anillo degradé y su bandera), su carrera y
+ * el enlace "Ver su historia". Toda la tarjeta es clicable.
  *
- * Al pasar el cursor (o con el foco del teclado) la tarjeta se "activa":
- * fondo gris, comillas azules y botón destacado, como en el diseño.
+ * Al pasar el cursor (o con el foco del teclado) la tarjeta se eleva, el
+ * borde se ilumina con el degradé de la marca y la flecha avanza.
+ *
+ * Ancho: --testimonial-card-width desde la sección que la usa.
  *
  * Uso:
  *   <TestimonialCard testimonial={testimonial} />
  */
 import { Image } from 'astro:assets';
 
-import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
 import { countries } from '@data/countries';
@@ -29,143 +32,236 @@ interface Props {
 const { testimonial, headingLevel: Heading = 'h3', class: className } = Astro.props;
 const country = countries[testimonial.country];
 const href = detailRoutes.successCase(testimonial.slug);
+
+// ----- Textos -----
+const content = {
+	more: 'Ver su historia',
+};
 ---
 
 <article class:list={['testimonial-card', className]}>
-	<header class="testimonial-card__header">
-		<div class="testimonial-card__images">
-			<MediaImage
-				image={testimonial.avatar}
-				alt=""
-				width={56}
-				height={56}
-				class="testimonial-card__avatar"
-			/>
-			<Image
-				src={country.flag}
-				alt={country.name}
-				width={40}
-				height={40}
-				class="testimonial-card__flag"
-			/>
-		</div>
-
-		<div class="testimonial-card__person">
-			<Heading class="testimonial-card__name">{testimonial.name}</Heading>
-			<p class="testimonial-card__role">{testimonial.role}</p>
-		</div>
-	</header>
-
-	<Icon name="quote" width={14} height={16} class="testimonial-card__quote-icon" />
+	<Icon name="quote" width={28} height={32} class="testimonial-card__quote-icon" />
 
 	<blockquote class="testimonial-card__quote">
 		<p>{testimonial.quote}</p>
 	</blockquote>
 
-	<Button href={href} size="md" block class="testimonial-card__button">
-		Ver caso de éxito
-		<span class="visually-hidden"> de {testimonial.name}</span>
-	</Button>
+	<footer class="testimonial-card__footer">
+		<div class="testimonial-card__person">
+			<span class="testimonial-card__avatar-ring">
+				<MediaImage
+					image={testimonial.avatar}
+					alt=""
+					width={56}
+					height={56}
+					class="testimonial-card__avatar"
+				/>
+				<Image
+					src={country.flag}
+					alt={country.name}
+					width={22}
+					height={22}
+					densities={[1, 2]}
+					class="testimonial-card__flag"
+				/>
+			</span>
+			<div class="testimonial-card__who">
+				<Heading class="testimonial-card__name">{testimonial.name}</Heading>
+				<p class="testimonial-card__role">{testimonial.role}</p>
+			</div>
+		</div>
+
+		<a href={href} class="testimonial-card__link">
+			{content.more}
+			<span class="visually-hidden"> de {testimonial.name}</span>
+			<span class="testimonial-card__arrow" aria-hidden="true">
+				<Icon name="arrow-right" size={16} />
+			</span>
+		</a>
+	</footer>
 </article>
 
 <style>
 	.testimonial-card {
+		position: relative;
+		isolation: isolate;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
 		width: var(--testimonial-card-width, 20.375rem); /* 326px */
-		padding: 1.75rem var(--space-5); /* 28px 24px */
-		border: 1px solid var(--border-on-dark);
-		border-radius: var(--radius-lg);
-		background-color: transparent;
+		height: 100%;
+		padding: var(--space-6);
+		border: 1px solid rgb(255 255 255 / 0.1);
+		border-radius: var(--radius-xl);
+		background: linear-gradient(160deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
 		color: var(--text-on-dark);
 		transition:
-			background-color var(--duration-base) var(--ease-out),
-			border-color var(--duration-base) var(--ease-out);
+			border-color var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
 	}
 
-	/* ----- Encabezado ----- */
-	.testimonial-card__header {
+	/* Borde con el degradé de la marca (aparece al activarse) */
+	.testimonial-card::before {
+		content: '';
+		position: absolute;
+		inset: -1px;
+		z-index: -1;
+		padding: 1px;
+		border-radius: inherit;
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue) 45%, var(--color-red));
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#000 0 0) content-box exclude,
+			linear-gradient(#000 0 0);
+		opacity: 0;
+		transition: opacity var(--duration-slow) var(--ease-out);
+	}
+
+	/* ----- Cita ----- */
+	.testimonial-card__quote-icon {
+		color: var(--color-blue-2);
+		transition: color var(--duration-slow) var(--ease-out);
+	}
+
+	.testimonial-card__quote {
+		flex: 1;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.75rem;
+		color: rgb(244 244 244 / 0.92);
+	}
+
+	/* ----- Persona + enlace ----- */
+	.testimonial-card__footer {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
+		padding-top: var(--space-4);
+		border-top: 1px solid rgb(255 255 255 / 0.1);
 	}
 
-	.testimonial-card__images {
+	.testimonial-card__person {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		gap: var(--space-3);
+	}
+
+	/* Foto con anillo degradé y la bandera en la esquina */
+	.testimonial-card__avatar-ring {
+		position: relative;
+		flex-shrink: 0;
+		padding: 2px;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-red));
 	}
 
 	.testimonial-card__avatar {
-		width: 56px;
-		height: 56px;
+		display: block;
+		width: 3.25rem;
+		height: 3.25rem;
+		border: 2px solid var(--surface-dark);
 		border-radius: var(--radius-pill);
 		object-fit: cover;
 	}
 
 	.testimonial-card__flag {
-		width: 40px;
-		height: 40px;
+		position: absolute;
+		right: -0.25rem;
+		bottom: -0.125rem;
+		width: 1.375rem;
+		height: 1.375rem;
+		border: 2px solid var(--surface-dark);
 		border-radius: var(--radius-pill);
 	}
 
-	.testimonial-card__person {
+	.testimonial-card__who {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-1);
+		gap: 0.125rem;
+		min-width: 0;
 	}
 
 	.testimonial-card__name {
 		font-size: var(--font-size-md);
 		font-weight: var(--font-weight-bold);
-		line-height: 1.5rem;
-		color: var(--text-on-dark-soft);
+		line-height: 1.375rem;
+		color: var(--color-pure-white);
 	}
 
 	.testimonial-card__role {
 		font-size: var(--font-size-sm);
-		line-height: 1.125rem;
+		line-height: 1.25rem;
 		color: var(--text-on-dark-muted);
 	}
 
-	/* ----- Cita ----- */
-	.testimonial-card__quote-icon {
-		color: rgb(244 244 244 / 0.16);
-		transition: color var(--duration-base) var(--ease-out);
+	.testimonial-card__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		width: fit-content;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
 	}
 
-	.testimonial-card__quote {
-		margin-bottom: var(--space-4); /* 16 + 16 = 32px hasta el botón */
-		font-size: var(--font-size-lg);
-		line-height: 1.75rem;
+	.testimonial-card__arrow {
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.12);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			translate var(--duration-base) var(--ease-out);
 	}
 
-	/* ----- Botón: atenuado hasta que la tarjeta se activa ----- */
-	.testimonial-card :global(.testimonial-card__button) {
-		opacity: 0.4;
+	/* Toda la tarjeta es clicable */
+	.testimonial-card__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		border-radius: var(--radius-xl);
 	}
 
-	/* ----- Estado activo (hover / foco) ----- */
+	.testimonial-card__link:focus-visible {
+		outline: none;
+	}
+
+	/* ----- Estado activo (cursor o foco) ----- */
 	.testimonial-card:hover,
-	.testimonial-card:focus-within {
-		background-color: var(--surface-dark-raised);
+	.testimonial-card:has(.testimonial-card__link:focus-visible) {
 		border-color: transparent;
+		box-shadow: 0 2rem 3.5rem -2rem rgb(0 0 0 / 0.85);
+		translate: 0 -4px;
 	}
 
-	.testimonial-card:hover .testimonial-card__quote-icon,
-	.testimonial-card:focus-within .testimonial-card__quote-icon {
-		color: var(--color-blue-2);
-	}
-
-	.testimonial-card:hover :global(.testimonial-card__button),
-	.testimonial-card:focus-within :global(.testimonial-card__button) {
+	.testimonial-card:hover::before,
+	.testimonial-card:has(.testimonial-card__link:focus-visible)::before {
 		opacity: 1;
-		background-color: var(--surface-dark);
-		border-color: var(--border-on-dark-strong);
+	}
+
+	.testimonial-card:hover .testimonial-card__quote-icon {
+		color: var(--color-skyblue);
+	}
+
+	.testimonial-card:hover .testimonial-card__arrow,
+	.testimonial-card:has(.testimonial-card__link:focus-visible) .testimonial-card__arrow {
+		background-color: var(--color-blue);
+		translate: 0.25rem 0;
 	}
 
 	@media (max-width: 640px) {
+		.testimonial-card {
+			padding: var(--space-5);
+			border-radius: var(--radius-lg);
+		}
+
 		.testimonial-card__quote {
 			font-size: var(--font-size-md);
 			line-height: 1.625rem;

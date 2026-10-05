@@ -32,7 +32,7 @@ Para hostings estáticos hay copias en `public/.htaccess` y `public/_headers` (m
 Astro genera la política de cada página (`astro.config.mjs → security.csp`) con los **hashes** de sus scripts y estilos: el navegador solo ejecuta el código del sitio. Orígenes externos permitidos:
 
 - Imágenes: WordPress (si está configurado), miniaturas de YouTube y avatares de Gravatar.
-- Iframes: `youtube-nocookie.com` (videos del blog, sin cookies de seguimiento).
+- Iframes: `youtube-nocookie.com` (videos del blog, sin cookies de seguimiento) y `www.tiktok.com` (reproductor oficial de TikTok de la sección "Redes sociales"; solo se carga cuando la persona pulsa un video).
 - Formularios: el propio sitio y `accounts.google.com` (inicio de sesión).
 
 **Reglas al programar**: no uses `<script is:inline>` con código ni atributos `onclick=`; escribe los scripts en `<script>` normales o en `src/scripts/`. Las variables CSS en el atributo `style` están permitidas. Si agregas un servicio externo (analítica, chat…), agrega su dominio a la CSP en `astro.config.mjs` y cárgalo solo con consentimiento de cookies.

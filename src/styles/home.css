@@ -1,0 +1,302 @@
+/**
+ * Home · movimiento e interacción
+ * --------------------------------------------------------------------------
+ * Complemento de src/scripts/home-motion.ts. Solo se carga en la portada
+ * (src/pages/index.astro) y todo cuelga de body.home, así que no afecta al
+ * resto del sitio.
+ *
+ * Los estados ocultos (antes de aparecer) dependen de html.reveal-ready, que
+ * agrega el script: sin JavaScript o con "reducir movimiento" el contenido se
+ * ve completo y quieto. Las apariciones usan @keyframes (no transition) para
+ * no pisar las transiciones propias de cada componente.
+ */
+
+/* ==========================================================================
+   Header transparente sobre el hero
+   --------------------------------------------------------------------------
+   Animación ligada al scroll (solo CSS, sin parpadeo al cargar): transparente
+   arriba y oscuro con desenfoque tras los primeros 4rem. Los navegadores sin
+   animation-timeline (ej. Firefox) muestran el header oscuro de siempre.
+   ========================================================================== */
+
+@supports (animation-timeline: scroll()) {
+	body.home .site-header {
+		animation: home-header-solid linear both;
+	}
+
+	/* En una regla aparte (más específica): el minificador fusionaría
+	   animation-timeline dentro del atajo "animation" y Chrome lo descarta */
+	body.home header.site-header {
+		animation-timeline: scroll(root);
+		animation-range: 0 4rem;
+	}
+}
+
+@keyframes home-header-solid {
+	from {
+		background-color: rgb(23 26 26 / 0);
+		backdrop-filter: blur(0) saturate(1);
+		box-shadow: 0 1px 0 rgb(255 255 255 / 0);
+	}
+	to {
+		background-color: rgb(23 26 26 / 0.84);
+		backdrop-filter: blur(16px) saturate(1.4);
+		box-shadow: 0 1px 0 rgb(255 255 255 / 0.06);
+	}
+}
+
+/* ==========================================================================
+   Sin scroll horizontal
+   --------------------------------------------------------------------------
+   Varios decorados (tubos, franjas, ondas) sobresalen a propósito de sus
+   secciones. "clip" (y no "hidden") recorta sin crear un contenedor de scroll,
+   así position: sticky sigue funcionando (sección "¿Qué tengo que hacer?").
+   ========================================================================== */
+
+body.home main {
+	overflow-x: clip;
+}
+
+/* ==========================================================================
+   Apariciones al hacer scroll (data-reveal)
+   ========================================================================== */
+
+/* Estado inicial: oculto hasta que el elemento entra en pantalla */
+.reveal-ready body.home [data-reveal]:not(.is-revealed, [data-reveal='words']) {
+	opacity: 0;
+}
+
+.reveal-ready body.home [data-reveal='up']:not(.is-revealed) {
+	translate: 0 2.5rem;
+}
+
+.reveal-ready body.home [data-reveal='left']:not(.is-revealed) {
+	translate: -3rem 0;
+}
+
+.reveal-ready body.home [data-reveal='scale']:not(.is-revealed) {
+	scale: 0.92;
+}
+
+.reveal-ready body.home [data-reveal='pop']:not(.is-revealed) {
+	scale: 0.4;
+}
+
+.reveal-ready body.home [data-reveal='clip']:not(.is-revealed) {
+	clip-path: inset(14% 14% 14% 14% round 1.5rem);
+}
+
+/* Al entrar: animación con el retraso de la cascada (--reveal-delay) */
+body.home [data-reveal].is-revealed {
+	animation: var(--reveal-animation, reveal-fade) var(--reveal-duration, 0.9s) var(--ease-out)
+		var(--reveal-delay, 0ms) both;
+}
+
+body.home [data-reveal='up'] {
+	--reveal-animation: reveal-up;
+}
+
+body.home [data-reveal='left'] {
+	--reveal-animation: reveal-left;
+}
+
+body.home [data-reveal='scale'] {
+	--reveal-animation: reveal-scale;
+}
+
+body.home [data-reveal='pop'] {
+	--reveal-animation: reveal-pop;
+	--reveal-duration: 0.7s;
+}
+
+body.home [data-reveal='clip'] {
+	--reveal-animation: reveal-clip;
+	--reveal-duration: 1.2s;
+}
+
+/* Títulos palabra por palabra: cada palabra sube desde detrás de una "ventana" */
+body.home [data-reveal='words'].is-revealed {
+	animation: none;
+}
+
+body.home .reveal-word {
+	display: inline-block;
+	overflow: clip;
+	padding-block: 0.08em 0.14em;
+	margin-block: -0.08em -0.14em;
+	vertical-align: top;
+}
+
+body.home [data-reveal='words'] .reveal-word__inner {
+	display: inline-block;
+}
+
+.reveal-ready body.home [data-reveal='words']:not(.is-revealed) .reveal-word__inner {
+	translate: 0 115%;
+}
+
+body.home [data-reveal='words'].is-revealed .reveal-word__inner {
+	animation: reveal-word 0.9s var(--ease-out) both;
+	animation-delay: calc(var(--reveal-delay, 0ms) + var(--w, 0) * 55ms);
+}
+
+@keyframes reveal-fade {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes reveal-up {
+	from {
+		opacity: 0;
+		translate: 0 2.5rem;
+	}
+}
+
+@keyframes reveal-left {
+	from {
+		opacity: 0;
+		translate: -3rem 0;
+	}
+}
+
+@keyframes reveal-scale {
+	from {
+		opacity: 0;
+		scale: 0.92;
+	}
+}
+
+@keyframes reveal-pop {
+	from {
+		opacity: 0;
+		scale: 0.4;
+	}
+	60% {
+		opacity: 1;
+		scale: 1.12;
+	}
+}
+
+@keyframes reveal-clip {
+	from {
+		opacity: 0;
+		clip-path: inset(14% 14% 14% 14% round 1.5rem);
+	}
+	to {
+		opacity: 1;
+		clip-path: inset(0 0 0 0 round 0);
+	}
+}
+
+@keyframes reveal-word {
+	from {
+		translate: 0 115%;
+	}
+}
+
+/* ==========================================================================
+   Parallax de decorados (data-parallax)
+   ========================================================================== */
+
+body.home [data-parallax] {
+	translate: 0 var(--parallax, 0px);
+	will-change: translate;
+}
+
+/* ==========================================================================
+   Tarjetas: inclinación 3D, elevación y brillo (data-tilt)
+   ========================================================================== */
+
+/* Espacio para que la elevación y la sombra no se corten dentro de los carruseles */
+body.home .carousel__track {
+	padding-block: 1rem 2.5rem;
+	margin-block: -1rem -2.5rem;
+}
+
+body.home [data-tilt] {
+	transform: perspective(62.5rem) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+		translateY(var(--tilt-lift, 0px));
+	transition:
+		transform 0.7s var(--ease-out),
+		box-shadow 0.7s var(--ease-out),
+		background-color var(--duration-base) var(--ease-out),
+		border-color var(--duration-base) var(--ease-out);
+}
+
+body.home [data-tilt].is-tilting {
+	--tilt-lift: -0.375rem;
+
+	transition-duration: 0.18s, 0.4s, var(--duration-base), var(--duration-base);
+	box-shadow: 0 1.75rem 3rem -1.5rem rgb(0 0 0 / 0.45);
+}
+
+/* Brillo que sigue al cursor (lo agrega el script dentro de cada tarjeta) */
+body.home .tilt-glare {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	border-radius: inherit;
+	background: radial-gradient(
+		circle at var(--glare-x, 50%) var(--glare-y, 50%),
+		rgb(255 255 255 / 0.35),
+		rgb(255 255 255 / 0) 55%
+	);
+	mix-blend-mode: soft-light;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.4s var(--ease-out);
+}
+
+body.home [data-tilt].is-tilting .tilt-glare {
+	opacity: 1;
+}
+
+/* Detalles al pasar el cursor */
+body.home .benefit-card__image {
+	transition: scale 0.8s var(--ease-out);
+}
+
+body.home .benefit-card:hover .benefit-card__image {
+	scale: 1.06;
+}
+
+body.home .step-card__art {
+	transition:
+		translate 0.6s var(--ease-out),
+		rotate 0.6s var(--ease-out);
+}
+
+body.home .step-card:hover .step-card__art {
+	translate: 0 -0.5rem;
+	rotate: -3deg;
+}
+
+/* ==========================================================================
+   Botones magnéticos (data-magnetic)
+   ========================================================================== */
+
+body.home [data-magnetic] {
+	translate: var(--magnet-x, 0px) var(--magnet-y, 0px);
+	transition:
+		translate 0.45s var(--ease-out),
+		background-color var(--duration-base) var(--ease-out),
+		border-color var(--duration-base) var(--ease-out),
+		color var(--duration-base) var(--ease-out),
+		transform var(--duration-fast) var(--ease-out);
+}
+
+/* ==========================================================================
+   Reducir movimiento: todo quieto (por si algún estado quedó aplicado)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+	body.home [data-reveal],
+	body.home .reveal-word__inner {
+		animation: none !important;
+		opacity: 1 !important;
+		translate: none !important;
+		scale: none !important;
+		clip-path: none !important;
+	}
+}

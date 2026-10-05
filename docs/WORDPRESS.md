@@ -28,6 +28,8 @@ Sin WordPress configurado, el sitio usa el contenido de ejemplo de `src/data/` (
 
 El orden de universidades, casos de éxito y preguntas se define con el campo **Orden** (atributos de página) de cada una.
 
+Por ahora quedan en archivos del proyecto (no en WordPress): los videos de TikTok de la sección "Redes sociales" (`src/data/social.ts`) y los enlaces a redes sociales (`src/data/site.ts`).
+
 ---
 
 ## 2. Instalación

@@ -1,0 +1,157 @@
+---
+/**
+ * HomeMarquee — Franjas con los lemas de la marca
+ * --------------------------------------------------------------------------
+ * Manual de marca › "Lineamiento textual": frases que nacen del concepto
+ * "Tu futuro, sin fronteras". Dos franjas cruzadas (como un cruce peatonal:
+ * la cebra del símbolo) que se deslizan en sentidos opuestos, separadas por la
+ * estrella de cuatro puntas ("elemento unión").
+ *
+ * Va entre el hero y la primera sección y se superpone a ambos. Es decorativa
+ * (aria-hidden): las frases no aportan información nueva.
+ *
+ * Movimiento: desplazamiento continuo (CSS) más un empuje según el scroll
+ * (src/scripts/home-motion.ts escribe --marquee-shift). Con "reducir
+ * movimiento" las franjas quedan quietas.
+ */
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+// ----- Frases (Manual de marca › Lineamiento textual) -----
+const phrases = [
+	'Tu futuro, sin fronteras',
+	'Cruza. Estudia. Avanza.',
+	'Estudia en Rusia. Hazlo posible.',
+	'Conectamos sueños con oportunidades',
+];
+
+/** Cada franja repite las frases dos veces para que el bucle no tenga cortes */
+const bands = [
+	{ tone: 'red', reverse: false },
+	{ tone: 'light', reverse: true },
+] as const;
+---
+
+<div class="home-marquee" aria-hidden="true" data-marquee>
+	{bands.map((band) => (
+		<div class:list={['home-marquee__band', `home-marquee__band--${band.tone}`]}>
+			<div class:list={['home-marquee__track', { 'home-marquee__track--reverse': band.reverse }]}>
+				{[0, 1].map(() => (
+					<ul class="home-marquee__group" role="list">
+						{phrases.map((phrase) => (
+							<li class="home-marquee__item">
+								<span>{phrase}</span>
+								<Star class="home-marquee__star" />
+							</li>
+						))}
+					</ul>
+				))}
+			</div>
+		</div>
+	))}
+</div>
+
+<style>
+	.home-marquee {
+		position: relative;
+		z-index: 3;
+		height: 8.5rem;
+		/* Se superpone al final del hero y al inicio de la sección siguiente */
+		margin-block: -4.25rem;
+		overflow-x: clip;
+		pointer-events: none;
+	}
+
+	.home-marquee__band {
+		--tilt: -3deg;
+		--direction: -1;
+
+		position: absolute;
+		top: 50%;
+		left: -25vw;
+		width: 150vw;
+		padding-block: 0.875rem;
+		/* Inclinación + empuje con el scroll (--marquee-shift, en px) */
+		transform: translateY(-50%) rotate(var(--tilt))
+			translateX(calc(var(--marquee-shift, 0) * var(--direction) * 1px));
+		box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.6);
+	}
+
+	.home-marquee__band--red {
+		z-index: 2;
+		background-color: var(--color-red);
+		color: var(--color-pure-white);
+	}
+
+	.home-marquee__band--light {
+		--tilt: 2.4deg;
+		--direction: 1;
+
+		z-index: 1;
+		background-color: var(--color-white);
+		color: var(--color-blue-title);
+	}
+
+	.home-marquee__track {
+		display: flex;
+		width: max-content;
+	}
+
+	.home-marquee__group {
+		display: flex;
+		flex-shrink: 0;
+	}
+
+	.home-marquee__item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-6);
+		padding-right: var(--space-6);
+		font-size: clamp(1.125rem, 0.9rem + 1vw, 1.75rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		white-space: nowrap;
+	}
+
+	.home-marquee__star {
+		flex-shrink: 0;
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	.home-marquee__band--red .home-marquee__star {
+		color: var(--color-yellow);
+	}
+
+	.home-marquee__band--light .home-marquee__star {
+		color: var(--color-red);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.home-marquee__track {
+			animation: marquee-scroll 48s linear infinite;
+		}
+
+		.home-marquee__track--reverse {
+			animation-direction: reverse;
+			animation-duration: 56s;
+		}
+	}
+
+	@keyframes marquee-scroll {
+		to {
+			transform: translateX(-50%);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.home-marquee {
+			height: 6.5rem;
+			margin-block: -3.25rem;
+		}
+
+		.home-marquee__band {
+			padding-block: 0.625rem;
+		}
+	}
+</style>

@@ -2,38 +2,96 @@
 /**
  * SiteFooter
  * --------------------------------------------------------------------------
- * Pie de página del sitio público (Figma: "Frame 628030").
+ * Pie de página del sitio público (Figma: "Frame 628030"), con el branding
+ * del Manual de marca 2025 ("Tu futuro, sin fronteras"):
  *
- *   [Logo]   Acerca de · Casos de éxito · …        (▶) (◎) (f) (♪)
- *   Copyright © Peruana en Rusia…                  📖 Libro de reclamaciones
+ *   ✦ Tu futuro, sin fronteras                         [tubo degradé] ✦
+ *   ¿Listo para estudiar en Rusia?   [Empieza tu proceso] [WhatsApp]
+ *   ～～～～ líneas planas de la marca (se dibujan con el scroll) ～～～～
+ *   [Logo] texto + redes      Explora · enlaces      Contacto · teléfono…
+ *   Copyright © … · RUC              🇵🇪 · · · 🇷🇺   📖 Libro de reclamaciones
+ *
+ * - Fondo azul profundo de la marca (contraste AA con el texto blanco).
+ * - Las líneas (src/assets/graphics/waves/brand-lines.svg) se dibujan
+ *   siguiendo su trazo cuando el footer entra en pantalla
+ *   (src/scripts/scroll-draw.ts escribe --draw); el tubo flota y las
+ *   estrellas titilan. Con "reducir movimiento" todo queda quieto y completo.
+ * - Enlaces, contacto y redes salen de src/data/navigation.ts y src/data/site.ts.
  */
+import { Image } from 'astro:assets';
+
 import Logo from '@components/brand/Logo.astro';
+import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
 import { footerNav, routes } from '@data/navigation';
-import { site } from '@data/site';
+import { site, whatsappUrl } from '@data/site';
+import tubeLoop from '@assets/graphics/tubes/tube-gradient-loop.webp';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+import FlagPe from '@assets/graphics/flags/pe.svg';
+import FlagRu from '@assets/graphics/flags/ru.svg';
+import flagPe from '@assets/images/flags/pe.png';
+
+// ----- Textos -----
+const content = {
+	headline: '¿Listo para estudiar en Rusia?',
+	text: 'Te acompañamos en cada paso: beca, documentos, visa y viaje.',
+	start: 'Empieza tu proceso',
+	whatsapp: 'Escríbenos por WhatsApp',
+	newTab: '(se abre en una pestaña nueva)',
+	navTitle: 'Explora',
+	contactTitle: 'Contacto',
+	route: 'Del Perú a Rusia',
+	complaints: 'Libro de reclamaciones',
+};
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-	<div class="site-footer__inner container">
-		<div class="site-footer__top">
+	<!-- Tubo degradé y estrellas de la marca (decorativos) -->
+	<div class="site-footer__art" aria-hidden="true">
+		<Image
+			src={tubeLoop}
+			alt=""
+			widths={[420, 840]}
+			sizes="(max-width: 640px) 260px, 32vw"
+			loading="lazy"
+			class="site-footer__tube"
+		/>
+		<Star class="site-footer__star site-footer__star--yellow" />
+		<Star class="site-footer__star site-footer__star--sky" />
+		<Star class="site-footer__star site-footer__star--pink" />
+	</div>
+
+	<!-- Llamado final con el concepto de la marca -->
+	<div class="site-footer__cta container">
+		<p class="site-footer__tagline">
+			<Star class="site-footer__tagline-star" aria-hidden="true" />
+			{site.tagline}
+		</p>
+		<p class="site-footer__headline">{content.headline}</p>
+		<p class="site-footer__lead">{content.text}</p>
+		<div class="site-footer__actions">
+			<Button variant="primary" size="md" data-dialog-open="auth-modal" data-auth-view="register">
+				{content.start}
+			</Button>
+			<Button href={whatsappUrl} size="md" target="_blank" rel="noopener">
+				{content.whatsapp}
+				<span class="visually-hidden"> {content.newTab}</span>
+			</Button>
+		</div>
+	</div>
+
+	<!-- Líneas planas de la marca: se dibujan con el scroll -->
+	<BrandLines class="site-footer__lines" aria-hidden="true" data-scroll-draw="0.95 0.5" />
+
+	<div class="site-footer__main container">
+		<div class="site-footer__brand">
 			<a href={routes.home} class="site-footer__logo" aria-label="Peruana en Rusia — Inicio">
 				<Logo variant="vertical" color="mono" width={108} />
 			</a>
-
-			<nav aria-label="Enlaces del pie de página">
-				<ul role="list" class="site-footer__nav">
-					{footerNav.map((link) => (
-						<li>
-							<a href={link.href} class="site-footer__link">
-								{link.label}
-							</a>
-						</li>
-					))}
-				</ul>
-			</nav>
-
+			<p class="site-footer__about">{site.description}</p>
 			<ul role="list" class="site-footer__socials">
 				{site.socials.map((social) => (
 					<li>
@@ -43,110 +101,398 @@ const year = new Date().getFullYear();
 							target="_blank"
 							rel="noopener"
 							aria-label={social.label}
+							title={social.label}
 						>
-							<Icon name={social.icon} size={24} />
+							<Icon name={social.icon} size={22} />
 						</a>
 					</li>
 				))}
 			</ul>
 		</div>
 
-		<div class="site-footer__bottom">
-			<p class="site-footer__copyright">
-				Copyright © {year} {site.name}. Todos los derechos reservados
-			</p>
+		<nav class="site-footer__column" aria-labelledby="site-footer-nav">
+			<h2 id="site-footer-nav" class="site-footer__heading">
+				{content.navTitle}
+			</h2>
+			<ul role="list" class="site-footer__links">
+				{footerNav.map((link) => (
+					<li>
+						<a href={link.href} class="site-footer__link">
+							{link.label}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
 
-			<a href={routes.complaintsBook} class="site-footer__complaints">
-				<Icon name="book" size={32} />
-				Libro de reclamaciones
-			</a>
+		<div class="site-footer__column">
+			<h2 class="site-footer__heading">{content.contactTitle}</h2>
+			<ul role="list" class="site-footer__links">
+				<li>
+					<a
+						class="site-footer__link site-footer__link--phone"
+						href={`tel:+${site.contact.phoneRaw}`}
+					>
+						<Image src={flagPe} alt="" width={20} height={20} class="site-footer__flag" />
+						{site.contact.phone}
+					</a>
+				</li>
+				<li>
+					<a class="site-footer__link" href={`mailto:${site.contact.email}`}>
+						{site.contact.email}
+					</a>
+				</li>
+				<li>
+					<a
+						class="site-footer__link site-footer__link--icon"
+						href={whatsappUrl}
+						target="_blank"
+						rel="noopener"
+					>
+						<Icon name="whatsapp" size={20} />
+						WhatsApp
+						<span class="visually-hidden"> {content.newTab}</span>
+					</a>
+				</li>
+			</ul>
 		</div>
+	</div>
+
+	<div class="site-footer__bottom container">
+		<p class="site-footer__copyright">
+			Copyright © {year} {site.name}. Todos los derechos reservados
+			<span class="site-footer__legal">
+				{site.legal.companyName} · RUC {site.legal.ruc}
+			</span>
+		</p>
+
+		<p class="site-footer__route">
+			<span class="site-footer__route-flag" aria-hidden="true">
+				<FlagPe />
+			</span>
+			<span class="site-footer__route-line" aria-hidden="true"></span>
+			<span class="site-footer__route-flag" aria-hidden="true">
+				<FlagRu />
+			</span>
+			<span class="visually-hidden">{content.route}</span>
+		</p>
+
+		<a href={routes.complaintsBook} class="site-footer__complaints">
+			<Icon name="book" size={28} />
+			{content.complaints}
+		</a>
 	</div>
 </footer>
 
+<script>
+	// Líneas de la marca que se dibujan con el scroll (--draw)
+	import { initScrollDraw } from '@scripts/scroll-draw';
+	initScrollDraw();
+</script>
+
 <style>
 	.site-footer {
-		background-color: var(--surface-dark);
-		color: var(--text-on-dark);
-		padding-block: var(--space-7);
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		padding-top: clamp(4rem, 2.5rem + 4vw, 6.5rem);
+		padding-bottom: var(--space-6);
+		/* Azul profundo de la marca: el texto blanco cumple el contraste AA */
+		background:
+			radial-gradient(48rem 26rem at 88% 0%, rgb(0 192 252 / 0.28), transparent 65%),
+			radial-gradient(40rem 22rem at 0% 100%, rgb(255 26 48 / 0.16), transparent 70%),
+			linear-gradient(165deg, #003a92 0%, #004fbd 52%, #005fd6 100%);
+		color: var(--color-pure-white);
 	}
 
-	.site-footer__inner {
+	/* ===== Decorados ===== */
+	.site-footer__art {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	.site-footer__tube {
+		position: absolute;
+		top: clamp(1.5rem, 3vw, 3rem);
+		right: max(-3rem, calc((100% - var(--container-max)) / 2 - 4rem));
+		width: clamp(20rem, 32vw, 34rem);
+		max-width: none;
+		height: auto;
+		rotate: 8deg;
+	}
+
+	.site-footer__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.site-footer__star--yellow {
+		top: clamp(2rem, 4vw, 3.5rem);
+		right: clamp(20rem, 36vw, 38rem);
+		width: 2.25rem;
+		color: var(--color-yellow);
+	}
+
+	.site-footer__star--sky {
+		top: clamp(14rem, 22vw, 20rem);
+		right: clamp(2rem, 6vw, 6rem);
+		width: 1.25rem;
+		color: var(--color-skyblue);
+	}
+
+	.site-footer__star--pink {
+		bottom: clamp(8rem, 12vw, 10rem);
+		left: clamp(1rem, 3vw, 3rem);
+		width: 1rem;
+		color: var(--color-pink);
+	}
+
+	/* ===== Llamado ===== */
+	.site-footer__cta {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-5);
+		align-items: flex-start;
+		gap: var(--space-4);
 	}
 
-	/* ----- Fila superior: logo · enlaces · redes ----- */
-	.site-footer__top {
-		display: flex;
+	.site-footer__tagline {
+		display: inline-flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-6);
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.24);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.08);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.site-footer__tagline-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-yellow);
+	}
+
+	.site-footer__headline {
+		max-width: 14ch;
+		font-size: clamp(2.25rem, 1.2rem + 3.6vw, 4.25rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.04;
+		letter-spacing: -0.025em;
+		text-wrap: balance;
+	}
+
+	.site-footer__lead {
+		max-width: 34rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	.site-footer__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3) var(--space-4);
+		margin-top: var(--space-3);
+	}
+
+	/* ===== Líneas planas (divisor de marca, a todo el ancho) ===== */
+	.site-footer__lines {
+		display: block;
+		width: 100%;
+		height: clamp(7rem, 9vw, 11rem);
+		margin-block: clamp(var(--space-5), 3vw, var(--space-8));
+	}
+
+	.site-footer__lines :global(.brand-line) {
+		--line-progress: clamp(0, (var(--draw, 1) - var(--line-delay, 0)) / 0.7, 1);
+
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * var(--line-progress));
+	}
+
+	.site-footer__lines :global(.brand-line:nth-of-type(2)) {
+		--line-delay: 0.1;
+	}
+
+	.site-footer__lines :global(.brand-line:nth-of-type(3)) {
+		--line-delay: 0.2;
+	}
+
+	/* ===== Columnas: marca · Explora · Contacto ===== */
+	.site-footer__main {
+		display: grid;
+		grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+		gap: var(--space-8) clamp(var(--space-6), 5vw, var(--space-10));
+	}
+
+	.site-footer__brand {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
 	}
 
 	.site-footer__logo {
 		display: block;
-		color: var(--color-white);
+		color: var(--color-pure-white);
 	}
 
-	.site-footer__nav {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.site-footer__link {
-		display: block;
-		min-width: 6.25rem; /* 100px */
-		padding: var(--space-4);
-		font-size: var(--font-size-nav);
-		font-weight: var(--font-weight-medium);
-		line-height: 1.75rem;
-		text-align: center;
-		transition: color var(--duration-base) var(--ease-out);
-	}
-
-	.site-footer__link:hover {
-		color: var(--text-link-active);
+	.site-footer__about {
+		max-width: 26rem;
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
+		color: rgb(255 255 255 / 0.8);
 	}
 
 	.site-footer__socials {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--space-3);
 	}
 
 	.site-footer__social {
 		display: grid;
 		place-items: center;
-		width: 3.5rem; /* 56px */
-		height: 3.5rem;
-		border: 1px solid rgb(247 255 247 / 0.4);
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid rgb(255 255 255 / 0.32);
 		border-radius: var(--radius-pill);
-		color: #f7fff7;
+		background-color: rgb(255 255 255 / 0.06);
+		color: var(--color-pure-white);
 		transition:
 			background-color var(--duration-base) var(--ease-out),
-			border-color var(--duration-base) var(--ease-out);
+			border-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			translate var(--duration-base) var(--ease-out);
 	}
 
 	.site-footer__social:hover {
-		background-color: rgb(247 255 247 / 0.1);
-		border-color: rgb(247 255 247 / 0.8);
+		border-color: var(--color-pure-white);
+		background-color: var(--color-pure-white);
+		color: var(--color-blue);
+		translate: 0 -2px;
 	}
 
-	/* ----- Fila inferior: copyright · libro de reclamaciones ----- */
+	.site-footer__heading {
+		margin-bottom: var(--space-4);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+		color: var(--color-pure-white);
+	}
+
+	.site-footer__links {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.site-footer__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding-block: 0.25rem;
+		font-size: var(--font-size-nav);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5rem;
+		color: rgb(255 255 255 / 0.86);
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 0.3em;
+		transition:
+			color var(--duration-base) var(--ease-out),
+			text-decoration-color var(--duration-base) var(--ease-out);
+	}
+
+	.site-footer__link:hover {
+		color: var(--color-pure-white);
+		text-decoration-color: var(--color-yellow);
+	}
+
+	.site-footer__flag {
+		width: 20px;
+		height: 20px;
+		border-radius: var(--radius-pill);
+	}
+
+	.site-footer__link--icon :global(svg) {
+		color: #5fe08a;
+	}
+
+	/* Foco visible sobre el azul */
+	.site-footer a:focus-visible,
+	.site-footer button:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ===== Fila inferior: copyright · Perú → Rusia · libro de reclamaciones ===== */
 	.site-footer__bottom {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-4);
+		gap: var(--space-4) var(--space-6);
+		margin-top: var(--space-8);
+		padding-top: var(--space-5);
+		/* Deja libre la esquina del botón flotante de WhatsApp (80px; 56px en móvil)
+		   para que no tape el libro de reclamaciones al llegar al final */
+		padding-right: max(
+			0px,
+			calc(
+				var(--floating-button, 80px) + clamp(1rem, 2.6vw, 2.5rem) + 1rem -
+					max(var(--gutter), (100vw - var(--container-max)) / 2)
+			)
+		);
+		border-top: 1px solid rgb(255 255 255 / 0.16);
 	}
 
 	.site-footer__copyright {
+		display: flex;
+		flex-direction: column;
 		font-size: var(--font-size-sm);
 		line-height: 1.5rem;
-		color: rgb(247 255 247 / 0.64);
+		color: rgb(255 255 255 / 0.78);
+	}
+
+	.site-footer__legal {
+		font-size: var(--font-size-xs);
+		color: rgb(255 255 255 / 0.72);
+	}
+
+	/* Banderas unidas por una línea punteada: "sin fronteras" */
+	.site-footer__route {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.site-footer__route-flag {
+		display: block;
+		width: 1.5rem;
+		height: 1.5rem;
+		overflow: clip;
+		border-radius: var(--radius-pill);
+		box-shadow: 0 0 0 2px rgb(255 255 255 / 0.85);
+	}
+
+	.site-footer__route-flag :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+
+	.site-footer__route-line {
+		width: 4.5rem;
+		height: 2px;
+		background: repeating-linear-gradient(
+			to right,
+			rgb(255 255 255 / 0.75) 0 0.375rem,
+			transparent 0.375rem 0.75rem
+		);
+		background-size: 0.75rem 100%;
 	}
 
 	.site-footer__complaints {
@@ -156,49 +502,140 @@ const year = new Date().getFullYear();
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-bold);
 		line-height: 1.5rem;
-		color: rgb(247 255 247 / 0.85);
+		color: var(--color-pure-white);
 		white-space: nowrap;
 	}
 
 	.site-footer__complaints:hover {
-		color: var(--color-white);
+		color: var(--color-yellow);
 	}
 
-	/* ----- Tablet ----- */
+	/* ===== Movimiento (sin "reducir movimiento") ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.site-footer__tube {
+			animation: site-footer-float 8s ease-in-out infinite alternate;
+		}
+
+		.site-footer__star {
+			animation: site-footer-twinkle 3.6s ease-in-out infinite;
+		}
+
+		.site-footer__star--sky {
+			animation-delay: -1.3s;
+		}
+
+		.site-footer__star--pink {
+			animation-delay: -2.4s;
+		}
+
+		/* La línea punteada avanza del Perú a Rusia */
+		.site-footer__route-line {
+			animation: site-footer-route 1.6s linear infinite;
+		}
+	}
+
+	@keyframes site-footer-float {
+		from {
+			transform: translateY(-0.75rem) rotate(-2deg);
+		}
+		to {
+			transform: translateY(0.75rem) rotate(2deg);
+		}
+	}
+
+	@keyframes site-footer-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	@keyframes site-footer-route {
+		to {
+			background-position: 0.75rem 0;
+		}
+	}
+
+	/* ===== Tablet ===== */
 	@media (max-width: 1100px) {
-		.site-footer__top {
+		.site-footer__main {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.site-footer__brand {
+			grid-column: 1 / -1;
+		}
+
+		.site-footer__bottom {
 			flex-wrap: wrap;
 		}
 
-		.site-footer__top nav {
+		.site-footer__route {
 			order: 3;
-			width: 100%;
 		}
 	}
 
-	/* ----- Móvil: todo apilado y centrado (Figma móvil) ----- */
+	/* ===== Móvil: el tubo arriba y todo apilado ===== */
 	@media (max-width: 640px) {
-		.site-footer__top,
-		.site-footer__bottom {
+		.site-footer__lead {
+			font-size: var(--font-size-md);
+			line-height: 1.625rem;
+		}
+
+		.site-footer__headline {
+			font-size: 2rem;
+			line-height: 1.1;
+		}
+
+		.site-footer {
+			--floating-button: 56px;
+
+			padding-top: 9.5rem;
+		}
+
+		.site-footer__tube {
+			top: -0.5rem;
+			right: -2.5rem;
+			width: 17rem;
+		}
+
+		.site-footer__star--yellow {
+			top: 2rem;
+			right: auto;
+			left: var(--gutter);
+			width: 1.75rem;
+		}
+
+		.site-footer__star--sky {
+			top: 8rem;
+			right: 1rem;
+		}
+
+		.site-footer__actions {
 			flex-direction: column;
-			text-align: center;
+			align-self: stretch;
 		}
 
-		.site-footer__top nav {
-			order: 0;
+		.site-footer__actions :global(.btn) {
+			width: 100%;
 		}
 
-		.site-footer__nav {
-			flex-direction: column;
-		}
-
-		.site-footer__link {
-			padding-block: var(--space-2);
+		.site-footer__main {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-7);
 		}
 
 		.site-footer__bottom {
 			flex-direction: column-reverse;
-			gap: var(--space-6);
+			align-items: flex-start;
+			gap: var(--space-5);
+		}
+
+		.site-footer__route {
+			order: 0;
 		}
 	}
 </style>

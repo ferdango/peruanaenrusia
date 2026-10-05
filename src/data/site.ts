@@ -36,12 +36,14 @@ export const site = {
 		ruc: '20600322703',
 	},
 
-	// TODO: reemplazar por las URLs reales de las cuentas oficiales.
+	// Cuentas oficiales "Kristal | Peruana en Rusia" (verificadas el 2026-10-05:
+	// el perfil de TikTok enlaza a peruanaenrusia.com y el Linktree de la marca
+	// enlaza a ese TikTok). TODO: confirmar la cuenta de Instagram.
 	socials: [
-		{ label: 'YouTube', href: 'https://www.youtube.com/', icon: 'youtube' },
+		{ label: 'YouTube', href: 'https://www.youtube.com/@peruanaenrusia', icon: 'youtube' },
 		{ label: 'Instagram', href: 'https://www.instagram.com/', icon: 'instagram' },
-		{ label: 'Facebook', href: 'https://www.facebook.com/', icon: 'facebook' },
-		{ label: 'TikTok', href: 'https://www.tiktok.com/', icon: 'tiktok' },
+		{ label: 'Facebook', href: 'https://www.facebook.com/peruanaenrusia/', icon: 'facebook' },
+		{ label: 'TikTok', href: 'https://www.tiktok.com/@peruanaenrusia', icon: 'tiktok' },
 	] satisfies SocialLink[],
 };
 

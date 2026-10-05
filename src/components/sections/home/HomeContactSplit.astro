@@ -338,6 +338,11 @@ const photoWidths = [600, 1000, 1600, 2000];
 	   Móvil (Figma móvil): foto arriba y panel centrado debajo
 	   ========================================================================== */
 	@media (max-width: 640px) {
+		.contact-split__text {
+			font-size: var(--font-size-md);
+			line-height: 1.625rem;
+		}
+
 		.contact-split__row {
 			grid-template-columns: 100%;
 			min-height: 0;
@@ -360,7 +365,8 @@ const photoWidths = [600, 1000, 1600, 2000];
 		.contact-split__title,
 		.contact-split__row--book .contact-split__title {
 			max-width: none;
-			font-size: 2rem; /* 32px */
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
 		}
 
 		.contact-split__row--doubts .contact-split__title {

@@ -190,11 +190,13 @@ Todos los colores, tamaños de letra, espaciados y radios son variables CSS. **N
 | `--color-blue-title`                                                                       | `#125BA8`                                                 | Figma · Títulos sobre fondo claro |
 | `--color-black`                                                                            | `#171A1A`                                                 | Figma · Fondo oscuro              |
 
+**Tipografía en móvil (≤ 640 px)**: todas las secciones usan la misma escala. En el bloque `@media (max-width: 640px)` de cada componente usa `--font-size-title-mobile` (28px) y `--line-height-title-mobile` para los títulos de sección, `--font-size-display-mobile` (40px) para el hero, `--font-size-card-title-mobile` (18px) para los títulos de tarjeta y `--font-size-md` (16px) para los textos.
+
 ### Convenciones
 
 - **Nombres de clases con BEM**: `bloque__elemento--modificador` (ej. `university-card__title`, `btn--primary`).
 - Los estilos de cada componente van en su propio `<style>` (alcance local). Para estilizar un componente hijo desde una sección usa `:global()` dentro del selector de la sección:
-  `.home-stories :global(.video-card) { … }`.
+  `.blog-videoblogs :global(.video-card) { … }`.
 - Contenedor estándar: clase `.container` (ancho máximo 1352px + márgenes laterales de 80px en desktop).
 - Sección estándar: clase `.section` (80px de padding vertical en desktop).
 - Breakpoints:
@@ -230,7 +232,7 @@ Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interf
 | `ui/MediaImage.astro`            | Imagen optimizada del contenido (local o de WordPress).                                                                                                                |
 | `forms/FormField.astro`          | Campo con etiqueta flotante, ayuda y error accesible (texto, lista o texto largo).                                                                                     |
 | `forms/FormCheck.astro`          | Casilla circular de la marca (consentimiento, "Soy menor de edad").                                                                                                    |
-| `sections/shared/StartCta.astro` | Llamado a la acción con dos estudiantes (tono celeste en el Home, verde en los casos de éxito).                                                                        |
+| `sections/shared/StartCta.astro` | Llamado a la acción con dos estudiantes (tono celeste en el Home, verde en los casos de éxito); líneas y figuras animadas con el scroll.                               |
 
 ---
 
@@ -241,6 +243,9 @@ Las decoraciones llevan `aria-hidden="true"` y la clase `.decoration` (no interf
 - **Carruseles**: automáticos con el componente `Carousel`.
 - **Formularios**: validación accesible y envío a la API con `src/scripts/forms.ts` (`validateForm`, `postJson`).
 - **Inicio de sesión**: `src/scripts/auth-flow.ts` (modal), `src/scripts/auth-api.ts` (llamadas al servidor; en la versión estática, demostración) y `src/scripts/session-ui.ts` (textos de los botones con sesión iniciada). Para abrir el modal desde una URL: `/?login=1`.
+- **Movimiento del Home** (solo en la portada): `src/scripts/home-motion.ts` + `src/styles/home.css`. Las listas al inicio del script (`REVEALS`, `PARALLAX`, `TILT`) definen qué aparece al hacer scroll, qué decorados tienen parallax y qué tarjetas se inclinan, por selector y sin tocar los componentes. Los sliders que avanzan con el scroll usan `data-scroll-slider`: `pin` deja la sección fija y pasa las tarjetas una por una ("¿Qué tengo que hacer?"); `drift` las desliza mientras la sección cruza la pantalla ("¿Por qué elegir…?" en tablet y móvil; en desktop sus tres tarjetas van fijas en fila y se mueven con parallax, entradas de `PARALLAX` con `media`). Respeta "reducir movimiento" y sin JavaScript no oculta nada (los sliders quedan como deslizadores táctiles). El header transparente sobre el hero es solo CSS (`animation-timeline: scroll()`).
+- **Líneas de la marca que se dibujan con el scroll** (`src/scripts/scroll-draw.ts`, en todo el sitio): un elemento con `data-scroll-draw` recibe la variable CSS `--draw` (0 → 1) mientras cruza la pantalla, y su CSS la usa para mover el `stroke-dashoffset` de las líneas (trazos con `pathLength="100"`) y hacer aparecer figuras. Lo usan "¿Quieres iniciar tu proceso?" (`StartCta`) y el footer. Las ondas de Figma venían como cintas rellenas: se convirtieron a trazos con su línea central para poder dibujarlas (mismo aspecto). Sin JavaScript o con "reducir movimiento" se ven completas.
+- **Videos en modal** (`src/components/overlays/VideoModal.astro` + `src/scripts/video-modal.ts`): cualquier enlace con `data-video-open` y `data-video-youtube="CODIGO"` (o `data-video-tiktok="NÚMERO"`, que se ve en vertical con el reproductor oficial de TikTok, o `data-video-src="/videos/archivo.mp4"`) abre el video en un modal que se puede minimizar para seguir navegando; sin JavaScript abre YouTube o TikTok. El video destacado del Home (y su portada) se define en `src/data/videos.ts` → `featuredVideo`; los videos de TikTok de "Redes sociales", en `src/data/social.ts`.
 - Usa `<script>` dentro del componente solo para lógica propia de ese componente.
 - **Seguridad (CSP)**: no uses `<script is:inline>` con código ni atributos como `onclick=`; los scripts normales de Astro ya están permitidos. Las variables CSS en `style=""` sí se pueden usar. Ver [SEGURIDAD.md](SEGURIDAD.md).
 

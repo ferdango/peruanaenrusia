@@ -73,7 +73,12 @@ const year = new Date().getFullYear();
 		<p class="site-footer__headline">{content.headline}</p>
 		<p class="site-footer__lead">{content.text}</p>
 		<div class="site-footer__actions">
-			<Button variant="primary" size="md" data-dialog-open="auth-modal" data-auth-view="register">
+			<Button
+				size="md"
+				class="site-footer__start"
+				data-dialog-open="auth-modal"
+				data-auth-view="register"
+			>
 				{content.start}
 			</Button>
 			<Button href={whatsappUrl} size="md" target="_blank" rel="noopener">
@@ -290,6 +295,12 @@ const year = new Date().getFullYear();
 		font-size: var(--font-size-lg);
 		line-height: 1.75rem;
 		color: rgb(255 255 255 / 0.86);
+	}
+
+	/* "Empieza tu proceso" en amarillo de marca (la burbuja y el relleno) */
+	.site-footer :global(.site-footer__start) {
+		--btn-color: var(--color-yellow);
+		--btn-contrast: #111;
 	}
 
 	.site-footer__actions {

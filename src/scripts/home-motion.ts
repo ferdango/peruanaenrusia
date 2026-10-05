@@ -13,8 +13,11 @@
  *   6. Botones "magnéticos" (atributo data-magnetic).
  *   7. Franjas de lemas empujadas por el scroll (--marquee-shift).
  *   8. Sliders que avanzan con el scroll (data-scroll-slider): "¿Qué tengo que
- *      hacer?" pasa las tarjetas una por una; "¿Por qué elegir…?" y "Redes
- *      sociales" las deslizan.
+ *      hacer?" pasa las tarjetas una por una; "¿Por qué elegir…?", "Redes
+ *      sociales" y "Universidades" (en móvil) las deslizan.
+ *   9. "Soy Grecia Kristal": las fotos suben y se apilan; después, el texto.
+ *  10. "Universidades destacadas" (desktop): el panel abierto avanza con el
+ *      scroll.
  *
  * Todo se configura en las listas de abajo (selectores de cada sección), sin
  * tocar los componentes. Estilos: src/styles/home.css.
@@ -39,7 +42,14 @@ interface RevealRule {
 	delay?: number;
 	/** Retraso entre elementos que aparecen juntos (ms): efecto cascada */
 	stagger?: number;
+	/** Solo se aplica si se cumple esta media query (al cargar la página) */
+	media?: string;
 }
+
+/** Desktop con altura suficiente: "Soy Grecia Kristal" queda fija mientras se apilan las fotos */
+const FOUNDER_PIN = '(min-width: 1101px) and (min-height: 700px)';
+/** Lo contrario: la sección no se fija y el texto aparece al llegar */
+const FOUNDER_FLOW = `not all and ${FOUNDER_PIN}`;
 
 /* ==========================================================================
    Coreografía de cada sección (en orden de aparición)
@@ -50,11 +60,11 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-intro__title', effect: 'words' },
 	{ selector: '.home-intro__text', effect: 'up', delay: 150 },
 	{ selector: '.intro-video', effect: 'clip', delay: 150 },
-	// Soy Grecia Kristal
-	{ selector: '.founder-photo', effect: 'up', stagger: 160 },
-	{ selector: '.home-founder__star', effect: 'pop', delay: 200 },
-	{ selector: '.home-founder__title', effect: 'words' },
-	{ selector: '.home-founder__text > p', effect: 'up', stagger: 120, delay: 200 },
+	// Soy Grecia Kristal (las fotos y, en desktop, el texto los mueve initFounderStack)
+	{ selector: '.home-founder__eyebrow', effect: 'up', media: FOUNDER_FLOW },
+	{ selector: '.home-founder__title', effect: 'words', delay: 80, media: FOUNDER_FLOW },
+	{ selector: '.home-founder__text > p', effect: 'up', stagger: 120, delay: 200, media: FOUNDER_FLOW },
+	{ selector: '.home-founder__fact', effect: 'up', stagger: 90, delay: 300, media: FOUNDER_FLOW },
 	// ¿Por qué elegir Peruana en Rusia?
 	{ selector: '.home-why__eyebrow', effect: 'up' },
 	{ selector: '.home-why__title', effect: 'words', delay: 80 },
@@ -73,12 +83,18 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.start-cta__button', effect: 'up', delay: 260 },
 	{ selector: '.start-cta__person', effect: 'up', stagger: 180 },
 	// Universidades destacadas
-	{ selector: '.home-universities__title', effect: 'words' },
-	{ selector: '.home-universities__subtitle', effect: 'up', delay: 150 },
-	{ selector: '.university-card', effect: 'up', stagger: 110 },
+	{ selector: '.home-universities__eyebrow', effect: 'up' },
+	{ selector: '.home-universities__title', effect: 'words', delay: 80 },
+	{ selector: '.home-universities__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.home-universities__cta', effect: 'fade', delay: 300 },
+	{ selector: '.uni-panel', effect: 'up', stagger: 110 },
 	// Reserva tu llamada / Resuelve tus dudas
-	{ selector: '.contact-split__panel', effect: 'left' },
-	{ selector: '.contact-split__media', effect: 'scale', delay: 120 },
+	{ selector: '.contact-split__eyebrow', effect: 'up' },
+	{ selector: '.contact-split__title', effect: 'up', delay: 80 },
+	{ selector: '.contact-split__text', effect: 'up', delay: 180 },
+	{ selector: '.contact-split__point', effect: 'left', stagger: 90, delay: 260 },
+	{ selector: '.contact-split__cta', effect: 'fade', delay: 450 },
+	{ selector: '.contact-split__media', effect: 'clip' },
 	// Casos de éxito
 	{ selector: '.home-cases__title', effect: 'words' },
 	{ selector: '.home-cases__subtitle', effect: 'up', delay: 150 },
@@ -119,7 +135,6 @@ const DESKTOP = '(min-width: 1101px)';
  * `media`: solo se mueven mientras se cumple esa media query.
  */
 const PARALLAX: { selector: string; speed: number; media?: string }[] = [
-	{ selector: '.home-founder__decor', speed: 0.12 },
 	{ selector: '.home-why__tube', speed: 0.1 },
 	{ selector: '.home-why__item:nth-child(3n + 1)', speed: 0.04, media: DESKTOP },
 	{ selector: '.home-why__item:nth-child(3n + 2)', speed: 0.12, media: DESKTOP },
@@ -137,7 +152,6 @@ const TILT = [
 	'.intro-video',
 	'.benefit-card',
 	'.step-card__inner',
-	'.university-card',
 	'.testimonial-card',
 	'.community-photo',
 	'.gallery-photo',
@@ -279,6 +293,7 @@ function initReveals(): void {
 	const pending: HTMLElement[] = [];
 
 	REVEALS.forEach((rule, group) => {
+		if (rule.media && !window.matchMedia(rule.media).matches) return;
 		document.querySelectorAll<HTMLElement>(rule.selector).forEach((element) => {
 			if (element.dataset.reveal) return;
 
@@ -607,6 +622,130 @@ function initScrollSliders(): void {
 }
 
 /* ==========================================================================
+   9. "Soy Grecia Kristal": las fotos suben y se apilan; después, el texto
+   --------------------------------------------------------------------------
+   Marcado: [data-founder-stack] › [data-founder-photos] › [data-founder-card]…
+   El script escribe en cada foto --in (0 → 1, cuánto subió) y --covered
+   (cuánto la tapa la siguiente), y en la sección --founder-p (avance).
+   Desktop (FOUNDER_PIN): la sección queda fija (.is-pinned) mientras se
+   apilan las fotos; al terminar, .is-text-in muestra el texto.
+   Tablet y móvil: sin fijar; las fotos se apilan mientras cruzan la pantalla.
+   ========================================================================== */
+
+/** Tramo del avance (0–1) en que sube cada foto: [desde, hasta] */
+const FOUNDER_CARDS_PINNED: [number, number][] = [
+	[0, 0.24],
+	[0.2, 0.44],
+	[0.4, 0.64],
+];
+const FOUNDER_CARDS_FLOW: [number, number][] = [
+	[0, 0.4],
+	[0.25, 0.65],
+	[0.5, 0.9],
+];
+/** Avance en que aparece el texto (desktop) */
+const FOUNDER_TEXT_AT = 0.66;
+
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
+function initFounderStack(): void {
+	const section = document.querySelector<HTMLElement>('[data-founder-stack]');
+	const photos = section?.querySelector<HTMLElement>('[data-founder-photos]');
+	if (!section || !photos) return;
+
+	const cards = Array.from(photos.querySelectorAll<HTMLElement>('[data-founder-card]'));
+	const title = section.querySelector<HTMLElement>('.home-founder__title');
+	const header = document.querySelector<HTMLElement>('.site-header');
+	const pinQuery = window.matchMedia(FOUNDER_PIN);
+	let pinned = false;
+	let length = 0;
+
+	const measure = () => {
+		pinned = pinQuery.matches;
+		section.classList.toggle('is-pinned', pinned);
+		if (pinned && title) splitWords(title);
+		// Recorrido mientras la sección está fija
+		length = pinned ? Math.round(window.innerHeight * 1.2) : 0;
+		section.style.setProperty('--founder-length', `${length}px`);
+	};
+
+	const update = () => {
+		const viewportHeight = window.innerHeight;
+		let progress: number;
+
+		if (pinned) {
+			// Empieza cuando la sección llega a la mitad de la pantalla y termina
+			// al final del recorrido fijo (la primera foto sube mientras entra)
+			const top = section.getBoundingClientRect().top;
+			const headerOffset = header?.offsetHeight ?? 0;
+			const lead = viewportHeight * 0.5 - headerOffset;
+			progress = clamp((viewportHeight * 0.5 - top) / (lead + length), 0, 1);
+		} else {
+			const rect = photos.getBoundingClientRect();
+			progress = clamp((viewportHeight * 0.95 - rect.top) / (viewportHeight * 0.75), 0, 1);
+		}
+
+		const ranges = pinned ? FOUNDER_CARDS_PINNED : FOUNDER_CARDS_FLOW;
+		const amounts = cards.map((_, index) => {
+			const [from, to] = ranges[Math.min(index, ranges.length - 1)];
+			return easeOutCubic(clamp((progress - from) / (to - from), 0, 1));
+		});
+		cards.forEach((card, index) => {
+			card.style.setProperty('--in', amounts[index].toFixed(3));
+			card.style.setProperty('--covered', (amounts[index + 1] ?? 0).toFixed(3));
+		});
+
+		section.style.setProperty('--founder-p', progress.toFixed(3));
+		if (pinned) section.classList.toggle('is-text-in', progress >= FOUNDER_TEXT_AT);
+	};
+
+	measure();
+	onScroll(update);
+
+	const refresh = () => {
+		measure();
+		update();
+	};
+	window.addEventListener('resize', refresh, { passive: true });
+	pinQuery.addEventListener('change', refresh);
+}
+
+/* ==========================================================================
+   10. "Universidades destacadas" (desktop): el panel abierto avanza con el scroll
+   --------------------------------------------------------------------------
+   Marcado: [data-uni-gallery] › [data-uni-panel]… Mientras la galería cruza
+   la pantalla se abre un panel tras otro (.is-active). Con el cursor o el
+   teclado manda el panel señalado (solo CSS).
+   ========================================================================== */
+
+function initUniversityGallery(): void {
+	const gallery = document.querySelector<HTMLElement>('[data-uni-gallery]');
+	if (!gallery) return;
+	const panels = Array.from(gallery.querySelectorAll<HTMLElement>('[data-uni-panel]'));
+	if (panels.length < 2) return;
+
+	const desktop = window.matchMedia('(min-width: 1101px)');
+	let active = 0;
+
+	onScroll(() => {
+		if (!desktop.matches) return;
+		const rect = gallery.getBoundingClientRect();
+		const viewportHeight = window.innerHeight;
+		if (rect.bottom < 0 || rect.top > viewportHeight) return;
+		// 0 cuando la galería asoma por abajo → 1 cuando su parte de abajo llega arriba
+		const progress = clamp(
+			(viewportHeight * 0.85 - rect.top) / (viewportHeight * 0.85 + rect.height * 0.25),
+			0,
+			0.999,
+		);
+		const index = Math.floor(progress * panels.length);
+		if (index === active) return;
+		active = index;
+		panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
+	});
+}
+
+/* ==========================================================================
    Inicio
    ========================================================================== */
 
@@ -621,7 +760,9 @@ export function initHomeMotion(): void {
 	initHero(finePointer);
 	initMarquee();
 	initReveals();
+	initFounderStack();
 	initScrollSliders();
+	initUniversityGallery();
 	initParallax();
 	if (finePointer) {
 		initTilt();

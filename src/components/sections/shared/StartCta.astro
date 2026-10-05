@@ -168,6 +168,7 @@ const buttonProps = cta.href
 		--start-cta-bg: #def7ff; /* Fondo celeste ("Rectangle 8") */
 		--start-cta-text: #414141;
 		--start-cta-button: #1268c3;
+		--start-cta-button-contrast: var(--color-pure-white);
 
 		position: relative;
 		isolation: isolate;
@@ -181,6 +182,7 @@ const buttonProps = cta.href
 		--start-cta-bg: var(--color-green);
 		--start-cta-text: rgb(244 244 244 / 0.86);
 		--start-cta-button: var(--color-white);
+		--start-cta-button-contrast: var(--color-green);
 
 		color: var(--text-on-dark);
 	}
@@ -442,9 +444,10 @@ const buttonProps = cta.href
 		color: var(--start-cta-text);
 	}
 
-	/* Botón (297 × 70): borde y texto azul #1268C3 en el tono claro, blanco en el verde */
+	/* Botón: azul #1268C3 en el tono claro, blanco (con texto verde al rellenarse) en el verde */
 	.start-cta :global(.start-cta__button) {
 		--btn-color: var(--start-cta-button);
+		--btn-contrast: var(--start-cta-button-contrast);
 
 		width: min(18.5625rem, 100%);
 		margin-top: var(--space-4); /* 40px desde el texto (24 + 16) */

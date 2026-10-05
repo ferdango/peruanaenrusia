@@ -25,6 +25,8 @@ import lomonosovLogo from '@assets/images/universities/lomonosov-logo.png';
 import coverLibrary from '@assets/images/universities/university-cover-library.jpg';
 import galleryBrickBuilding from '@assets/images/universities/university-gallery-brick-building.jpg';
 import galleryIvyBuilding from '@assets/images/universities/university-gallery-ivy-building.jpg';
+// Foto real de la visita de Kristal a la URFU (miniatura de su video en YouTube)
+import urfuPhoto from '@assets/images/videos/visita-universidad-federal-de-los-urales.jpg';
 
 /** Colores de acento disponibles para la forma de color de la tarjeta */
 export type UniversityAccent = 'skyblue' | 'green' | 'yellow' | 'blue';
@@ -202,7 +204,10 @@ export const universities: University[] = [
 		name: 'Universidad Federal de los Urales',
 		city: 'Ekaterimburgo',
 		logo: lomonosovLogo,
-		image: campusPhoto,
+		image: urfuPhoto,
+		featured: true,
+		summary:
+			'Una de las universidades más grandes y reconocidas de Rusia. Kristal la recorrió completa en un video de nuestro canal.',
 	},
 	{
 		slug: 'escuela-superior-de-economia',

@@ -18,8 +18,10 @@
  * de publicar el sitio.
  */
 import type { ImageSource } from '@lib/content/images';
+import { youtubeIdFromUrl } from '@utils/url';
 
 import type { CountryCode } from '@data/countries';
+import { site } from '@data/site';
 
 import avatarExample from '@assets/images/testimonials/avatar-alexis-rojas.png';
 import avatarExampleHighlighted from '@assets/images/testimonials/avatar-student-2.png';
@@ -157,6 +159,17 @@ const exampleCase: Omit<Testimonial, 'slug'> = {
 		text: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur g elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur.',
 	},
 };
+
+/**
+ * Video de un caso de éxito ("Conoce mi historia" y el cierre): el enlace y,
+ * si es de YouTube, su código para verlo en el modal del sitio. Sin
+ * `video.url`, el enlace lleva al canal de YouTube de la marca.
+ */
+export function testimonialVideo(testimonial: Testimonial): { href: string; youtubeId?: string } {
+	const channel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
+	const url = testimonial.video?.url;
+	return { href: url ?? channel, youtubeId: youtubeIdFromUrl(url) };
+}
 
 /**
  * Historias en video (reales) de "Nuestros casos de éxito" en el Home:

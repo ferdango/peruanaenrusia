@@ -449,7 +449,9 @@ const buttonProps = cta.href
 		--btn-color: var(--start-cta-button);
 		--btn-contrast: var(--start-cta-button-contrast);
 
-		width: min(18.5625rem, 100%);
+		/* Ancho mínimo del diseño; crece si el texto es más largo (nunca se monta sobre la burbuja) */
+		min-width: min(18.5625rem, 100%);
+		max-width: 100%;
 		margin-top: var(--space-4); /* 40px desde el texto (24 + 16) */
 		justify-content: space-between;
 	}
@@ -572,7 +574,7 @@ const buttonProps = cta.href
 		}
 
 		.start-cta :global(.start-cta__button) {
-			width: min(16.25rem, 100%); /* 260px */
+			min-width: min(16.25rem, 100%); /* 260px */
 			justify-content: center;
 			gap: var(--space-5);
 		}

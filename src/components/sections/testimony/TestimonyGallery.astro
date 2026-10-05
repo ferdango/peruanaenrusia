@@ -4,17 +4,20 @@
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628102" (1646:245):
  * 4 fotos verticales (320 × 460, radio 28) repartidas en el ancho del
- * contenido, con el ícono de Instagram a la derecha y, en las publicaciones
- * con varias fotos, el ícono de "álbum" a la izquierda.
- * Móvil: UI Mobile › Caso de éxito: fondo celeste y una foto por vista
- * (carrusel).
+ * contenido, con el ícono de Instagram y, en las publicaciones con varias
+ * fotos, el ícono de "álbum".
+ * Móvil: UI Mobile › Caso de éxito: fondo celeste y las fotos en fila.
+ *
+ * Mejorado: encabezado con etiqueta y título; en desktop las fotos van en
+ * cuadrícula (se inclinan con el cursor, src/scripts/motion.ts) y en tablet
+ * y móvil en una fila que avanza con el scroll (data-scroll-slider="drift");
+ * sin JavaScript se desliza con el dedo.
  *
  * Cada foto enlaza a su publicación (`href`) o, si no tiene, al perfil de
  * Instagram de la marca (src/data/site.ts).
  *
  * Uso: <TestimonyGallery testimonial={testimonial} />
  */
-import Carousel from '@components/ui/Carousel.astro';
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
 import { site } from '@data/site';
@@ -31,6 +34,8 @@ const instagramProfile = site.socials.find((social) => social.icon === 'instagra
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Publicaciones',
+	title: 'Su vida en Rusia',
 	label: `Publicaciones de ${testimonial.name}`,
 	open: 'Ver la publicación en Instagram (se abre en una pestaña nueva)',
 	album: 'Publicación con varias fotos',
@@ -38,118 +43,247 @@ const content = {
 ---
 
 {items.length > 0 && (
-	<section class="testimony-gallery" aria-label={content.label}>
-		<Carousel label={content.label} tone="blue" gap={24} class="testimony-gallery__carousel">
-			{items.map((item) => (
-				<a
-					href={item.href ?? instagramProfile}
-					class="gallery-post"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<MediaImage
-						image={item.src}
-						alt={item.alt}
-						widths={[320, 640, 960]}
-						sizes="(max-width: 640px) 330px, 320px"
-						class="gallery-post__image"
-					/>
-					{item.album && (
-						<Icon
-							name="copy-outline"
-							size={28}
-							class="gallery-post__icon gallery-post__icon--album"
-						/>
-					)}
-					<Icon
-						name="instagram"
-						size={28}
-						class="gallery-post__icon gallery-post__icon--instagram"
-					/>
-					<span class="visually-hidden">
-						{item.album ? `${content.album}. ` : ''}
-						{content.open}
-					</span>
-				</a>
-			))}
-		</Carousel>
+	<section
+		class="testimony-gallery section"
+		aria-labelledby="testimony-gallery-title"
+		data-scroll-slider="drift"
+	>
+		<header class="testimony-gallery__header container">
+			<p class="testimony-gallery__eyebrow">
+				<Icon name="instagram" size={16} class="testimony-gallery__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h2 id="testimony-gallery-title" class="testimony-gallery__title">
+				{content.title}
+			</h2>
+		</header>
+
+		<div class="testimony-gallery__viewport" data-slider-viewport>
+			<ul class="testimony-gallery__track" role="list" aria-label={content.label} data-slider-track>
+				{items.map((item) => (
+					<li class="testimony-gallery__item" data-slider-item>
+						<a
+							href={item.href ?? instagramProfile}
+							class="gallery-post"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<MediaImage
+								image={item.src}
+								alt={item.alt}
+								widths={[320, 640, 960]}
+								sizes="(max-width: 640px) 72vw, 20rem"
+								class="gallery-post__image"
+							/>
+							<span class="gallery-post__shade" aria-hidden="true"></span>
+							{item.album && (
+								<Icon
+									name="copy-outline"
+									size={24}
+									class="gallery-post__icon gallery-post__icon--album"
+								/>
+							)}
+							<Icon
+								name="instagram"
+								size={24}
+								class="gallery-post__icon gallery-post__icon--instagram"
+							/>
+							<span class="visually-hidden">
+								{item.album ? `${content.album}. ` : ''}
+								{content.open}
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
 	</section>
 )}
 
 <style>
 	.testimony-gallery {
-		display: grid;
-		/* minmax(0, …): el carrusel no estira la columna (sin scroll horizontal) */
-		grid-template-columns: minmax(0, 1fr);
-		align-content: center;
-		min-height: 52.5rem; /* 840px */
-		padding-block: var(--space-10);
+		/* Margen izquierdo del contenido: la fila empieza alineada con el título */
+		--gallery-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-6), 3vw, var(--space-8));
+		overflow: clip;
 		background-color: var(--surface-white);
-		--carousel-controls-gap: var(--space-7);
+		color: var(--text-on-light);
+	}
+
+	/* ===== Encabezado ===== */
+	.testimony-gallery__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.testimony-gallery__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.testimony-gallery__eyebrow-icon {
+		color: var(--color-red);
+	}
+
+	.testimony-gallery__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--text-heading-light);
+	}
+
+	/* ===== Fila de publicaciones ===== */
+	.testimony-gallery__viewport {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--gallery-inset);
+		scrollbar-width: none;
+		/* Espacio para la elevación y la sombra al inclinarse */
+		padding-block: var(--space-3) var(--space-7);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-7));
+	}
+
+	.testimony-gallery__viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.testimony-gallery__track {
+		display: flex;
+		gap: var(--space-5);
+		width: max-content;
+		margin: 0;
+		padding-inline: var(--gallery-inset);
+	}
+
+	.testimony-gallery__item {
+		flex-shrink: 0;
+		scroll-snap-align: start;
+	}
+
+	.testimony-gallery:global(.is-scroll-slider) .testimony-gallery__viewport {
+		overflow: hidden;
+		scroll-snap-type: none;
+	}
+
+	.testimony-gallery:global(.is-scroll-slider) .testimony-gallery__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
 	}
 
 	/* ----- Publicación (320 × 460) ----- */
 	.gallery-post {
 		position: relative;
+		isolation: isolate;
 		display: block;
 		width: 20rem; /* 320px */
-		height: 28.75rem; /* 460px */
+		aspect-ratio: 320 / 460;
 		overflow: clip;
 		border-radius: 1.75rem; /* 28px */
-	}
-
-	/* Desktop: las 4 fotos repartidas en el ancho del contenido (sin desplazamiento) */
-	@media (min-width: 1101px) {
-		.testimony-gallery :global(.testimony-gallery__carousel .carousel__track) {
-			justify-content: space-between;
-			/* Nunca más ancha que la pantalla (con margin auto no se estira sola) */
-			width: 100%;
-			max-width: calc(var(--container-max) + 2 * var(--gutter));
-			margin-inline: auto;
-			padding-inline: var(--gutter);
-		}
+		background-color: #dfe6ee;
+		box-shadow: 0 1.5rem 3rem -2rem rgb(18 91 168 / 0.5);
 	}
 
 	.gallery-post__image {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform var(--duration-slow) var(--ease-out);
+		transition: scale 0.9s var(--ease-out);
 	}
 
 	.gallery-post:hover .gallery-post__image {
-		transform: scale(1.04);
+		scale: 1.06;
 	}
 
-	/* Íconos blancos a media altura (Figma: 28px; Instagram a la derecha, álbum a la izquierda) */
+	.gallery-post__shade {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(to bottom, rgb(6 10 20 / 0.35), transparent 30%);
+	}
+
+	/* Íconos blancos arriba (Instagram a la derecha, álbum a la izquierda) */
 	.gallery-post__icon {
 		position: absolute;
-		top: 13.4375rem; /* 215px */
+		top: var(--space-4);
 		color: var(--color-pure-white);
 		filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.35));
 	}
 
 	.gallery-post__icon--instagram {
-		left: 13.3125rem; /* 213px */
+		right: var(--space-4);
 	}
 
 	.gallery-post__icon--album {
-		left: 1.125rem; /* 18px */
+		left: var(--space-4);
 	}
 
-	/* ===== Móvil: fondo celeste y una foto por vista ===== */
-	@media (max-width: 640px) {
-		.testimony-gallery {
-			min-height: 0;
-			padding-block: var(--space-10);
-			background-color: #def7ff;
-			--carousel-controls-gap: 1.75rem;
+	.gallery-post:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 4px;
+	}
+
+	/* ===== Desktop: las 4 fotos en cuadrícula (sin desplazamiento) ===== */
+	@media (min-width: 1101px) {
+		.testimony-gallery__viewport {
+			overflow: visible;
+			scroll-snap-type: none;
+		}
+
+		.testimony-gallery__track {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			width: auto;
+			max-width: calc(var(--container-max) + 2 * var(--gutter));
+			margin-inline: auto;
+			padding-inline: var(--gutter);
 		}
 
 		.gallery-post {
-			width: min(20.625rem, 100vw - 2.5rem); /* 330px */
-			height: auto;
-			aspect-ratio: 330 / 460;
+			width: 100%;
+		}
+	}
+
+	/* ===== Móvil: fondo celeste (Figma móvil) ===== */
+	@media (max-width: 640px) {
+		.testimony-gallery {
+			--gallery-inset: var(--space-3);
+
+			background-color: #def7ff;
+		}
+
+		.testimony-gallery__header {
+			align-items: center;
+			text-align: center;
+		}
+
+		.testimony-gallery__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.testimony-gallery__track {
+			gap: var(--space-3);
+		}
+
+		.gallery-post {
+			width: min(16.5rem, 72vw);
+			border-radius: var(--radius-lg);
 		}
 	}
 </style>

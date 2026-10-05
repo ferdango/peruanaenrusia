@@ -9,9 +9,8 @@
  *     communityMoments): la llegada de los becados, visitas a universidades,
  *     charlas… Cada foto muestra qué pasó y, si es un video del canal, se
  *     reproduce en el modal del sitio (sin JavaScript abre YouTube).
- *   - La tarjeta roja "Únete" es una casilla más del mosaico (desktop y
- *     tablet). En móvil va en "Una comunidad que cambia vidas", como en el
- *     diseño móvil, así que aquí se oculta.
+ *   - La tarjeta roja "Únete" es una casilla más del mosaico (en móvil, al
+ *     final, a todo el ancho).
  *   - Las fotos aparecen con un recorte al hacer scroll y se acercan al pasar
  *     el cursor (src/scripts/motion.ts).
  *
@@ -293,8 +292,8 @@ const content = {
 	@media (max-width: 1100px) {
 		.moments {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-			grid-template-rows: none;
-			grid-auto-rows: clamp(11rem, 26vw, 15rem);
+			/* La última fila (tarjeta "Únete") crece con su contenido */
+			grid-template-rows: repeat(5, clamp(11rem, 26vw, 15rem)) auto;
 			grid-template-areas:
 				'hero hero'
 				'hero hero'
@@ -305,7 +304,7 @@ const content = {
 		}
 	}
 
-	/* ===== Móvil: mosaico compacto (la tarjeta "Únete" va en la galería) ===== */
+	/* ===== Móvil: mosaico compacto y la tarjeta "Únete" al final ===== */
 	@media (max-width: 640px) {
 		.home-community {
 			gap: var(--space-6);
@@ -328,18 +327,12 @@ const content = {
 		}
 
 		.moments {
-			grid-auto-rows: 9.5rem;
-			grid-template-areas:
-				'hero hero'
-				'hero hero'
-				'a tall'
-				'b tall'
-				'c d';
+			grid-template-rows: repeat(5, 9.5rem) auto;
 			gap: var(--space-2);
 		}
 
-		.moment--join {
-			display: none;
+		.home-community :global(.home-community__join) {
+			border-radius: var(--radius-lg);
 		}
 
 		.moment__card {

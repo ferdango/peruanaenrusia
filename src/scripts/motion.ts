@@ -1,5 +1,5 @@
 /**
- * Movimiento de las páginas inmersivas (Home y Blog)
+ * Movimiento de las páginas inmersivas (Home, Blog y Caso de éxito)
  * --------------------------------------------------------------------------
  * Da vida a las páginas con body.motion sin librerías externas (cada regla
  * actúa solo si encuentra sus elementos en la página):
@@ -110,8 +110,6 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-community__text', effect: 'up', delay: 180 },
 	{ selector: '.moment__card', effect: 'clip', stagger: 90 },
 	{ selector: '.home-community__join', effect: 'up', delay: 200 },
-	{ selector: '.home-gallery__title', effect: 'words' },
-	{ selector: '.gallery-photo', effect: 'up', stagger: 100 },
 	// Redes sociales (TikTok)
 	{ selector: '.home-social__eyebrow', effect: 'up' },
 	{ selector: '.home-social__title', effect: 'words', delay: 80 },
@@ -134,6 +132,29 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.blog-videoblogs__text', effect: 'up', delay: 180 },
 	{ selector: '.blog-videoblogs__cta', effect: 'fade', delay: 300 },
 	{ selector: '.video-card', effect: 'up', stagger: 90 },
+	// Caso de éxito (la portada entra con su propia animación al cargar)
+	{ selector: '.testimony-video__eyebrow', effect: 'up' },
+	{ selector: '.testimony-video__title', effect: 'words', delay: 80 },
+	{ selector: '.testimony-video__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.testimony-video__card', effect: 'scale', delay: 120 },
+	{ selector: '.testimony-highlight__mark', effect: 'pop' },
+	{ selector: '.testimony-highlight__quote', effect: 'up', delay: 120 },
+	{ selector: '.testimony-highlight__author', effect: 'up', delay: 500 },
+	{ selector: '.testimony-story__eyebrow', effect: 'up' },
+	{ selector: '.testimony-story__title', effect: 'words', delay: 80 },
+	{ selector: '.testimony-story__text', effect: 'up', delay: 180 },
+	{ selector: '.story-block__photo', effect: 'scale' },
+	{ selector: '.story-tile', effect: 'scale', stagger: 90, delay: 100 },
+	{ selector: '.testimony-gallery__eyebrow', effect: 'up' },
+	{ selector: '.testimony-gallery__title', effect: 'words', delay: 80 },
+	{ selector: '.gallery-post', effect: 'up', stagger: 100, delay: 150 },
+	{ selector: '.testimony-closing__media', effect: 'scale' },
+	{ selector: '.testimony-closing__text > *', effect: 'up', stagger: 110, delay: 150 },
+	{ selector: '.more-cases__eyebrow', effect: 'up' },
+	// (título con versión de móvil: aparece entero; "words" mostraría las dos versiones)
+	{ selector: '.more-cases__title', effect: 'up', delay: 80 },
+	{ selector: '.more-cases__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.more-cases__cta', effect: 'fade', delay: 300 },
 	// Preguntas frecuentes
 	{ selector: '.home-faq__eyebrow', effect: 'up' },
 	{ selector: '.home-faq__title', effect: 'words', delay: 80 },
@@ -166,6 +187,8 @@ const PARALLAX: { selector: string; speed: number; media?: string }[] = [
 	{ selector: '.home-universities__wave--blue', speed: -0.1 },
 	{ selector: '.home-faq__wave--red', speed: 0.12 },
 	{ selector: '.home-faq__wave--blue', speed: -0.08 },
+	{ selector: '.testimony-highlight__star', speed: 0.14 },
+	{ selector: '.testimony-closing__wave', speed: -0.06 },
 ];
 
 /** Tarjetas con inclinación 3D y brillo */
@@ -175,12 +198,14 @@ const TILT = [
 	'.step-card__inner',
 	'.case-video',
 	'.moment__card',
-	'.gallery-photo',
 	'.tiktok-card',
 	'.story-feature',
 	'.post-tile',
 	'.video-card',
 	'.blog-hero__feature',
+	'.testimony-video__card',
+	'.gallery-post',
+	'.testimony-closing__media',
 ].join(', ');
 
 /* ==========================================================================

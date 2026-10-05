@@ -9,6 +9,12 @@
  * configurado, de src/data/testimonials.ts). Las secciones sin datos no se
  * dibujan (todos los campos de la "historia completa" son opcionales).
  *
+ * Con el mismo lenguaje que el Home: el header es transparente sobre la
+ * portada (body.hero-overlay) y la página usa el mismo movimiento (body.motion:
+ * src/scripts/motion.ts y src/styles/motion.css): apariciones al hacer
+ * scroll, filas que avanzan con el scroll, líneas que se dibujan y videos en
+ * el modal. El footer es el del sitio.
+ *
  * Secciones (src/components/sections/testimony/):
  *   1. TestimonyHero       → portada con la frase del estudiante (h1)
  *   2. TestimonyVideo      → "Conoce mi historia"
@@ -19,8 +25,11 @@
  *   7. StartCta (verde)    → "¿Te animas a intentarlo?"
  *   8. TestimonyMoreCases  → "Más casos de éxito"
  */
+import '@styles/motion.css';
+
 import SiteLayout from '@layouts/SiteLayout.astro';
 
+import VideoModal from '@components/overlays/VideoModal.astro';
 import TestimonyHero from '@components/sections/testimony/TestimonyHero.astro';
 import TestimonyVideo from '@components/sections/testimony/TestimonyVideo.astro';
 import TestimonyHighlight from '@components/sections/testimony/TestimonyHighlight.astro';
@@ -84,7 +93,13 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={meta.title} description={meta.description} image={meta.image} jsonLd={jsonLd}>
+<SiteLayout
+	title={meta.title}
+	description={meta.description}
+	image={meta.image}
+	jsonLd={jsonLd}
+	bodyClass="testimony motion hero-overlay"
+>
 	<TestimonyHero testimonial={testimonial} storyHref={`#${anchors.story}`} nextHref={`#${nextAnchor}`} />
 	<TestimonyVideo id={anchors.video} testimonial={testimonial} />
 	<TestimonyHighlight testimonial={testimonial} />
@@ -93,4 +108,13 @@ const jsonLd = [
 	<TestimonyClosing testimonial={testimonial} />
 	<StartCta id="empezar" tone="green" title={cta.title} text={cta.text} cta={cta.button} />
 	<TestimonyMoreCases currentSlug={testimonial.slug} />
+
+	<!-- Reproductor de los videos (se puede minimizar y seguir navegando) -->
+	<VideoModal />
 </SiteLayout>
+
+<script>
+	// Movimiento compartido con el Home: apariciones, filas con el scroll, tarjetas 3D
+	import { initMotion } from '@scripts/motion';
+	initMotion();
+</script>

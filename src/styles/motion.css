@@ -1,8 +1,10 @@
 /**
- * Movimiento e interacción de las páginas inmersivas (Home y Blog)
+ * Movimiento e interacción de las páginas inmersivas (Home, Blog y Caso de éxito)
  * --------------------------------------------------------------------------
  * Complemento de src/scripts/motion.ts. Lo cargan las páginas que lo usan
- * (src/pages/index.astro y src/pages/blog/index.astro) y todo cuelga de
+ * (src/pages/index.astro, src/pages/blog/index.astro y
+ * src/pages/casos-de-exito/[slug].astro; el Libro de reclamaciones, solo
+ * por el header transparente) y todo cuelga de
  * body.motion (el header transparente, de body.hero-overlay), así que no
  * afecta al resto del sitio.
  *

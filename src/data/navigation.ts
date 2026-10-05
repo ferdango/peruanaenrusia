@@ -30,7 +30,6 @@ export const routes = {
 	faq: withBase('/#preguntas-frecuentes'),
 	legal: withBase('/legales/'),
 	complaintsBook: withBase('/libro-de-reclamaciones/'),
-	infoTalks: withBase('/blog/#videoblogs'),
 	portal: withBase('/portal/mi-proceso/'),
 } as const;
 
@@ -57,8 +56,6 @@ export const sideNav: NavLink[] = [
 	{ label: 'Universidades', href: routes.universities },
 	{ label: 'Blog', href: routes.blog },
 	{ label: 'Legales', href: routes.legal },
-	{ label: 'FAQ', href: routes.faq },
-	{ label: 'Charlas informativas', href: routes.infoTalks },
 ];
 
 /** Enlaces del pie de página */

@@ -9,8 +9,8 @@
  *   ¿Listo para estudiar en Rusia?   [Empieza tu proceso] [WhatsApp]
  *   ～～～～ líneas planas de la marca (se dibujan con el scroll) ～～～～
  *   [Logo] texto + redes      Explora · enlaces      Contacto · teléfono…
- *   Copyright © … · RUC              🇵🇪 · · · 🇷🇺   📖 Libro de reclamaciones
- *                       Diseñado por [Wuality] (enlace a wuality.agency)
+ *   Copyright © … · RUC   🇵🇪 · · · 🇷🇺   Diseñado por [Wuality]   📖 Libro de reclamaciones
+ *   (el crédito, pequeño y en línea, enlaza a wuality.agency)
  *
  * - Fondo azul profundo de la marca (contraste AA con el texto blanco).
  * - Las líneas (src/assets/graphics/waves/brand-lines.svg) se dibujan
@@ -189,24 +189,21 @@ const year = new Date().getFullYear();
 			<span class="visually-hidden">{content.route}</span>
 		</p>
 
-		<a href={routes.complaintsBook} class="site-footer__complaints">
-			<Icon name="book" size={28} />
-			{content.complaints}
-		</a>
-	</div>
-
-	<!-- Crédito del diseño: Wuality (agencia) -->
-	<div class="site-footer__credit container">
+		<!-- Crédito del diseño: Wuality (agencia) -->
 		<a
 			href={content.credit.href}
-			class="site-footer__credit-link"
+			class="site-footer__credit"
 			target="_blank"
 			rel="noopener"
 			aria-label={`${content.credit.label} ${content.credit.name} ${content.newTab}`}
 		>
-			<span class="site-footer__credit-label">{content.credit.label}</span>
-			<Image src={wualityLogo} alt="" width={104} densities={[1, 2]} class="site-footer__credit-logo" />
-			<Icon name="external-link" size={14} class="site-footer__credit-icon" />
+			<span>{content.credit.label}</span>
+			<Image src={wualityLogo} alt="" width={76} densities={[1, 2]} class="site-footer__credit-logo" />
+		</a>
+
+		<a href={routes.complaintsBook} class="site-footer__complaints">
+			<Icon name="book" size={28} />
+			{content.complaints}
 		</a>
 	</div>
 </footer>
@@ -463,7 +460,7 @@ const year = new Date().getFullYear();
 		outline-offset: 3px;
 	}
 
-	/* ===== Fila inferior: copyright · Perú → Rusia · libro de reclamaciones ===== */
+	/* ===== Fila inferior: copyright · Perú → Rusia · Diseñado por Wuality · libro de reclamaciones ===== */
 	.site-footer__bottom {
 		display: flex;
 		align-items: center;
@@ -471,13 +468,15 @@ const year = new Date().getFullYear();
 		gap: var(--space-4) var(--space-6);
 		margin-top: var(--space-8);
 		padding-top: var(--space-5);
-		/* Deja libre la esquina del botón flotante de WhatsApp (80px; 56px en móvil)
-		   para que no tape el libro de reclamaciones al llegar al final */
+		/* Deja libre la esquina del botón flotante de WhatsApp (80px, a
+		   clamp(1rem, 2.6vw, 2.5rem) del borde) para que no tape el libro de
+		   reclamaciones al llegar al final: el espacio del botón menos el margen
+		   que ya deja el contenedor a la derecha */
 		padding-right: max(
-			0px,
+			var(--gutter),
 			calc(
 				var(--floating-button, 80px) + clamp(1rem, 2.6vw, 2.5rem) + 1rem -
-					max(var(--gutter), (100vw - var(--container-max)) / 2)
+					max(0px, (100vw - var(--container-max)) / 2 - var(--gutter))
 			)
 		);
 		border-top: 1px solid rgb(255 255 255 / 0.16);
@@ -543,71 +542,31 @@ const year = new Date().getFullYear();
 		color: var(--color-yellow);
 	}
 
-	/* ===== Crédito: "Diseñado por Wuality" (píldora de vidrio con el logo) ===== */
+	/* ===== Crédito: "Diseñado por" + logo de Wuality, pequeño y en línea ===== */
 	.site-footer__credit {
-		display: flex;
-		justify-content: center;
-		margin-top: var(--space-5);
-	}
-
-	.site-footer__credit-link {
-		position: relative;
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-3);
-		padding: 0.5rem 0.875rem 0.5rem 1.125rem;
-		overflow: hidden;
-		border: 1px solid rgb(255 255 255 / 0.22);
-		border-radius: var(--radius-pill);
-		background-color: rgb(4 18 48 / 0.32);
-		backdrop-filter: blur(10px);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		gap: var(--space-2);
+		font-size: var(--font-size-sm);
+		line-height: 1.5rem;
 		color: rgb(255 255 255 / 0.78);
-		transition:
-			border-color var(--duration-base) var(--ease-out),
-			background-color var(--duration-base) var(--ease-out),
-			translate var(--duration-base) var(--ease-out),
-			box-shadow var(--duration-slow) var(--ease-out);
-	}
-
-	/* Brillo que cruza la píldora al pasar el cursor */
-	.site-footer__credit-link::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.22) 50%, transparent 70%);
-		translate: -120% 0;
-		transition: translate 0.8s var(--ease-out);
-		pointer-events: none;
-	}
-
-	.site-footer__credit-link:hover {
-		border-color: rgb(255 255 255 / 0.5);
-		background-color: rgb(4 18 48 / 0.5);
-		box-shadow: 0 0.75rem 2rem -0.75rem rgb(255 56 50 / 0.55);
-		translate: 0 -2px;
-	}
-
-	.site-footer__credit-link:hover::before {
-		translate: 120% 0;
+		white-space: nowrap;
+		transition: color var(--duration-base) var(--ease-out);
 	}
 
 	.site-footer__credit-logo {
 		display: block;
-		width: 6.5rem; /* 104px */
+		width: 4.75rem; /* 76px */
 		height: auto;
+		transition: opacity var(--duration-base) var(--ease-out);
 	}
 
-	.site-footer__credit-link :global(.site-footer__credit-icon) {
-		color: rgb(255 255 255 / 0.6);
-		transition: translate var(--duration-base) var(--ease-out);
+	.site-footer__credit:hover {
+		color: var(--color-pure-white);
 	}
 
-	.site-footer__credit-link:hover :global(.site-footer__credit-icon) {
-		translate: 2px -2px;
+	.site-footer__credit:hover .site-footer__credit-logo {
+		opacity: 0.85;
 	}
 
 	/* ===== Movimiento (sin "reducir movimiento") ===== */
@@ -719,11 +678,6 @@ const year = new Date().getFullYear();
 			display: none;
 		}
 
-		/* A la izquierda, lejos del botón flotante de WhatsApp */
-		.site-footer__credit {
-			justify-content: flex-start;
-		}
-
 		.site-footer__actions {
 			flex-direction: column;
 			align-self: stretch;
@@ -738,14 +692,21 @@ const year = new Date().getFullYear();
 			gap: var(--space-7);
 		}
 
+		/* En columna y a la izquierda: el botón flotante no tapa nada */
 		.site-footer__bottom {
 			flex-direction: column-reverse;
 			align-items: flex-start;
 			gap: var(--space-5);
+			padding-right: var(--gutter);
 		}
 
 		.site-footer__route {
 			order: 0;
+		}
+
+		/* El crédito, al final (abajo a la izquierda, lejos del botón de WhatsApp) */
+		.site-footer__credit {
+			order: -1;
 		}
 	}
 </style>

@@ -25,3 +25,14 @@ export function withoutBase(pathname: string): string {
 	if (pathname === BASE_PATH) return '/';
 	return pathname.startsWith(`${BASE_PATH}/`) ? pathname.slice(BASE_PATH.length) : pathname;
 }
+
+/**
+ * Código de un video de YouTube a partir de su URL (watch?v=, youtu.be/,
+ * shorts/, embed/ o live/). Si la URL no es de un video de YouTube, undefined.
+ *   'https://www.youtube.com/watch?v=A_tz23sIFXk' → 'A_tz23sIFXk'
+ */
+export function youtubeIdFromUrl(url: string | undefined): string | undefined {
+	return url?.match(
+		/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/,
+	)?.[1];
+}

@@ -7,6 +7,10 @@
  *
  * Es un <dialog>: se abre con cualquier elemento que tenga
  * data-dialog-open="side-menu" (ver src/scripts/dialog.ts).
+ *
+ * Animación: el panel entra de derecha a izquierda (y los enlaces lo siguen
+ * en cascada); al cerrar sale hacia la derecha en los navegadores que pueden
+ * animar la salida de un <dialog> (en los demás se cierra al instante).
  */
 import { Image } from 'astro:assets';
 
@@ -31,10 +35,10 @@ const currentPath = Astro.url.pathname;
 		<div class="side-menu__body">
 			<nav aria-label="Menú del sitio">
 				<ul role="list" class="side-menu__list">
-					{sideNav.map((link) => {
+					{sideNav.map((link, index) => {
 						const active = isActiveLink(link, currentPath);
 						return (
-							<li>
+							<li style={`--i: ${index}`}>
 								<a
 									href={link.href}
 									class:list={['side-menu__link', { 'is-active': active }]}
@@ -46,7 +50,7 @@ const currentPath = Astro.url.pathname;
 							</li>
 						);
 					})}
-					<li>
+					<li style={`--i: ${sideNav.length}`}>
 						<button
 							type="button"
 							class="side-menu__link"
@@ -95,8 +99,14 @@ const currentPath = Astro.url.pathname;
 <style>
 	/* ----- Contenedor <dialog>: ocupa el alto de la pantalla, a la derecha ----- */
 	.side-menu {
+		/* Entrada (derecha → izquierda) y salida del panel */
+		--side-menu-in: 0.55s;
+		--side-menu-out: 0.32s;
+
 		position: fixed;
 		inset: 0 0 0 auto;
+		/* Por encima del header mientras sale (fuera de la capa superior) */
+		z-index: var(--z-drawer);
 		width: min(22.5rem, 100vw); /* 360px */
 		max-width: none;
 		height: 100dvh;
@@ -104,6 +114,10 @@ const currentPath = Astro.url.pathname;
 		margin: 0;
 		padding: 0;
 		border: 0;
+		/* Sin barra de scroll propia: al abrir, el navegador lleva el foco al botón
+		   de cerrar y, si el <dialog> pudiera desplazarse, "adelantaría" el panel
+		   y la animación de entrada no se vería */
+		overflow: clip;
 		background: transparent;
 		color: var(--text-on-dark);
 	}
@@ -113,14 +127,67 @@ const currentPath = Astro.url.pathname;
 		backdrop-filter: blur(2px);
 	}
 
-	/* Animación de entrada desde la derecha */
-	.side-menu[open] .side-menu__panel {
-		animation: slide-in var(--duration-slow) var(--ease-out);
+	@media (prefers-reduced-motion: no-preference) {
+		/* Entrada: el panel se desliza de derecha a izquierda y el fondo aparece */
+		.side-menu[open] .side-menu__panel {
+			animation: side-menu-in var(--side-menu-in) cubic-bezier(0.32, 0.72, 0, 1) both;
+		}
+
+		.side-menu[open]::backdrop {
+			animation: side-menu-fade var(--side-menu-in) var(--ease-out) both;
+		}
+
+		/* Los enlaces llegan en cascada detrás del panel */
+		.side-menu[open] .side-menu__list > li,
+		.side-menu[open] .side-menu__contact {
+			animation: side-menu-item 0.5s var(--ease-out) both;
+			animation-delay: calc(0.12s + var(--i, 8) * 0.04s);
+		}
+
+		/* Salida (navegadores que animan el cierre de un <dialog>): hacia la derecha.
+		   Usa translate (y no transform, que anima la entrada): el navegador no
+		   inicia una transición sobre la propiedad que una animación acaba de mover */
+		.side-menu {
+			transition:
+				display var(--side-menu-out) allow-discrete,
+				overlay var(--side-menu-out) allow-discrete;
+		}
+
+		.side-menu:not([open]) .side-menu__panel {
+			translate: 100% 0;
+			transition: translate var(--side-menu-out) cubic-bezier(0.4, 0, 1, 1);
+		}
+
+		.side-menu::backdrop {
+			transition:
+				opacity var(--side-menu-out) var(--ease-out),
+				display var(--side-menu-out) allow-discrete,
+				overlay var(--side-menu-out) allow-discrete;
+		}
+
+		.side-menu:not([open])::backdrop {
+			opacity: 0;
+		}
 	}
 
-	@keyframes slide-in {
+	@keyframes side-menu-in {
 		from {
 			transform: translateX(100%);
+		}
+	}
+
+	/* (el fondo entra con su color y desenfoque; la salida usa opacity) */
+	@keyframes side-menu-fade {
+		from {
+			background-color: rgb(0 0 0 / 0);
+			backdrop-filter: blur(0);
+		}
+	}
+
+	@keyframes side-menu-item {
+		from {
+			opacity: 0;
+			translate: 2.5rem 0;
 		}
 	}
 
@@ -158,6 +225,7 @@ const currentPath = Astro.url.pathname;
 		flex-direction: column;
 		justify-content: space-between;
 		gap: var(--space-6);
+		overflow-x: hidden; /* los enlaces entran desde la derecha sin barra horizontal */
 		overflow-y: auto;
 	}
 

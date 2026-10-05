@@ -2,35 +2,47 @@
 /**
  * HomeWhyUs — "¿Por qué elegir Peruana en Rusia?"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628098" (1321:46)
- *   · Izquierda (1004:954): título + fotos de estudiantes y "+100 estudiantes
- *     cambiaron sus vidas".
- *   · Derecha (1316:29): tarjetas de beneficios (foto con la composición de
- *     la marca + título + texto).
+ * Figma: Home › "Frame 628098" (1321:46): título, fotos de estudiantes con
+ * "+100 estudiantes cambiaron sus vidas" y tarjetas de beneficios (foto con
+ * la composición de la marca + título + texto).
  * Móvil: UI Mobile › "Frame 628098" (1407:1243): título centrado arriba y
  * las tarjetas debajo (asoma la siguiente).
  *
- * Las tarjetas se deslizan en horizontal con el scroll mientras la sección
- * cruza la pantalla (src/scripts/home-motion.ts › sliders con scroll,
- * data-scroll-slider="drift"); no hay flechas ni puntos. Sin JavaScript o con
- * "reducir movimiento" se deslizan con el dedo.
+ * Desktop (> 1100 px), versión con el Manual de marca 2025: encabezado a la
+ * izquierda con el tubo degradé de la marca flotando a la derecha y las tres
+ * tarjetas en fila, numeradas (01, 02, 03) con un color de marca cada una y
+ * escalonadas como una onda. Al hacer scroll cada tarjeta se desplaza a su
+ * propia velocidad (parallax de src/scripts/home-motion.ts) y el tubo flota.
+ *
+ * Tablet y móvil: las tarjetas van en una fila que se desliza en horizontal
+ * con el scroll mientras la sección cruza la pantalla (home-motion.ts ›
+ * sliders con scroll, data-scroll-slider="drift"; en desktop no se activa
+ * porque las tarjetas caben). Sin JavaScript o con "reducir movimiento" se
+ * deslizan con el dedo.
  *
  * Los beneficios y las fotos de estudiantes vienen de src/data/benefits.ts.
- * La fila empieza alineada con la columna derecha y "sangra" hacia el borde
- * derecho de la pantalla, como en el diseño.
  *
  * Uso: <HomeWhyUs /> (página de inicio, después de HomeFounder).
  */
 import { Image } from 'astro:assets';
 
 import { benefits, studentAvatars } from '@data/benefits';
+import tubeLoop from '@assets/graphics/tubes/tube-gradient-loop.webp';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Nuestra diferencia',
 	title: '¿Por qué elegir Peruana en Rusia?',
 	socialProof: '+100 estudiantes cambiaron sus vidas',
 	listLabel: 'Beneficios de Peruana en Rusia',
 };
+
+/** Color de marca de cada tarjeta (número y detalles), en orden */
+const accents = ['blue', 'red', 'green'] as const;
+
+/** 0 → "01" */
+const cardNumber = (index: number) => String(index + 1).padStart(2, '0');
 ---
 
 <section
@@ -39,8 +51,27 @@ const content = {
 	aria-labelledby="home-why-title"
 	data-scroll-slider="drift"
 >
+	<!-- Tubo degradé y estrellas de la marca (decorativos) -->
+	<div class="home-why__art" aria-hidden="true">
+		<Image
+			src={tubeLoop}
+			alt=""
+			widths={[560, 900, 1400]}
+			sizes="(max-width: 1100px) 48vw, 40vw"
+			class="home-why__tube"
+		/>
+		<Star class="home-why__star home-why__star--yellow" />
+		<Star class="home-why__star home-why__star--blue" />
+		<Star class="home-why__star home-why__star--red" />
+	</div>
+
 	<div class="home-why__inner">
 		<header class="home-why__intro">
+			<p class="home-why__eyebrow">
+				<Star class="home-why__eyebrow-star" aria-hidden="true" />
+				{content.eyebrow}
+			</p>
+
 			<h2 id="home-why-title" class="home-why__title">
 				{content.title}
 			</h2>
@@ -59,21 +90,29 @@ const content = {
 
 		<div class="home-why__cards" data-slider-viewport>
 			<ul class="home-why__track" role="list" aria-label={content.listLabel} data-slider-track>
-				{benefits.map((benefit) => (
-					<li class="home-why__item" data-slider-item>
+				{benefits.map((benefit, index) => (
+					<li
+						class:list={['home-why__item', `home-why__item--${accents[index % accents.length]}`]}
+						data-slider-item
+					>
 						<article class="benefit-card">
-							<Image
-								src={benefit.image}
-								alt=""
-								widths={[340, 680]}
-								sizes="(max-width: 640px) 300px, 340px"
-								class="benefit-card__image"
-							/>
+							<div class="benefit-card__media">
+								<Image
+									src={benefit.image}
+									alt=""
+									widths={[340, 680]}
+									sizes="(max-width: 640px) 300px, (max-width: 1100px) 340px, 30vw"
+									class="benefit-card__image"
+								/>
+								<span class="benefit-card__index" aria-hidden="true">
+									{cardNumber(index)}
+								</span>
+							</div>
 							<div class="benefit-card__body">
 								<h3 class="benefit-card__title">
-									{benefit.title.split('\n').map((line, index) => (
+									{benefit.title.split('\n').map((line, lineIndex) => (
 										<Fragment>
-											{index > 0 && <br />}
+											{lineIndex > 0 && <br />}
 											{line}
 										</Fragment>
 									))}
@@ -90,42 +129,109 @@ const content = {
 
 <style>
 	.home-why {
-		/* Margen interno de la fila: ahí se desvanecen las tarjetas que salen */
+		/* Margen del contenido (alineado con el resto de la página) */
+		--why-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+		/* Margen interno de la fila deslizable: ahí se desvanecen las tarjetas que salen */
 		--why-fade: 2.5rem;
 
-		display: grid;
-		align-content: center;
-		/* Figma: 840px de alto con el contenido centrado */
-		min-height: 52.5rem;
+		position: relative;
+		isolation: isolate;
 		overflow: clip;
+		padding-block: clamp(4.5rem, 2rem + 5vw, 7.5rem);
 		background-color: var(--surface-light);
 		color: var(--text-on-light);
 	}
 
-	/* ----- Dos columnas: texto (503px) + carrusel que sangra a la derecha ----- */
 	.home-why__inner {
-		display: grid;
-		grid-template-columns: minmax(0, 31.4375rem) minmax(0, 1fr); /* 503px */
-		align-items: center;
-		/* 120px entre columnas: 80px + 40px de margen interno de la fila (zona de desvanecido) */
-		column-gap: 5rem;
-		/* Margen izquierdo del contenedor estándar; a la derecha no hay margen */
-		padding-left: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-8), 4vw, 4.5rem);
+		padding-left: var(--why-inset);
 	}
 
+	/* ===== Decorados de la marca ===== */
+	.home-why__art {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Tubo degradé (render oficial, fondo transparente) flotando arriba a la derecha */
+	.home-why__tube {
+		position: absolute;
+		top: clamp(2.5rem, 6vw, 6.5rem);
+		right: calc(var(--why-inset) - clamp(2rem, 6vw, 7rem));
+		width: clamp(22rem, 34vw, 37.5rem);
+		max-width: none;
+		height: auto;
+		rotate: -6deg;
+	}
+
+	/* Estrellas de 4 puntas */
+	.home-why__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.home-why__star--yellow {
+		top: clamp(2rem, 5vw, 5.5rem);
+		right: calc(var(--why-inset) + clamp(15rem, 27vw, 30rem));
+		width: 2.25rem;
+		color: var(--color-yellow);
+	}
+
+	.home-why__star--blue {
+		top: clamp(15rem, 22vw, 23rem);
+		right: calc(var(--why-inset) - 1rem);
+		width: 1.25rem;
+		color: var(--color-blue);
+	}
+
+	.home-why__star--red {
+		bottom: clamp(2.5rem, 5vw, 5rem);
+		left: calc(var(--why-inset) - 2.5rem);
+		width: 1.5rem;
+		color: var(--color-red);
+	}
+
+	/* ===== Encabezado ===== */
 	.home-why__intro {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: var(--space-7); /* 40px */
+		gap: var(--space-5); /* 24px */
+		max-width: 46rem;
+		padding-right: var(--why-inset);
+	}
+
+	/* Antetítulo con la estrella de la marca */
+	.home-why__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.home-why__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-red);
 	}
 
 	/* Figma: Poppins Bold 64/64 */
 	.home-why__title {
 		font-size: clamp(2rem, 1rem + 3.4vw, 4rem);
-		line-height: 1;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
 		color: var(--text-heading-light);
-		text-wrap: wrap;
+		text-wrap: balance;
 	}
 
 	/* ----- "+100 estudiantes": fotos superpuestas 12px ----- */
@@ -133,6 +239,7 @@ const content = {
 		display: flex;
 		align-items: center;
 		gap: var(--space-5); /* 24px */
+		margin-top: var(--space-2);
 	}
 
 	.home-why__avatars {
@@ -161,8 +268,9 @@ const content = {
 		line-height: 1.5rem;
 	}
 
-	/* ----- Tarjetas ----- */
-	/* Sin slider (sin JavaScript o con "reducir movimiento"): se deslizan con el dedo */
+	/* ===== Tarjetas ===== */
+	/* Fila deslizable (tablet y móvil). Sin slider (sin JavaScript o con
+	   "reducir movimiento") se desliza con el dedo */
 	.home-why__cards {
 		min-width: 0;
 		overflow-x: auto;
@@ -173,6 +281,7 @@ const content = {
 		padding-block: var(--space-3) var(--space-6);
 		padding-left: var(--why-fade);
 		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-6));
+		margin-left: calc(-1 * var(--why-fade));
 	}
 
 	.home-why__cards::-webkit-scrollbar {
@@ -187,13 +296,24 @@ const content = {
 	}
 
 	.home-why__item {
+		/* Color de marca de la tarjeta */
+		--accent: var(--color-blue);
+
 		display: flex;
 		flex-shrink: 0;
 		scroll-snap-align: start;
 	}
 
-	/* Con el slider activo, la fila se desplaza con el scroll (--slider-x) */
-	/* Las tarjetas se desvanecen al salir por la izquierda (sin cortes bruscos) */
+	.home-why__item--red {
+		--accent: var(--color-red);
+	}
+
+	.home-why__item--green {
+		--accent: var(--color-green);
+	}
+
+	/* Con el slider activo, la fila se desplaza con el scroll (--slider-x) y las
+	   tarjetas se desvanecen al salir por la izquierda (sin cortes bruscos) */
 	.home-why:global(.is-scroll-slider) .home-why__cards {
 		overflow: hidden;
 		scroll-snap-type: none;
@@ -205,8 +325,9 @@ const content = {
 		will-change: transform;
 	}
 
-	/* ----- Tarjeta de beneficio (340px) ----- */
+	/* ----- Tarjeta de beneficio ----- */
 	.benefit-card {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		width: 21.25rem; /* 340px */
@@ -217,10 +338,37 @@ const content = {
 		box-shadow: 0 4px 13px rgb(38 38 38 / 0.1);
 	}
 
+	.benefit-card__media {
+		position: relative;
+		overflow: clip;
+	}
+
 	.benefit-card__image {
+		display: block;
 		width: 100%;
 		aspect-ratio: 16 / 10;
 		object-fit: cover;
+	}
+
+	/* Número de la tarjeta en su color de marca */
+	.benefit-card__index {
+		position: absolute;
+		top: var(--space-4);
+		left: var(--space-4);
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
+		box-shadow:
+			0 0 0 3px var(--surface-white),
+			0 0.75rem 1.5rem -0.75rem rgb(0 0 0 / 0.5);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+		color: var(--color-pure-white);
 	}
 
 	.benefit-card__body {
@@ -246,33 +394,174 @@ const content = {
 		color: #363636;
 	}
 
-	/* ===== Tablet: título arriba y carrusel a todo el ancho ===== */
-	@media (max-width: 1100px) {
-		.home-why {
-			min-height: 0;
+	/* Línea de color al pie: crece al pasar el cursor */
+	.benefit-card::after {
+		content: '';
+		position: absolute;
+		inset: auto 0 0;
+		height: 0.3125rem;
+		background-color: var(--accent);
+		transform: scaleX(0.18);
+		transform-origin: left center;
+		transition: transform 0.6s var(--ease-out);
+	}
+
+	.benefit-card:hover::after {
+		transform: scaleX(1);
+	}
+
+	/* ===== Movimiento (sin "reducir movimiento"): el tubo flota y las estrellas titilan ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.home-why__tube {
+			animation: home-why-float 7s ease-in-out infinite alternate;
 		}
 
+		.home-why__star {
+			animation: home-why-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.home-why__star--blue {
+			animation-delay: -1.2s;
+		}
+
+		.home-why__star--red {
+			animation-delay: -2.3s;
+		}
+	}
+
+	@keyframes home-why-float {
+		from {
+			transform: translateY(-0.75rem) rotate(-2deg);
+		}
+		to {
+			transform: translateY(0.75rem) rotate(2deg);
+		}
+	}
+
+	@keyframes home-why-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	/* ===== Desktop: encabezado + tres tarjetas en fila, escalonadas como una onda ===== */
+	@media (min-width: 1101px) {
 		.home-why__inner {
-			grid-template-columns: minmax(0, 1fr);
-			row-gap: var(--space-8);
+			padding-right: var(--why-inset);
+		}
+
+		.home-why__intro {
+			padding-right: 0;
+		}
+
+		/* Sin fila deslizable: las tres tarjetas caben (el slider no se activa) */
+		.home-why__cards {
+			overflow: visible;
+			padding: 0;
+			margin: 0;
+		}
+
+		.home-why__track {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			align-items: start;
+			gap: clamp(1.5rem, 2.4vw, 2.5rem);
+			width: auto;
+			padding: 0 0 4rem;
+		}
+
+		.home-why__item:nth-child(3n + 2) {
+			margin-top: 4rem;
+		}
+
+		.home-why__item:nth-child(3n + 3) {
+			margin-top: 2rem;
+		}
+
+		.benefit-card {
+			width: 100%;
+		}
+
+		.benefit-card__body {
+			gap: var(--space-3);
+			padding: var(--space-6) var(--space-6) 2.25rem;
+		}
+
+		.benefit-card__title {
+			font-size: 1.5rem;
+			line-height: 1.875rem;
+		}
+
+		.benefit-card__index {
+			top: var(--space-5);
+			left: var(--space-5);
+			width: 3.25rem;
+			height: 3.25rem;
+			font-size: 1.0625rem;
+		}
+	}
+
+	/* ===== Tablet: título arriba y fila a todo el ancho ===== */
+	@media (max-width: 1100px) {
+		.home-why__intro {
+			max-width: min(36rem, 62%);
+		}
+
+		.home-why__tube {
+			top: 1rem;
+			right: -4rem;
+			width: min(48vw, 26rem);
+		}
+
+		.home-why__star--yellow {
+			top: 1.5rem;
+			right: min(44vw, 24rem);
+		}
+
+		.home-why__star--blue {
+			top: min(30vw, 15rem);
+			right: 1.5rem;
+		}
+
+		.home-why__star--red {
+			display: none;
 		}
 	}
 
 	/* ===== Móvil (Figma 1407:1243): título centrado y una tarjeta por vista ===== */
 	@media (max-width: 640px) {
 		.home-why {
+			--why-fade: var(--gutter);
+
 			padding-block: var(--space-8); /* 48px */
 		}
 
 		.home-why__inner {
-			row-gap: var(--space-7); /* 40px */
+			gap: var(--space-7); /* 40px */
 			padding-left: 0;
 		}
 
 		.home-why__intro {
 			align-items: center;
+			max-width: none;
 			padding-inline: var(--gutter);
 			text-align: center;
+		}
+
+		/* El tubo no compite con el título en pantallas chicas */
+		.home-why__tube,
+		.home-why__star--blue {
+			display: none;
+		}
+
+		.home-why__star--yellow {
+			top: 1.25rem;
+			right: 1.25rem;
+			width: 1.5rem;
 		}
 
 		/* Figma móvil: Poppins Bold 32/36 centrado */
@@ -285,8 +574,8 @@ const content = {
 			display: none;
 		}
 
-		.home-why {
-			--why-fade: var(--gutter);
+		.home-why__cards {
+			margin-left: 0;
 		}
 
 		.home-why__track {
@@ -297,6 +586,14 @@ const content = {
 		.benefit-card {
 			width: min(18.75rem, 80vw); /* 300px */
 			border-radius: var(--radius-lg);
+		}
+
+		.benefit-card__index {
+			top: var(--space-3);
+			left: var(--space-3);
+			width: 2.5rem;
+			height: 2.5rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.benefit-card__body {

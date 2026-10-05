@@ -79,6 +79,8 @@ const content = {
 <style>
 	.testimony-gallery {
 		display: grid;
+		/* minmax(0, …): el carrusel no estira la columna (sin scroll horizontal) */
+		grid-template-columns: minmax(0, 1fr);
 		align-content: center;
 		min-height: 52.5rem; /* 840px */
 		padding-block: var(--space-10);
@@ -100,6 +102,8 @@ const content = {
 	@media (min-width: 1101px) {
 		.testimony-gallery :global(.testimony-gallery__carousel .carousel__track) {
 			justify-content: space-between;
+			/* Nunca más ancha que la pantalla (con margin auto no se estira sola) */
+			width: 100%;
 			max-width: calc(var(--container-max) + 2 * var(--gutter));
 			margin-inline: auto;
 			padding-inline: var(--gutter);

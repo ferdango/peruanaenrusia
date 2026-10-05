@@ -7,7 +7,8 @@
  *   2. Hero: parallax con el puntero (--px / --py) y con el scroll (--hero-scroll).
  *   3. Apariciones al hacer scroll (REVEALS): títulos palabra por palabra,
  *      textos y tarjetas que entran en cascada.
- *   4. Parallax de decorados (PARALLAX): ondas a distinta velocidad.
+ *   4. Parallax (PARALLAX): ondas, el tubo degradé y las tarjetas de "¿Por qué
+ *      elegir…?" (en desktop) a distinta velocidad.
  *   5. Tarjetas con inclinación 3D y brillo que sigue al cursor (TILT).
  *   6. Botones "magnéticos" (atributo data-magnetic).
  *   7. Franjas de lemas empujadas por el scroll (--marquee-shift).
@@ -54,10 +55,13 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-founder__title', effect: 'words' },
 	{ selector: '.home-founder__text > p', effect: 'up', stagger: 120, delay: 200 },
 	// ¿Por qué elegir Peruana en Rusia?
-	{ selector: '.home-why__title', effect: 'words' },
+	{ selector: '.home-why__eyebrow', effect: 'up' },
+	{ selector: '.home-why__title', effect: 'words', delay: 80 },
 	{ selector: '.home-why__avatars > li', effect: 'pop', stagger: 70, delay: 250 },
 	{ selector: '.home-why__proof-text', effect: 'fade', delay: 450 },
-	{ selector: '.benefit-card', effect: 'up', stagger: 110 },
+	// (el tubo y las estrellas tienen su propia animación: aparece el grupo)
+	{ selector: '.home-why__art', effect: 'fade', delay: 100 },
+	{ selector: '.benefit-card', effect: 'up', stagger: 130 },
 	// ¿Qué tengo que hacer?
 	{ selector: '.home-steps__title', effect: 'words' },
 	{ selector: '.home-steps__text', effect: 'up', delay: 150 },
@@ -97,10 +101,21 @@ const REVEALS: RevealRule[] = [
 /** Desplazamiento máximo de los decorados (px): nunca se alejan de su sitio en el diseño */
 const PARALLAX_MAX = 48;
 
-/** Decorados que se desplazan más lento o más rápido que el scroll (velocidad) */
-const PARALLAX: { selector: string; speed: number }[] = [
+/** Solo en desktop (en tablet y móvil esas tarjetas van en una fila deslizable) */
+const DESKTOP = '(min-width: 1101px)';
+
+/**
+ * Elementos que se desplazan más lento o más rápido que el scroll (velocidad).
+ * `media`: solo se mueven mientras se cumple esa media query.
+ */
+const PARALLAX: { selector: string; speed: number; media?: string }[] = [
 	{ selector: '.home-founder__decor', speed: 0.12 },
-	{ selector: '.start-cta__waves', speed: 0.08 },
+	{ selector: '.home-why__tube', speed: 0.1 },
+	{ selector: '.home-why__item:nth-child(3n + 1)', speed: 0.04, media: DESKTOP },
+	{ selector: '.home-why__item:nth-child(3n + 2)', speed: 0.12, media: DESKTOP },
+	{ selector: '.home-why__item:nth-child(3n + 3)', speed: 0.08, media: DESKTOP },
+	{ selector: '.start-cta__waves--back', speed: 0.05 },
+	{ selector: '.start-cta__waves--front', speed: 0.1 },
 	{ selector: '.home-universities__wave--orange', speed: 0.16 },
 	{ selector: '.home-universities__wave--blue', speed: -0.1 },
 	{ selector: '.home-faq__wave--red', speed: 0.12 },
@@ -304,13 +319,15 @@ function initReveals(): void {
    ========================================================================== */
 
 function initParallax(): void {
-	const items = PARALLAX.flatMap(({ selector, speed }) =>
-		Array.from(document.querySelectorAll<HTMLElement>(selector), (element) => ({
+	const items = PARALLAX.flatMap(({ selector, speed, media }) => {
+		const query = media ? window.matchMedia(media) : null;
+		return Array.from(document.querySelectorAll<HTMLElement>(selector), (element) => ({
 			element,
 			speed,
+			query,
 			offset: 0,
-		})),
-	);
+		}));
+	});
 	if (items.length === 0) return;
 
 	const visible = new Set<(typeof items)[number]>();
@@ -334,6 +351,14 @@ function initParallax(): void {
 	onScroll(() => {
 		const center = window.innerHeight / 2;
 		for (const item of visible) {
+			if (item.query && !item.query.matches) {
+				// Fuera de su media query: en su lugar
+				if (item.offset !== 0) {
+					item.offset = 0;
+					item.element.style.setProperty('--parallax', '0px');
+				}
+				continue;
+			}
 			const rect = item.element.getBoundingClientRect();
 			// Se descuenta el desplazamiento ya aplicado (evita que el cálculo "rebote")
 			const distance = rect.top - item.offset + rect.height / 2 - center;

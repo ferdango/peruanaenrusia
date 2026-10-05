@@ -16,7 +16,16 @@
  * Tablet y móvil: solo el texto y, debajo, las ondas del diseño móvil.
  *
  * Capas del lienzo (de atrás hacia adelante, como en Figma):
- *   ondas de atrás (verde) → personas → onda de adelante (verde) → estrellas → banderas
+ *   líneas de atrás → personas → línea de adelante → estrellas → banderas
+ *
+ * Movimiento (Manual de marca: líneas planas y estrella de 4 puntas):
+ *   - Las líneas se dibujan siguiendo su trazo a medida que la sección entra
+ *     con el scroll (y se desdibujan al subir). src/scripts/scroll-draw.ts
+ *     escribe --draw (0 → 1) en la sección; las líneas son trazos con
+ *     pathLength="100" y el CSS mueve su stroke-dashoffset.
+ *   - Las figuras (estrellas y banderas) aparecen con el mismo avance y luego
+ *     flotan: las estrellas titilan y las banderas suben y bajan.
+ *   Sin JavaScript o con "reducir movimiento" todo se ve completo y quieto.
  *
  * Uso:
  *   <StartCta id="empezar" title="¿Quieres iniciar tu proceso ahora?" text="…"
@@ -78,10 +87,15 @@ const buttonProps = cta.href
 	: { 'data-dialog-open': 'auth-modal', 'data-auth-view': cta.authView ?? 'register' };
 ---
 
-<section id={id} class:list={['start-cta', `start-cta--${tone}`]} aria-labelledby={titleId}>
+<section
+	id={id}
+	class:list={['start-cta', `start-cta--${tone}`]}
+	aria-labelledby={titleId}
+	data-scroll-draw="0.85 0.3"
+>
 	<!-- Lienzo de desktop (decorativo) -->
 	<div class="start-cta__canvas" aria-hidden="true">
-		{tone === 'green' && <WavesBack class="start-cta__waves" />}
+		<WavesBack class="start-cta__waves start-cta__waves--back" />
 
 		<Image
 			src={personWoman}
@@ -98,10 +112,10 @@ const buttonProps = cta.href
 			class="start-cta__person start-cta__person--man"
 		/>
 
-		{tone === 'green' && <WavesFront class="start-cta__waves" />}
+		<WavesFront class="start-cta__waves start-cta__waves--front" />
 
 		<Star class="start-cta__star start-cta__star--skyblue" />
-		{tone === 'green' && <Star class="start-cta__star start-cta__star--orange" />}
+		<Star class="start-cta__star start-cta__star--orange" />
 		<StarWide class="start-cta__star start-cta__star--yellow" />
 
 		{tone === 'light' &&
@@ -141,6 +155,12 @@ const buttonProps = cta.href
 		</span>
 	</div>
 </section>
+
+<script>
+	// Líneas que se dibujan y figuras que aparecen con el scroll (--draw)
+	import { initScrollDraw } from '@scripts/scroll-draw';
+	initScrollDraw();
+</script>
 
 <style>
 	.start-cta {
@@ -212,12 +232,37 @@ const buttonProps = cta.href
 		width: calc(586 * var(--u));
 	}
 
-	/* Estrellas (posición, tamaño y giro de Figma) */
+	/* ----- Figuras: aparecen con el scroll (--draw) y luego flotan -----
+	   --figure-in: 0 → 1 a partir de --pop-at; cada figura sube --rise hasta su lugar */
+	.start-cta__star,
+	.start-cta__flag,
+	.start-cta__mobile-flag,
+	.start-cta__mobile-waves :global(.cta-star) {
+		--figure-in: clamp(0, (var(--draw, 1) - var(--pop-at, 0.2)) * 4, 1);
+
+		scale: var(--figure-in);
+	}
+
+	/* Las estrellas del SVG móvil giran y crecen sobre su propio centro */
+	.start-cta__mobile-waves :global(.cta-star) {
+		transform-box: fill-box;
+		transform-origin: center;
+	}
+
+	/* Estrellas (posición, tamaño y giro de Figma): centradas en su punto con
+	   translate, giradas con rotate y, en transform, el titileo (y la inclinación) */
 	.start-cta__star {
-		transform: translate(-50%, -50%) rotate(-31.57deg);
+		--star-rotate: -31.57deg;
+
+		translate: -50% calc(-50% + (1 - var(--figure-in)) * var(--rise, 2rem));
+		rotate: var(--star-rotate);
+		transform: skewX(var(--star-skew, 0deg));
 	}
 
 	.start-cta__star--skyblue {
+		--pop-at: 0.15;
+		--loop-delay: -1.2s;
+
 		left: calc(262.77 * var(--u));
 		top: calc(662.8 * var(--u));
 		width: calc(22.84 * var(--u));
@@ -226,6 +271,9 @@ const buttonProps = cta.href
 	}
 
 	.start-cta__star--orange {
+		--pop-at: 0.45;
+		--loop-delay: -2.4s;
+
 		left: calc(782.9 * var(--u));
 		top: calc(610.1 * var(--u));
 		width: calc(16.27 * var(--u));
@@ -234,12 +282,14 @@ const buttonProps = cta.href
 	}
 
 	.start-cta__star--yellow {
+		--star-rotate: -28.76deg;
+		--pop-at: 0.3;
+
 		left: calc(1266.04 * var(--u));
 		top: calc(495.45 * var(--u));
 		width: calc(29.32 * var(--u));
 		height: auto;
 		color: var(--color-yellow);
-		transform: translate(-50%, -50%) rotate(-28.76deg);
 	}
 
 	/* En el caso de éxito las estrellas cambian de lugar */
@@ -248,11 +298,21 @@ const buttonProps = cta.href
 	}
 
 	.start-cta--green .start-cta__star--yellow {
+		--star-rotate: -26.74deg;
+		--star-skew: 6.74deg;
+
 		top: calc(101.05 * var(--u));
-		transform: translate(-50%, -50%) rotate(-26.74deg) skewX(6.74deg);
 	}
 
 	/* Banderas circulares de 28px (posiciones de Figma) */
+	.start-cta__flag,
+	.start-cta__mobile-flag {
+		translate: 0 calc((1 - var(--figure-in)) * var(--rise, 1.5rem));
+		box-shadow:
+			0 0 0 2px var(--color-pure-white),
+			0 0.5rem 1rem -0.375rem rgb(18 91 168 / 0.45);
+	}
+
 	.start-cta__flag {
 		left: calc(var(--flag-x) * var(--u));
 		top: calc(var(--flag-y) * var(--u));
@@ -265,32 +325,94 @@ const buttonProps = cta.href
 	.start-cta__flag--co {
 		--flag-x: 145;
 		--flag-y: 356;
+		--pop-at: 0.05;
+		--loop-delay: -0.6s;
 	}
 
 	.start-cta__flag--ar {
 		--flag-x: 565;
 		--flag-y: 701;
+		--pop-at: 0.4;
+		--loop-delay: -2.8s;
 	}
 
 	.start-cta__flag--mx {
 		--flag-x: 856;
 		--flag-y: 435;
+		--pop-at: 0.25;
+		--loop-delay: -1.7s;
 	}
 
 	.start-cta__flag--ru {
 		--flag-x: 1261;
 		--flag-y: 644;
+		--pop-at: 0.5;
+		--loop-delay: -3.4s;
 	}
 
 	.start-cta__flag--pe {
 		--flag-x: 1363;
 		--flag-y: 248;
+		--pop-at: 0.1;
+		--loop-delay: -1.1s;
 	}
 
 	.start-cta__flag :global(svg),
 	.start-cta__mobile-flag :global(svg) {
 		width: 100%;
 		height: 100%;
+	}
+
+	/* ===== Líneas que se dibujan con el scroll =====
+	   Cada línea es un trazo de largo 100 (pathLength): con --draw = 0 está
+	   oculta y con --draw = 1 completa. Se dibujan una tras otra (--line-delay). */
+	.start-cta :global(.cta-line) {
+		--line-progress: clamp(0, (var(--draw, 1) - var(--line-delay, 0)) / 0.62, 1);
+
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * var(--line-progress));
+	}
+
+	.start-cta__waves--back :global(g:nth-of-type(2) .cta-line),
+	.start-cta__mobile-waves :global(.cta-line:nth-of-type(2)) {
+		--line-delay: 0.12;
+	}
+
+	.start-cta__waves--front :global(.cta-line),
+	.start-cta__mobile-waves :global(.cta-line:nth-of-type(3)) {
+		--line-delay: 0.24;
+	}
+
+	/* Figuras en bucle: las estrellas titilan (giro + pulso) y las banderas flotan */
+	@media (prefers-reduced-motion: no-preference) {
+		.start-cta__star,
+		.start-cta__mobile-waves :global(.cta-star) {
+			animation: start-cta-twinkle 3.6s ease-in-out var(--loop-delay, 0s) infinite;
+		}
+
+		.start-cta__flag,
+		.start-cta__mobile-flag {
+			animation: start-cta-bob 4.2s ease-in-out var(--loop-delay, 0s) infinite alternate;
+		}
+	}
+
+	@keyframes start-cta-twinkle {
+		0%,
+		100% {
+			transform: skewX(var(--star-skew, 0deg)) rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: skewX(var(--star-skew, 0deg)) rotate(14deg) scale(0.72);
+		}
+	}
+
+	@keyframes start-cta-bob {
+		from {
+			transform: translateY(0.375rem);
+		}
+		to {
+			transform: translateY(-0.375rem);
+		}
 	}
 
 	/* ===== Texto ===== */
@@ -398,13 +520,29 @@ const buttonProps = cta.href
 		}
 
 		.start-cta__mobile-flag--ru {
+			--pop-at: 0.35;
+			--loop-delay: -1.4s;
+
 			left: 236.88px;
 			top: 196px;
 		}
 
 		.start-cta__mobile-flag--pe {
+			--pop-at: 0.55;
+			--loop-delay: -2.9s;
+
 			left: 80.88px;
 			top: 337px;
+		}
+
+		/* Estrellas del dibujo móvil (dentro del SVG) */
+		.start-cta__mobile-waves :global(g:nth-of-type(1) .cta-star) {
+			--pop-at: 0.45;
+		}
+
+		.start-cta__mobile-waves :global(g:nth-of-type(2) .cta-star) {
+			--pop-at: 0.6;
+			--loop-delay: -1.6s;
 		}
 	}
 

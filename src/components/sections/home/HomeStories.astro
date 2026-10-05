@@ -1,44 +1,161 @@
 ---
 /**
- * HomeStories — "Más historias"
+ * HomeStories — "Más historias" (el blog en la portada)
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628310".
- * Carrusel de videos (src/data/videos.ts) con botón "Ver todo" hacia el blog.
+ * Figma: Home › "Frame 628310" (carrusel de videos con "Ver todo"), mejorado
+ * con el Manual de marca 2025:
+ *   - Encabezado con antetítulo, título, bajada y "Ver todo el blog".
+ *   - El video más reciente, destacado en grande (miniatura, duración, fecha
+ *     y resumen) y, al lado, una lista con los siguientes.
+ *   - Cada video se reproduce en el modal con mini reproductor
+ *     (src/components/overlays/VideoModal.astro); sin JavaScript abre su
+ *     página del blog (/blog/{slug}/).
+ * Tablet: el destacado arriba y la lista en dos columnas. Móvil: todo en una
+ * columna, con la lista compacta (miniatura + título) y "Ver más historias".
+ *
+ * Los videos salen del canal oficial de YouTube (src/data/videos.ts o
+ * WordPress, vía getVideos()).
+ *
+ * Uso: <HomeStories /> (página de inicio).
  */
-import VideoCard from '@components/cards/VideoCard.astro';
 import Button from '@components/ui/Button.astro';
-import Carousel from '@components/ui/Carousel.astro';
-import { routes } from '@data/navigation';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { detailRoutes, routes } from '@data/navigation';
+import type { Video } from '@data/videos';
 import { getVideos } from '@lib/content';
+import { formatDate } from '@utils/format';
 
-const videos = await getVideos();
+const [featured, ...others] = await getVideos();
+const list = others.slice(0, 4);
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Blog y videoblog',
 	title: 'Más historias',
-	cta: 'Ver todo',
-	mobileCta: 'Ver más',
+	text: 'Experiencias reales, visitas a universidades y consejos para estudiar en Rusia.',
+	cta: 'Ver todo el blog',
+	mobileCta: 'Ver más historias',
+	latest: 'Lo más reciente',
+	duration: 'Duración',
+	listLabel: 'Más videos del blog',
 };
+
+/** Enlace de cada video: abre el modal si tiene YouTube; si no, su página del blog */
+const videoLink = (video: Video) => ({
+	href: detailRoutes.blogPost(video.slug),
+	...(video.youtubeId
+		? {
+				'data-video-open': '',
+				'data-video-youtube': video.youtubeId,
+				'data-video-title': video.title,
+			}
+		: {}),
+});
 ---
 
 <section class="home-stories section" id="historias" aria-labelledby="home-stories-title">
 	<header class="home-stories__header container">
-		<h2 id="home-stories-title" class="home-stories__title">
-			{content.title}
-		</h2>
+		<div class="home-stories__intro">
+			<p class="home-stories__eyebrow">
+				<Icon name="youtube-play" size={18} class="home-stories__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h2 id="home-stories-title" class="home-stories__title">
+				{content.title}
+			</h2>
+			<p class="home-stories__text">{content.text}</p>
+		</div>
 		<Button href={routes.blog} size="sm" class="home-stories__cta">
 			{content.cta}
 		</Button>
 	</header>
 
-	<Carousel label={content.title} gap={12}>
-		{videos.map((video) => (
-			<VideoCard video={video} />
-		))}
-	</Carousel>
+	<div class="home-stories__grid container">
+		{featured && (
+			<article class="story-feature">
+				<div class="story-feature__media">
+					<MediaImage
+						image={featured.thumbnail}
+						alt=""
+						widths={[640, 960, 1280]}
+						sizes="(max-width: 1100px) 92vw, 780px"
+						class="story-feature__image"
+					/>
+					<span class="story-feature__play" aria-hidden="true">
+						<Icon name="play" size={28} />
+					</span>
+					{featured.duration && (
+						<span class="story-duration" aria-hidden="true">
+							{featured.duration}
+						</span>
+					)}
+				</div>
+
+				<div class="story-feature__body">
+					<p class="story-meta">
+						<span class="story-meta__badge">{content.latest}</span>
+						<time datetime={featured.date}>{formatDate(featured.date)}</time>
+						{featured.duration && (
+							<span class="visually-hidden">
+								· {content.duration} {featured.duration}
+							</span>
+						)}
+					</p>
+					<h3 class="story-feature__title">
+						<a class="story-link" {...videoLink(featured)}>
+							{featured.title}
+						</a>
+					</h3>
+					{featured.description && <p class="story-feature__text">{featured.description}</p>}
+				</div>
+			</article>
+		)}
+
+		<ol class="story-list" role="list" aria-label={content.listLabel}>
+			{list.map((video) => (
+				<li>
+					<article class="story-item">
+						<div class="story-item__media">
+							<MediaImage
+								image={video.thumbnail}
+								alt=""
+								widths={[320, 640]}
+								sizes="(max-width: 640px) 128px, 200px"
+								class="story-item__image"
+							/>
+							<span class="story-item__play" aria-hidden="true">
+								<Icon name="play" size={14} />
+							</span>
+							{video.duration && (
+								<span class="story-duration story-duration--small" aria-hidden="true">
+									{video.duration}
+								</span>
+							)}
+						</div>
+						<div class="story-item__body">
+							<h3 class="story-item__title">
+								<a class="story-link" {...videoLink(video)}>
+									{video.title}
+								</a>
+							</h3>
+							<p class="story-meta story-meta--small">
+								<time datetime={video.date}>{formatDate(video.date)}</time>
+								{video.duration && (
+									<span class="visually-hidden">
+										· {content.duration} {video.duration}
+									</span>
+								)}
+							</p>
+						</div>
+					</article>
+				</li>
+			))}
+		</ol>
+	</div>
 
 	<div class="home-stories__mobile-cta container">
-		<Button href={routes.blog} size="md">
+		<Button href={routes.blog} size="md" block>
 			{content.mobileCta}
 		</Button>
 	</div>
@@ -48,53 +165,415 @@ const content = {
 	.home-stories {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-9);
+		gap: clamp(var(--space-8), 4vw, var(--space-9));
 		background-color: var(--surface-dark);
-		--carousel-controls-gap: 1.75rem; /* 28px */
+		color: var(--text-on-dark);
 	}
 
+	/* ===== Encabezado ===== */
 	.home-stories__header {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
 		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.home-stories__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
 		gap: var(--space-4);
+		max-width: 40rem;
+	}
+
+	.home-stories__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.home-stories__eyebrow :global(.home-stories__eyebrow-icon) {
+		color: var(--color-red);
 	}
 
 	.home-stories__title {
 		font-size: var(--font-size-h1);
-		line-height: 1;
+		line-height: 1.1;
 	}
 
-	/* Botón "Ver todo": 160px de ancho, texto e ícono en los extremos */
+	.home-stories__text {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(244 244 244 / 0.78);
+	}
+
+	/* Botón "Ver todo el blog": texto e ícono en los extremos */
 	.home-stories :global(.home-stories__cta) {
-		width: 10rem;
+		flex-shrink: 0;
+		min-width: 12.5rem;
 		justify-content: space-between;
+	}
+
+	/* ===== Destacado + lista ===== */
+	.home-stories__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+		align-items: start;
+		gap: clamp(var(--space-6), 3vw, var(--space-8));
+	}
+
+	/* Toda la tarjeta es clicable: el enlace del título la cubre */
+	.story-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		border-radius: inherit;
+	}
+
+	.story-link:focus-visible {
+		outline: none;
+	}
+
+	.story-feature:has(.story-link:focus-visible),
+	.story-item:has(.story-link:focus-visible) {
+		outline: 3px solid var(--color-skyblue);
+		outline-offset: 3px;
+	}
+
+	/* ----- Video destacado ----- */
+	.story-feature {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		overflow: clip;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow 0.6s var(--ease-out);
+	}
+
+	.story-feature:hover {
+		border-color: rgb(255 255 255 / 0.18);
+		box-shadow: 0 2rem 4rem -2rem rgb(0 0 0 / 0.8);
+	}
+
+	.story-feature__media {
+		position: relative;
+		overflow: clip;
+		aspect-ratio: 16 / 9;
+	}
+
+	.story-feature__image,
+	.story-item__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: scale 0.8s var(--ease-out);
+	}
+
+	.story-feature:hover .story-feature__image,
+	.story-item:hover .story-item__image {
+		scale: 1.05;
+	}
+
+	/* ▶ blanco con anillo, como en el resto del Home */
+	.story-feature__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		display: grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		box-shadow:
+			0 0 0 0.75rem rgb(255 255 255 / 0.25),
+			0 1rem 2rem -0.75rem rgb(0 0 0 / 0.6);
+		color: var(--color-blue);
+		translate: -50% -50%;
+		transition: scale var(--duration-slow) var(--ease-out);
+	}
+
+	.story-feature__play :global(svg) {
+		margin-left: 0.25rem;
+	}
+
+	.story-feature:hover .story-feature__play {
+		scale: 1.08;
+	}
+
+	/* Duración sobre la miniatura */
+	.story-duration {
+		position: absolute;
+		right: var(--space-3);
+		bottom: var(--space-3);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.5rem;
+		background-color: rgb(0 0 0 / 0.72);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		font-variant-numeric: tabular-nums;
+		line-height: 1rem;
+		color: var(--color-pure-white);
+	}
+
+	.story-duration--small {
+		right: 0.375rem;
+		bottom: 0.375rem;
+		padding: 0.125rem 0.375rem;
+		font-size: 0.6875rem;
+	}
+
+	.story-feature__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		padding: var(--space-6) var(--space-6) var(--space-7);
+	}
+
+	.story-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2) var(--space-3);
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(244 244 244 / 0.7);
+	}
+
+	.story-meta__badge {
+		padding: 0.1875rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.02em;
+		color: var(--color-pure-white);
+	}
+
+	.story-feature__title {
+		font-size: clamp(1.375rem, 1rem + 1vw, 1.875rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		text-wrap: balance;
+	}
+
+	.story-feature__text {
+		max-width: 38rem;
+		font-size: var(--font-size-md);
+		line-height: 1.625rem;
+		color: rgb(244 244 244 / 0.78);
+	}
+
+	/* ----- Lista de videos ----- */
+	.story-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.story-item {
+		position: relative;
+		display: grid;
+		grid-template-columns: 12.5rem minmax(0, 1fr); /* 200px */
+		align-items: center;
+		gap: var(--space-5);
+		padding: var(--space-3);
+		border: 1px solid transparent;
+		border-radius: var(--radius-lg);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.story-item:hover {
+		border-color: rgb(255 255 255 / 0.1);
+		background-color: rgb(255 255 255 / 0.05);
+	}
+
+	.story-item__media {
+		position: relative;
+		overflow: clip;
+		aspect-ratio: 16 / 9;
+		border-radius: 0.875rem;
+	}
+
+	.story-item__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.92);
+		color: var(--color-blue);
+		translate: -50% -50%;
+		opacity: 0;
+		scale: 0.8;
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			scale var(--duration-base) var(--ease-out);
+	}
+
+	.story-item:hover .story-item__play,
+	.story-item:has(.story-link:focus-visible) .story-item__play {
+		opacity: 1;
+		scale: 1;
+	}
+
+	.story-item__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		min-width: 0;
+	}
+
+	.story-item__title {
+		display: -webkit-box;
+		overflow: hidden;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.4;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+	}
+
+	.story-meta--small {
+		font-size: 0.8125rem;
 	}
 
 	.home-stories__mobile-cta {
 		display: none;
-		justify-content: center;
 	}
 
+	/* ===== Tablet: destacado arriba y lista en dos columnas ===== */
+	@media (max-width: 1100px) {
+		.home-stories__grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.story-list {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.story-item {
+			grid-template-columns: 9rem minmax(0, 1fr);
+			gap: var(--space-4);
+		}
+	}
+
+	/* ===== Móvil: una columna, lista compacta ===== */
 	@media (max-width: 640px) {
 		.home-stories {
 			gap: var(--space-7);
+			padding-block: var(--space-9);
 		}
 
 		.home-stories__header {
 			justify-content: center;
 		}
 
+		.home-stories__intro {
+			align-items: center;
+			text-align: center;
+		}
+
+		.home-stories__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.home-stories__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
 		.home-stories :global(.home-stories__cta) {
 			display: none;
 		}
 
-		.home-stories__mobile-cta {
-			display: flex;
+		.home-stories__grid {
+			gap: var(--space-5);
 		}
 
-		.home-stories :global(.video-card) {
-			--video-card-width: min(82vw, 20rem);
+		.story-feature {
+			border-radius: var(--radius-lg);
+		}
+
+		.story-feature__play {
+			width: 3.5rem;
+			height: 3.5rem;
+			box-shadow:
+				0 0 0 0.5rem rgb(255 255 255 / 0.25),
+				0 1rem 2rem -0.75rem rgb(0 0 0 / 0.6);
+		}
+
+		.story-feature__body {
+			gap: var(--space-2);
+			padding: var(--space-4) var(--space-4) var(--space-5);
+		}
+
+		.story-feature__title {
+			font-size: var(--font-size-card-title-mobile);
+			line-height: 1.35;
+		}
+
+		.story-feature__text {
+			font-size: 0.9375rem;
+			line-height: 1.375rem;
+		}
+
+		.story-list {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-2);
+		}
+
+		.story-item {
+			grid-template-columns: 8rem minmax(0, 1fr); /* 128px */
+			gap: var(--space-3);
+			padding: var(--space-2);
+			margin-inline: calc(-1 * var(--space-2));
+		}
+
+		.story-item__media {
+			border-radius: 0.625rem;
+		}
+
+		.story-item__title {
+			font-size: 0.9375rem;
+			line-height: 1.35;
+		}
+
+		.story-meta--small {
+			font-size: var(--font-size-xs);
+		}
+
+		/* En pantallas táctiles el ▶ chico se ve siempre */
+		.story-item__play {
+			width: 1.75rem;
+			height: 1.75rem;
+			opacity: 1;
+			scale: 1;
+		}
+
+		.home-stories__mobile-cta {
+			display: flex;
 		}
 	}
 </style>

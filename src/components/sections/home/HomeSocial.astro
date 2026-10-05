@@ -1,0 +1,723 @@
+---
+/**
+ * HomeSocial — "Redes sociales"
+ * --------------------------------------------------------------------------
+ * Sección nueva (no está en Figma), antes de "Más historias": videos reales
+ * de TikTok de la cuenta oficial (src/data/social.ts) en una fila vertical
+ * tipo TikTok, con el perfil (foto, seguidores y "Seguir en TikTok") y el
+ * resto de las redes de src/data/site.ts.
+ *
+ * - Cada video se reproduce en el modal del sitio con el reproductor oficial
+ *   de TikTok (src/components/overlays/VideoModal.astro, en vertical); sin
+ *   JavaScript abre el video en TikTok.
+ * - La fila avanza en horizontal con el scroll mientras la sección cruza la
+ *   pantalla (src/scripts/home-motion.ts › data-scroll-slider="drift"); sin
+ *   JavaScript o con "reducir movimiento" se desliza con el dedo.
+ * - Detrás de los videos, las líneas planas de la marca se dibujan con el
+ *   scroll (src/scripts/scroll-draw.ts).
+ *
+ * Uso: <HomeSocial /> (página de inicio).
+ */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import { site } from '@data/site';
+import { tiktokPosts, tiktokPostUrl, tiktokProfile } from '@data/social';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	eyebrow: 'Síguenos en TikTok',
+	title: 'Redes sociales',
+	text: 'Consejos para postular, trámites y la vida de estudiantes peruanos en Rusia, en videos cortos.',
+	followers: 'seguidores',
+	likes: 'me gusta',
+	follow: 'Seguir en TikTok',
+	newTab: '(se abre en una pestaña nueva)',
+	listLabel: 'Videos recientes en TikTok',
+	views: 'reproducciones',
+	videoLabel: 'Video de TikTok',
+};
+
+/** Otras redes (TikTok ya tiene su botón) */
+const otherNetworks = site.socials.filter((social) => social.icon !== 'tiktok');
+---
+
+<section
+	class="home-social section"
+	id="redes"
+	aria-labelledby="home-social-title"
+	data-scroll-slider="drift"
+>
+	<!-- Estrellas de la marca (decorativas) -->
+	<div class="home-social__art" aria-hidden="true">
+		<Star class="home-social__star home-social__star--red" />
+		<Star class="home-social__star home-social__star--blue" />
+		<Star class="home-social__star home-social__star--yellow" />
+	</div>
+
+	<header class="home-social__header container">
+		<div class="home-social__intro">
+			<p class="home-social__eyebrow">
+				<Icon name="tiktok" size={16} class="home-social__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h2 id="home-social-title" class="home-social__title">
+				{content.title}
+			</h2>
+			<p class="home-social__text">{content.text}</p>
+		</div>
+
+		<!-- Perfil de TikTok -->
+		<div class="home-social__profile">
+			<div class="home-social__account">
+				<span class="home-social__avatar-ring">
+					<Image
+						src={tiktokProfile.avatar}
+						alt=""
+						width={56}
+						height={56}
+						densities={[1, 2]}
+						class="home-social__avatar"
+					/>
+				</span>
+				<div class="home-social__who">
+					<p class="home-social__name">{tiktokProfile.name}</p>
+					<p class="home-social__handle">{tiktokProfile.handle}</p>
+				</div>
+			</div>
+
+			<p class="home-social__stats">
+				<span>
+					<strong>{tiktokProfile.followers}</strong> {content.followers}
+				</span>
+				<span>
+					<strong>{tiktokProfile.likes}</strong> {content.likes}
+				</span>
+			</p>
+
+			<div class="home-social__actions">
+				<a class="home-social__follow" href={tiktokProfile.url} target="_blank" rel="noopener">
+					<Icon name="tiktok" size={18} class="home-social__follow-icon" />
+					{content.follow}
+					<span class="visually-hidden"> {content.newTab}</span>
+				</a>
+				<ul class="home-social__networks" role="list">
+					{otherNetworks.map((network) => (
+						<li>
+							<a
+								href={network.href}
+								class="home-social__network"
+								target="_blank"
+								rel="noopener"
+								aria-label={network.label}
+								title={network.label}
+							>
+								<Icon name={network.icon} size={20} />
+							</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		</div>
+	</header>
+
+	<div class="home-social__stage">
+		<!-- Líneas planas de la marca detrás de los videos: se dibujan con el scroll -->
+		<BrandLines class="home-social__lines" aria-hidden="true" data-scroll-draw="0.95 0.4" />
+
+		<div class="home-social__viewport" data-slider-viewport>
+			<ul class="home-social__track" role="list" aria-label={content.listLabel} data-slider-track>
+				{tiktokPosts.map((post) => (
+					<li class="home-social__item" data-slider-item>
+						<a
+							class="tiktok-card"
+							href={tiktokPostUrl(post.id)}
+							target="_blank"
+							rel="noopener"
+							data-video-open
+							data-video-tiktok={post.id}
+							data-video-title={post.caption}
+						>
+							<Image
+								src={post.cover}
+								alt=""
+								widths={[200, 400, 540]}
+								sizes="(max-width: 640px) 168px, 240px"
+								class="tiktok-card__cover"
+							/>
+							<span class="tiktok-card__shade" aria-hidden="true" />
+							<span class="tiktok-card__badge" aria-hidden="true">
+								<Icon name="tiktok" size={16} />
+							</span>
+							<span class="tiktok-card__play" aria-hidden="true">
+								<Icon name="play" size={20} />
+							</span>
+							<span class="tiktok-card__info">
+								<span class="visually-hidden">{content.videoLabel}: </span>
+								<span class="tiktok-card__caption">{post.caption}</span>
+								{post.views && (
+									<span class="tiktok-card__views">
+										<Icon name="play" size={12} />
+										{post.views}
+										<span class="visually-hidden"> {content.views}</span>
+									</span>
+								)}
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	.home-social {
+		/* Margen del contenido: alinea el primer video con el texto */
+		--social-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+		--tiktok-card-width: 15rem; /* 240px */
+		--tiktok-gap: 1.25rem;
+
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-8), 4vw, var(--space-9));
+		overflow: clip;
+		/* Rosado de la marca (Manual 2025: #FFA2A4) en versión suave */
+		background: linear-gradient(180deg, #fff1f2 0%, #ffe3e6 100%);
+		color: var(--text-on-light);
+	}
+
+	/* ===== Estrellas ===== */
+	.home-social__art {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	.home-social__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.home-social__star--red {
+		top: clamp(2rem, 5vw, 4rem);
+		left: calc(var(--social-inset) + min(36rem, 46vw));
+		width: 1.5rem;
+		color: var(--color-red);
+	}
+
+	.home-social__star--blue {
+		bottom: clamp(2rem, 4vw, 3.5rem);
+		right: calc(var(--social-inset) + 2rem);
+		width: 1.125rem;
+		color: var(--color-blue);
+	}
+
+	.home-social__star--yellow {
+		top: 46%;
+		left: calc(var(--social-inset) - 1.75rem);
+		width: 1.25rem;
+		color: var(--color-yellow);
+	}
+
+	/* ===== Encabezado: texto + perfil ===== */
+	.home-social__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6) var(--space-8);
+	}
+
+	.home-social__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-4);
+		max-width: 38rem;
+	}
+
+	.home-social__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: #111;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-pure-white);
+	}
+
+	/* Ícono con el "glitch" de TikTok en los colores de la marca (celeste y rojo) */
+	.home-social__eyebrow :global(.home-social__eyebrow-icon),
+	.home-social__follow :global(.home-social__follow-icon),
+	.tiktok-card__badge :global(svg) {
+		filter: drop-shadow(-1px -1px 0 var(--color-skyblue)) drop-shadow(1px 1px 0 var(--color-red));
+	}
+
+	.home-social__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--text-heading-light);
+	}
+
+	.home-social__text {
+		max-width: 34rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: #363636;
+	}
+
+	/* ----- Tarjeta del perfil ----- */
+	.home-social__profile {
+		display: flex;
+		flex-shrink: 0;
+		flex-direction: column;
+		gap: var(--space-4);
+		width: min(26rem, 100%);
+		padding: var(--space-5);
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-white);
+		box-shadow: 0 1.5rem 3rem -1.75rem rgb(120 20 40 / 0.45);
+	}
+
+	.home-social__account {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	/* Foto con anillo degradé (celeste → rojo de la marca) */
+	.home-social__avatar-ring {
+		flex-shrink: 0;
+		padding: 3px;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue) 45%, var(--color-red));
+	}
+
+	.home-social__avatar {
+		display: block;
+		width: 3.5rem;
+		height: 3.5rem;
+		border: 2px solid var(--surface-white);
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.home-social__who {
+		min-width: 0;
+	}
+
+	.home-social__name {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.375rem;
+		color: #111;
+	}
+
+	.home-social__handle {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(17 17 17 / 0.62);
+	}
+
+	.home-social__stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-5);
+		font-size: var(--font-size-sm);
+		color: rgb(17 17 17 / 0.72);
+	}
+
+	.home-social__stats strong {
+		font-weight: var(--font-weight-bold);
+		color: #111;
+	}
+
+	.home-social__actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.home-social__follow {
+		display: inline-flex;
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		height: 3rem;
+		padding-inline: var(--space-4);
+		border-radius: var(--radius-pill);
+		background-color: #111;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
+		white-space: nowrap;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			translate var(--duration-base) var(--ease-out);
+	}
+
+	.home-social__follow:hover {
+		background-color: #2a2a2a;
+		translate: 0 -2px;
+	}
+
+	.home-social__networks {
+		display: flex;
+		gap: var(--space-2);
+	}
+
+	.home-social__network {
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid rgb(17 17 17 / 0.14);
+		border-radius: var(--radius-pill);
+		color: #111;
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	.home-social__network:hover {
+		background-color: #111;
+		color: var(--color-pure-white);
+	}
+
+	.home-social a:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 3px;
+	}
+
+	/* ===== Videos ===== */
+	.home-social__stage {
+		position: relative;
+		isolation: isolate;
+	}
+
+	/* Líneas de la marca (azul, rojo y celeste) que asoman bajo los videos */
+	.home-social__lines {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		z-index: -1;
+		width: 100%;
+		height: clamp(7rem, 10vw, 10rem);
+		translate: 0 46%;
+		pointer-events: none;
+	}
+
+	.home-social__lines :global(.brand-line) {
+		--line-progress: clamp(0, (var(--draw, 1) - var(--line-delay, 0)) / 0.7, 1);
+
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * var(--line-progress));
+	}
+
+	.home-social__lines :global(.brand-line:nth-of-type(1)) {
+		stroke: var(--color-blue);
+	}
+
+	.home-social__lines :global(.brand-line:nth-of-type(2)) {
+		--line-delay: 0.1;
+	}
+
+	.home-social__lines :global(.brand-line:nth-of-type(3)) {
+		--line-delay: 0.2;
+	}
+
+	/* Fila deslizable. Sin slider (sin JavaScript o con "reducir movimiento") se desliza con el dedo */
+	.home-social__viewport {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--social-inset);
+		scrollbar-width: none;
+		/* Espacio para la sombra y la elevación de las tarjetas */
+		padding-block: var(--space-3) var(--space-7);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-7));
+	}
+
+	.home-social__viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.home-social__track {
+		display: flex;
+		gap: var(--tiktok-gap);
+		width: max-content;
+		padding-inline: var(--social-inset);
+	}
+
+	.home-social__item {
+		flex-shrink: 0;
+		scroll-snap-align: start;
+	}
+
+	/* Con el slider activo, la fila se desplaza con el scroll (--slider-x) */
+	.home-social:global(.is-scroll-slider) .home-social__viewport {
+		overflow: hidden;
+		scroll-snap-type: none;
+	}
+
+	.home-social:global(.is-scroll-slider) .home-social__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
+	}
+
+	/* ----- Tarjeta de video (9:16, como en TikTok) ----- */
+	.tiktok-card {
+		position: relative;
+		display: block;
+		width: var(--tiktok-card-width);
+		aspect-ratio: 9 / 16;
+		overflow: clip;
+		border-radius: 1.25rem;
+		background-color: #111;
+		box-shadow: 0 1.25rem 2.5rem -1.25rem rgb(90 10 25 / 0.55);
+		color: var(--color-pure-white);
+	}
+
+	.tiktok-card__cover {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: scale 0.8s var(--ease-out);
+	}
+
+	.tiktok-card:hover .tiktok-card__cover {
+		scale: 1.05;
+	}
+
+	/* Sombras arriba y abajo: el texto se lee sobre cualquier portada */
+	.tiktok-card__shade {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(to top, rgb(0 0 0 / 0.82) 0%, rgb(0 0 0 / 0.25) 36%, transparent 58%),
+			linear-gradient(to bottom, rgb(0 0 0 / 0.35) 0%, transparent 22%);
+	}
+
+	.tiktok-card__badge {
+		position: absolute;
+		top: var(--space-3);
+		left: var(--space-3);
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 0 0 / 0.5);
+		backdrop-filter: blur(6px);
+	}
+
+	.tiktok-card__play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		display: grid;
+		place-items: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border: 1.5px solid rgb(255 255 255 / 0.7);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.2);
+		backdrop-filter: blur(6px);
+		translate: -50% -50%;
+		opacity: 0;
+		scale: 0.8;
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			scale var(--duration-base) var(--ease-out);
+	}
+
+	.tiktok-card__play :global(svg) {
+		margin-left: 0.125rem;
+	}
+
+	.tiktok-card:hover .tiktok-card__play,
+	.tiktok-card:focus-visible .tiktok-card__play {
+		opacity: 1;
+		scale: 1;
+	}
+
+	/* En pantallas táctiles el ▶ se ve siempre */
+	@media (hover: none) {
+		.tiktok-card__play {
+			opacity: 1;
+			scale: 1;
+		}
+	}
+
+	.tiktok-card__info {
+		position: absolute;
+		inset: auto var(--space-4) var(--space-4);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.tiktok-card__caption {
+		display: -webkit-box;
+		overflow: hidden;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.3;
+		text-wrap: pretty;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+	}
+
+	.tiktok-card__views {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3125rem;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: rgb(255 255 255 / 0.9);
+	}
+
+	.tiktok-card:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 3px;
+	}
+
+	/* ===== Movimiento (sin "reducir movimiento"): las estrellas titilan ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.home-social__star {
+			animation: home-social-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.home-social__star--blue {
+			animation-delay: -1.1s;
+		}
+
+		.home-social__star--yellow {
+			animation-delay: -2.2s;
+		}
+	}
+
+	@keyframes home-social-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	/* ===== Tablet: perfil debajo del texto ===== */
+	@media (max-width: 1100px) {
+		.home-social__header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.home-social {
+			--tiktok-card-width: 13rem; /* 208px */
+		}
+	}
+
+	/* ===== Móvil: encabezado centrado y videos más chicos (asoma el siguiente) ===== */
+	@media (max-width: 640px) {
+		.home-social {
+			--tiktok-card-width: 10.5rem; /* 168px */
+			--tiktok-gap: 0.75rem;
+
+			gap: var(--space-7);
+			padding-block: var(--space-9);
+		}
+
+		.home-social__header {
+			align-items: stretch;
+		}
+
+		.home-social__intro {
+			align-items: center;
+			max-width: none;
+			text-align: center;
+		}
+
+		.home-social__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.home-social__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.home-social__profile {
+			width: 100%;
+			padding: var(--space-4);
+		}
+
+		.home-social__follow {
+			height: 2.75rem;
+			padding-inline: var(--space-3);
+			font-size: var(--font-size-sm);
+		}
+
+		.home-social__networks {
+			gap: 0.375rem;
+		}
+
+		.home-social__network {
+			width: 2.25rem;
+			height: 2.25rem;
+		}
+
+		.tiktok-card {
+			border-radius: 1rem;
+		}
+
+		/* Las líneas asoman un poco más abajo (en móvil se ve el centro del dibujo) */
+		.home-social__lines {
+			translate: 0 72%;
+		}
+
+		.tiktok-card__badge {
+			top: var(--space-2);
+			left: var(--space-2);
+			width: 1.75rem;
+			height: 1.75rem;
+		}
+
+		.tiktok-card__play {
+			width: 2.75rem;
+			height: 2.75rem;
+		}
+
+		.tiktok-card__info {
+			inset: auto var(--space-3) var(--space-3);
+			gap: var(--space-1);
+		}
+
+		.tiktok-card__caption {
+			font-size: 0.8125rem;
+		}
+
+		.home-social__star--red {
+			left: auto;
+			right: 1.25rem;
+		}
+
+		.home-social__star--yellow {
+			display: none;
+		}
+	}
+</style>

@@ -12,7 +12,7 @@
  *   Copyright © … · RUC              🇵🇪 · · · 🇷🇺   📖 Libro de reclamaciones
  *
  * - Fondo azul profundo de la marca (contraste AA con el texto blanco).
- * - Las líneas (src/assets/graphics/waves/footer-lines.svg) se dibujan
+ * - Las líneas (src/assets/graphics/waves/brand-lines.svg) se dibujan
  *   siguiendo su trazo cuando el footer entra en pantalla
  *   (src/scripts/scroll-draw.ts escribe --draw); el tubo flota y las
  *   estrellas titilan. Con "reducir movimiento" todo queda quieto y completo.
@@ -26,7 +26,7 @@ import Icon from '@components/ui/Icon.astro';
 import { footerNav, routes } from '@data/navigation';
 import { site, whatsappUrl } from '@data/site';
 import tubeLoop from '@assets/graphics/tubes/tube-gradient-loop.webp';
-import FooterLines from '@assets/graphics/waves/footer-lines.svg';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
 import Star from '@assets/graphics/stars/star-4-point.svg';
 import FlagPe from '@assets/graphics/flags/pe.svg';
 import FlagRu from '@assets/graphics/flags/ru.svg';
@@ -84,7 +84,7 @@ const year = new Date().getFullYear();
 	</div>
 
 	<!-- Líneas planas de la marca: se dibujan con el scroll -->
-	<FooterLines class="site-footer__lines" aria-hidden="true" data-scroll-draw="0.95 0.5" />
+	<BrandLines class="site-footer__lines" aria-hidden="true" data-scroll-draw="0.95 0.5" />
 
 	<div class="site-footer__main container">
 		<div class="site-footer__brand">
@@ -307,18 +307,18 @@ const year = new Date().getFullYear();
 		margin-block: clamp(var(--space-5), 3vw, var(--space-8));
 	}
 
-	.site-footer__lines :global(.footer-line) {
+	.site-footer__lines :global(.brand-line) {
 		--line-progress: clamp(0, (var(--draw, 1) - var(--line-delay, 0)) / 0.7, 1);
 
 		stroke-dasharray: 100 100;
 		stroke-dashoffset: calc(100 - 100 * var(--line-progress));
 	}
 
-	.site-footer__lines :global(.footer-line:nth-of-type(2)) {
+	.site-footer__lines :global(.brand-line:nth-of-type(2)) {
 		--line-delay: 0.1;
 	}
 
-	.site-footer__lines :global(.footer-line:nth-of-type(3)) {
+	.site-footer__lines :global(.brand-line:nth-of-type(3)) {
 		--line-delay: 0.2;
 	}
 
@@ -580,6 +580,16 @@ const year = new Date().getFullYear();
 
 	/* ===== Móvil: el tubo arriba y todo apilado ===== */
 	@media (max-width: 640px) {
+		.site-footer__lead {
+			font-size: var(--font-size-md);
+			line-height: 1.625rem;
+		}
+
+		.site-footer__headline {
+			font-size: 2rem;
+			line-height: 1.1;
+		}
+
 		.site-footer {
 			--floating-button: 56px;
 

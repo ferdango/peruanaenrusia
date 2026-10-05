@@ -201,7 +201,7 @@ export default defineConfig({
 				"font-src 'self'",
 				mediaSrc,
 				"connect-src 'self'",
-				'frame-src https://www.youtube-nocookie.com',
+				'frame-src https://www.youtube-nocookie.com https://www.tiktok.com',
 				"object-src 'none'",
 				"base-uri 'self'",
 				"form-action 'self' https://accounts.google.com",

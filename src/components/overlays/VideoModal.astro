@@ -7,7 +7,8 @@
  *   <a href="https://www.youtube.com/watch?v=CODIGO" data-video-open
  *      data-video-youtube="CODIGO" data-video-title="Título">Ver video</a>
  *
- *   (o data-video-src="/videos/archivo.mp4" para un video propio)
+ *   (o data-video-src="/videos/archivo.mp4" para un video propio, o
+ *    data-video-tiktok="NÚMERO" para un video de TikTok, que se ve en vertical)
  *
  * Estados (src/scripts/video-modal.ts):
  *   - Ampliado: centrado sobre la página, con fondo oscuro y el foco dentro.
@@ -17,7 +18,8 @@
  *
  * Clic fuera del video (o "Seguir navegando") lo minimiza; Esc o la X lo
  * cierran. Sin JavaScript, el enlace abre el video en YouTube.
- * YouTube se inserta desde youtube-nocookie.com (permitido en la CSP).
+ * YouTube se inserta desde youtube-nocookie.com y TikTok con su reproductor
+ * oficial (www.tiktok.com/player), ambos permitidos en la CSP.
  */
 import Icon from '@components/ui/Icon.astro';
 import Star from '@assets/graphics/stars/star-4-point.svg';
@@ -29,6 +31,8 @@ const content = {
 	minimizeHint: 'Minimizar el video y seguir navegando',
 	expand: 'Ampliar el video',
 	close: 'Cerrar el video',
+	external: 'Ver en TikTok',
+	newTab: '(se abre en una pestaña nueva)',
 };
 ---
 
@@ -51,6 +55,20 @@ const content = {
 			</p>
 
 			<div class="video-modal__actions">
+				<!-- Solo con videos de TikTok: abrirlo en la app o la web de TikTok -->
+				<a
+					class="video-modal__button video-modal__external"
+					data-video-external
+					href="https://www.tiktok.com/"
+					target="_blank"
+					rel="noopener"
+					title={content.external}
+					hidden
+				>
+					<Icon name="tiktok" size={16} />
+					<span class="video-modal__button-text">{content.external}</span>
+					<span class="visually-hidden"> {content.newTab}</span>
+				</a>
 				<button
 					type="button"
 					class="video-modal__button video-modal__button--label"
@@ -205,6 +223,15 @@ const content = {
 		display: none;
 	}
 
+	.video-modal__external {
+		text-decoration: none;
+	}
+
+	/* En el mini reproductor no hay espacio para "Ver en TikTok" */
+	.video-modal[data-state='mini'] .video-modal__external {
+		display: none;
+	}
+
 	/* "Seguir navegando" en azul de marca: es la acción que invita a minimizar */
 	.video-modal__button--label {
 		padding-inline: var(--space-4);
@@ -230,6 +257,34 @@ const content = {
 		border: 0;
 	}
 
+	/* ===== Videos verticales (TikTok): la ventana se ajusta al alto de la pantalla ===== */
+	.video-modal[data-ratio='portrait'] .video-modal__window {
+		width: min(100%, 25rem, calc((100dvh - 2 * var(--space-6) - 4.25rem) * 9 / 16));
+	}
+
+	.video-modal[data-ratio='portrait'] .video-modal__frame {
+		aspect-ratio: 9 / 16;
+	}
+
+	/* La barra es angosta: los botones muestran solo el ícono (el texto queda para lectores de pantalla) */
+	.video-modal[data-ratio='portrait'] .video-modal__button-text {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.video-modal[data-ratio='portrait'] .video-modal__button--label,
+	.video-modal[data-ratio='portrait'] .video-modal__external {
+		padding-inline: var(--space-3);
+	}
+
+	.video-modal[data-ratio='portrait'] .video-modal__bar {
+		padding-left: var(--space-4);
+	}
+
 	/* ===== Minimizado: mini reproductor abajo a la izquierda =====
 	   (a la derecha está el botón flotante de WhatsApp) */
 	.video-modal[data-state='mini'] {
@@ -247,6 +302,10 @@ const content = {
 		width: min(22rem, calc(100vw - 2 * var(--space-4) - 4.5rem));
 		border-radius: var(--radius-lg);
 		box-shadow: 0 1.5rem 3rem -1rem rgb(0 0 0 / 0.65);
+	}
+
+	.video-modal[data-state='mini'][data-ratio='portrait'] .video-modal__window {
+		width: min(11.5rem, 42vw);
 	}
 
 	.video-modal[data-state='mini'] .video-modal__bar {

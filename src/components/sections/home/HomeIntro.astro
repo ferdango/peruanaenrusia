@@ -304,6 +304,10 @@ const content = {
 
 	/* ===== Móvil: tarjeta vertical con la persona al centro ===== */
 	@media (max-width: 640px) {
+		.home-intro__text {
+			line-height: 1.625rem;
+		}
+
 		.home-intro {
 			/* 48px + lo que se superponen las franjas en móvil (3.25rem) + aire */
 			padding-block: calc(var(--space-8) + 4.75rem) var(--space-8);
@@ -314,7 +318,8 @@ const content = {
 		}
 
 		.home-intro__title {
-			line-height: 1.125; /* 36px */
+			line-height: var(--line-height-title-mobile);
+			font-size: var(--font-size-title-mobile);
 		}
 
 		.home-intro__media {

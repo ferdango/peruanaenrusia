@@ -13,7 +13,8 @@
  *   6. Botones "magnéticos" (atributo data-magnetic).
  *   7. Franjas de lemas empujadas por el scroll (--marquee-shift).
  *   8. Sliders que avanzan con el scroll (data-scroll-slider): "¿Qué tengo que
- *      hacer?" pasa las tarjetas una por una y "¿Por qué elegir…?" las desliza.
+ *      hacer?" pasa las tarjetas una por una; "¿Por qué elegir…?" y "Redes
+ *      sociales" las deslizan.
  *
  * Todo se configura en las listas de abajo (selectores de cada sección), sin
  * tocar los componentes. Estilos: src/styles/home.css.
@@ -87,9 +88,18 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.community-photo', effect: 'clip', stagger: 90 },
 	{ selector: '.home-gallery__title', effect: 'words' },
 	{ selector: '.gallery-photo', effect: 'up', stagger: 100 },
-	// Más historias
-	{ selector: '.home-stories__title', effect: 'words' },
-	{ selector: '.video-card', effect: 'up', stagger: 100 },
+	// Redes sociales (TikTok)
+	{ selector: '.home-social__eyebrow', effect: 'up' },
+	{ selector: '.home-social__title', effect: 'words', delay: 80 },
+	{ selector: '.home-social__text', effect: 'up', delay: 180 },
+	{ selector: '.home-social__profile', effect: 'scale', delay: 220 },
+	{ selector: '.tiktok-card', effect: 'up', stagger: 90 },
+	// Más historias (blog)
+	{ selector: '.home-stories__eyebrow', effect: 'up' },
+	{ selector: '.home-stories__title', effect: 'words', delay: 80 },
+	{ selector: '.home-stories__text', effect: 'up', delay: 180 },
+	{ selector: '.story-feature', effect: 'clip', delay: 120 },
+	{ selector: '.story-item', effect: 'up', stagger: 100, delay: 200 },
 	// Preguntas frecuentes
 	{ selector: '.home-faq__title', effect: 'words' },
 	{ selector: '.faq-video', effect: 'up', delay: 150 },
@@ -131,7 +141,8 @@ const TILT = [
 	'.testimonial-card',
 	'.community-photo',
 	'.gallery-photo',
-	'.video-card',
+	'.tiktok-card',
+	'.story-feature',
 ].join(', ');
 
 /* ==========================================================================

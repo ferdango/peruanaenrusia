@@ -328,10 +328,10 @@ const stepNumber = (index: number) => String(index + 1).padStart(2, '0');
 			text-align: center;
 		}
 
-		/* Figma móvil: 32/36 y 16/24 */
+		/* Escala móvil del sitio: título 28px y texto 16/24 */
 		.home-steps__title {
-			font-size: 2rem;
-			line-height: 1.125;
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
 		}
 
 		.home-steps__text {

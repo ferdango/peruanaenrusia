@@ -4,8 +4,10 @@
  * Marcado y estilos: src/components/overlays/VideoModal.astro.
  *
  * Cualquier elemento con data-video-open abre el video indicado en
- * data-video-youtube (código de YouTube) o data-video-src (archivo propio).
- * Si no tiene una fuente válida, el enlace funciona como siempre (YouTube).
+ * data-video-youtube (código de YouTube), data-video-tiktok (número del video
+ * de TikTok; se ve en vertical) o data-video-src (archivo propio).
+ * Si no tiene una fuente válida, el enlace funciona como siempre (YouTube o
+ * TikTok en una pestaña nueva).
  *
  *   ampliado ──(Seguir navegando / clic fuera)──► minimizado
  *       ▲                                            │
@@ -19,6 +21,8 @@
 type VideoState = 'closed' | 'expanded' | 'mini';
 
 const YOUTUBE_EMBED = 'https://www.youtube-nocookie.com/embed/';
+/** Reproductor oficial de TikTok para insertar (https://developers.tiktok.com/doc/embed-player) */
+const TIKTOK_EMBED = 'https://www.tiktok.com/player/v1/';
 
 /** Duración de la animación de apertura (debe coincidir con el CSS) */
 const ENTER_MS = 500;
@@ -37,6 +41,7 @@ export function initVideoModal(): void {
 	const minimizeButton = modal.querySelector<HTMLButtonElement>('button[data-video-minimize]');
 	const expandButton = modal.querySelector<HTMLButtonElement>('[data-video-expand]');
 	const closeButton = modal.querySelector<HTMLButtonElement>('[data-video-close]');
+	const externalLink = modal.querySelector<HTMLAnchorElement>('[data-video-external]');
 	if (!windowElement || !frame || !title || !minimizeButton || !expandButton || !closeButton) return;
 
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -96,8 +101,17 @@ export function initVideoModal(): void {
 	}
 
 	function createPlayer(element: HTMLElement): HTMLElement | null {
-		const { videoYoutube, videoSrc, videoPoster } = element.dataset;
+		const { videoYoutube, videoTiktok, videoSrc, videoPoster } = element.dataset;
 		const label = element.dataset.videoTitle ?? 'Video';
+
+		if (videoTiktok && /^\d{8,25}$/.test(videoTiktok)) {
+			const iframe = document.createElement('iframe');
+			iframe.src = `${TIKTOK_EMBED}${videoTiktok}?autoplay=1&music_info=1&description=1&rel=0`;
+			iframe.title = label;
+			iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+			iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+			return iframe;
+		}
 
 		if (videoYoutube && /^[\w-]{11}$/.test(videoYoutube)) {
 			const iframe = document.createElement('iframe');
@@ -124,12 +138,22 @@ export function initVideoModal(): void {
 
 	/** Abre (o vuelve a ampliar) el video del elemento. false = no tiene una fuente válida */
 	function open(element: HTMLElement): boolean {
-		const key = element.dataset.videoYoutube || element.dataset.videoSrc || '';
+		const { videoYoutube, videoTiktok, videoSrc } = element.dataset;
+		const key = videoYoutube || videoTiktok || videoSrc || '';
 		if (key !== source) {
 			const player = createPlayer(element);
 			if (!player) return false;
 			frame!.replaceChildren(player);
 			source = key;
+			// TikTok (y los videos marcados con data-video-ratio="portrait") se ven en vertical
+			modal!.dataset.ratio =
+				videoTiktok || element.dataset.videoRatio === 'portrait' ? 'portrait' : 'landscape';
+			// Con TikTok, enlace para verlo allá (por si el navegador bloquea el reproductor insertado)
+			if (externalLink) {
+				const href = element instanceof HTMLAnchorElement ? element.href : '';
+				externalLink.hidden = !(videoTiktok && href);
+				if (href) externalLink.href = href;
+			}
 		}
 
 		title!.textContent = element.dataset.videoTitle ?? 'Video';

@@ -48,6 +48,12 @@
 	transform: translateY(0);
 }
 
+@media print {
+	.skip-link {
+		display: none;
+	}
+}
+
 /* Elementos decorativos (ondas, estrellas): no interceptan clics */
 .decoration {
 	position: absolute;

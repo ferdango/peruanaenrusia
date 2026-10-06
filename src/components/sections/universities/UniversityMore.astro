@@ -1,0 +1,204 @@
+---
+/**
+ * UniversityMore — "Otras universidades"
+ * --------------------------------------------------------------------------
+ * Al final de cada ficha: las demás universidades con las tarjetas
+ * UniversityCard (mismo diseño que "Universidades destacadas" del Home), en
+ * una fila que avanza con el scroll mientras la sección cruza la pantalla
+ * (src/scripts/motion.ts › data-scroll-slider="drift"); sin JavaScript se
+ * desliza con el dedo. Botón "Ver todas" al listado.
+ *
+ * Uso: <UniversityMore currentSlug={university.slug} />
+ */
+import UniversityCard from '@components/cards/UniversityCard.astro';
+import Button from '@components/ui/Button.astro';
+import { routes } from '@data/navigation';
+import type { UniversityAccent } from '@data/universities';
+import { getUniversities } from '@lib/content';
+
+interface Props {
+	/** Slug de la universidad actual (se excluye de la lista) */
+	currentSlug: string;
+}
+
+const { currentSlug } = Astro.props;
+const others = (await getUniversities()).filter((university) => university.slug !== currentSlug);
+
+// ----- Contenido de la sección -----
+const content = {
+	eyebrow: 'Sigue explorando',
+	title: 'Otras universidades',
+	text: 'Compara opciones y elige la universidad que mejor se adapta a ti.',
+	cta: 'Ver todas',
+	listLabel: 'Otras universidades',
+};
+
+/** Colores de marca de las tarjetas, en orden (se repiten si hay más) */
+const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
+---
+
+{others.length > 0 && (
+	<section
+		class="university-more section"
+		aria-labelledby="university-more-title"
+		data-scroll-slider="drift"
+	>
+		<header class="university-more__header container">
+			<div class="university-more__intro">
+				<p class="university-more__eyebrow">
+					<span class="university-more__dot" aria-hidden="true"></span>
+					{content.eyebrow}
+				</p>
+				<h2 id="university-more-title" class="university-more__title">
+					{content.title}
+				</h2>
+				<p class="university-more__text">{content.text}</p>
+			</div>
+			<Button href={routes.universities} size="sm" class="university-more__cta">
+				{content.cta}
+			</Button>
+		</header>
+
+		<div class="university-more__viewport" data-slider-viewport>
+			<ul class="university-more__track" role="list" aria-label={content.listLabel} data-slider-track>
+				{others.map((university, index) => (
+					<li class="university-more__item" data-slider-item>
+						<UniversityCard university={university} accent={accents[index % accents.length]} />
+					</li>
+				))}
+			</ul>
+		</div>
+	</section>
+)}
+
+<style>
+	.university-more {
+		/* Margen izquierdo del contenido: la fila empieza alineada con el título */
+		--more-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+		overflow: clip;
+		background:
+			radial-gradient(46rem 26rem at 100% 0%, rgb(0 122 252 / 0.22), transparent 70%),
+			var(--surface-dark);
+		color: var(--text-on-dark);
+	}
+
+	/* ===== Encabezado ===== */
+	.university-more__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.university-more__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.university-more__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.university-more__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		box-shadow: 0 0 0 0.25rem rgb(255 26 48 / 0.25);
+	}
+
+	.university-more__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+	}
+
+	.university-more__text {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	.university-more :global(.university-more__cta) {
+		flex-shrink: 0;
+	}
+
+	/* ===== Fila de tarjetas ===== */
+	.university-more__viewport {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--more-inset);
+		scrollbar-width: none;
+		padding-block: var(--space-3) var(--space-5);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-5));
+	}
+
+	.university-more__viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.university-more__track {
+		display: flex;
+		gap: var(--space-4);
+		width: max-content;
+		margin: 0;
+		padding-inline: var(--more-inset);
+	}
+
+	.university-more__item {
+		flex-shrink: 0;
+		width: min(20rem, 78vw);
+		scroll-snap-align: start;
+	}
+
+	.university-more:global(.is-scroll-slider) .university-more__viewport {
+		overflow: hidden;
+		scroll-snap-type: none;
+	}
+
+	.university-more:global(.is-scroll-slider) .university-more__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
+	}
+
+	/* ===== Móvil ===== */
+	@media (max-width: 640px) {
+		.university-more {
+			--more-inset: var(--space-3);
+		}
+
+		.university-more__header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.university-more__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.university-more__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.university-more__track {
+			gap: var(--space-3);
+		}
+	}
+</style>

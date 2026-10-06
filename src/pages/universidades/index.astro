@@ -4,20 +4,44 @@
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83).
  *
- * Portada "Casas de estudio" + grilla con todas las universidades de
- * src/data/universities.ts. Cada tarjeta enlaza a la ficha
- * /universidades/{slug}/ (src/pages/universidades/[slug].astro).
+ * Con el lenguaje del Home: el header es transparente sobre la portada
+ * (body.hero-overlay) y la página usa el mismo movimiento (body.motion:
+ * src/scripts/motion.ts y src/styles/motion.css).
+ *
+ *   1. UniversitiesHero → "Conoce nuestras universidades asociadas"
+ *   2. UniversitiesGrid → filtro por ciudad + tarjetas (mismo diseño que las
+ *      de "Universidades destacadas" del Home)
+ *   3. HomeStartCta     → "¿Quieres iniciar tu proceso ahora?"
+ *
+ * Cada tarjeta enlaza a la ficha /universidades/{slug}/
+ * (src/pages/universidades/[slug].astro). Datos: src/data/universities.ts
+ * (o WordPress).
  */
+import '@styles/motion.css';
+
 import SiteLayout from '@layouts/SiteLayout.astro';
+import { getUniversities } from '@lib/content';
 
 import UniversitiesHero from '@components/sections/universities/UniversitiesHero.astro';
 import UniversitiesGrid from '@components/sections/universities/UniversitiesGrid.astro';
+import HomeStartCta from '@components/sections/home/HomeStartCta.astro';
+
+const universities = await getUniversities();
+const cities = new Set(universities.map((university) => university.city)).size;
 ---
 
 <SiteLayout
 	title="Universidades"
-	description="Todas las universidades de Rusia a las que puedes postular, en un solo lugar. Conoce cada casa de estudio y elige la tuya."
+	description="Conoce nuestras universidades asociadas en Rusia: todas las universidades a las que puedes postular, en un solo lugar. Elige la tuya y postula con Peruana en Rusia."
+	bodyClass="universities motion hero-overlay"
 >
-	<UniversitiesHero />
-	<UniversitiesGrid />
+	<UniversitiesHero total={universities.length} cities={cities} />
+	<UniversitiesGrid universities={universities} />
+	<HomeStartCta />
 </SiteLayout>
+
+<script>
+	// Movimiento compartido con el Home: apariciones y tarjetas 3D
+	import { initMotion } from '@scripts/motion';
+	initMotion();
+</script>

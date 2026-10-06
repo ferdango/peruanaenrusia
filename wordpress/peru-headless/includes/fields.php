@@ -121,6 +121,17 @@ function peru_register_acf_fields() {
 					'type'  => 'url',
 				),
 				$textarea( 'summary', 'Resumen', 'Primer párrafo de la ficha y descripción para buscadores.' ),
+				$text( 'founded', 'Año de fundación', 'Ej. 1755.' ),
+				$text( 'kind', 'Tipo de universidad', 'Ej. Pública.' ),
+				array(
+					'key'           => 'field_peru_brochure',
+					'name'          => 'brochure',
+					'label'         => 'Brochure (PDF)',
+					'type'          => 'file',
+					'return_format' => 'url',
+					'mime_types'    => 'pdf',
+					'instructions'  => 'PDF oficial de la universidad. Si se deja vacío, el sitio ofrece el brochure que genera con los datos de la ficha.',
+				),
 				$image( 'logo', 'Logo', 'PNG con fondo transparente.' ),
 				$image( 'cover', 'Foto de cabecera de la ficha' ),
 				$image( 'gallery_1', 'Foto de la ficha 1' ),
@@ -171,19 +182,6 @@ function peru_register_acf_fields() {
 			$tile( "story_{$n}", 4 ),
 		),
 	);
-	$post_item = static fn( $n ) => array(
-		'key'        => "field_peru_gallery_post_{$n}",
-		'name'       => "gallery_{$n}",
-		'label'      => "Publicación {$n}",
-		'type'       => 'group',
-		'layout'     => 'row',
-		'sub_fields' => array(
-			array( 'key' => "field_peru_gallery_post_{$n}_image", 'name' => 'image', 'label' => 'Foto', 'type' => 'image', 'return_format' => 'id' ),
-			array( 'key' => "field_peru_gallery_post_{$n}_url", 'name' => 'url', 'label' => 'Enlace a la publicación', 'type' => 'url' ),
-			array( 'key' => "field_peru_gallery_post_{$n}_album", 'name' => 'album', 'label' => 'Tiene varias fotos', 'type' => 'true_false', 'ui' => 1 ),
-		),
-	);
-
 	acf_add_local_field_group(
 		array(
 			'key'          => 'group_peru_caso',
@@ -212,14 +210,10 @@ function peru_register_acf_fields() {
 				$text( 'headline', 'Frase de la portada (sin comillas)' ),
 				$image( 'portrait', 'Foto de la portada' ),
 				$image( 'video_poster', 'Miniatura del video' ),
-				array( 'key' => 'field_peru_video_url', 'name' => 'video_url', 'label' => 'Enlace del video (YouTube)', 'type' => 'url' ),
+				array( 'key' => 'field_peru_video_url', 'name' => 'video_url', 'label' => 'Enlace del video (YouTube o TikTok)', 'type' => 'url' ),
 				$text( 'highlight', 'Cita destacada (sin comillas)' ),
 				$story( 1, 'derecha' ),
 				$story( 2, 'izquierda' ),
-				$post_item( 1 ),
-				$post_item( 2 ),
-				$post_item( 3 ),
-				$post_item( 4 ),
 				$text( 'closing_quote', 'Cita final (sin comillas)' ),
 				$textarea( 'closing_text', 'Texto final' ),
 			),

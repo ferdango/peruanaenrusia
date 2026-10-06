@@ -11,8 +11,13 @@
  *   --video-card-height       (alto de la tarjeta)
  *   --video-card-media-height (alto de la miniatura)
  *
+ * Con `modal`, la tarjeta reproduce el video en el modal del sitio
+ * (src/components/overlays/VideoModal.astro, que debe estar en la página);
+ * sin JavaScript sigue llevando a la página del video.
+ *
  * Uso:
  *   <VideoCard video={video} />
+ *   <VideoCard video={video} modal />
  */
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
@@ -25,6 +30,8 @@ interface Props {
 	/** Enlace de destino (por defecto, la página del video en el blog) */
 	href?: string;
 	headingLevel?: 'h2' | 'h3';
+	/** true = se reproduce en el modal del sitio (si el video tiene código de YouTube) */
+	modal?: boolean;
 	class?: string;
 }
 
@@ -32,8 +39,14 @@ const {
 	video,
 	href = detailRoutes.blogPost(video.slug),
 	headingLevel: Heading = 'h3',
+	modal = false,
 	class: className,
 } = Astro.props;
+
+const modalAttributes =
+	modal && video.youtubeId
+		? { 'data-video-open': '', 'data-video-youtube': video.youtubeId, 'data-video-title': video.title }
+		: {};
 ---
 
 <article class:list={['video-card', className]}>
@@ -58,7 +71,7 @@ const {
 	<div class="video-card__body">
 		<Icon name="youtube-play" size={24} class="video-card__platform" />
 		<Heading class="video-card__title">
-			<a href={href} class="video-card__link">
+			<a href={href} class="video-card__link" {...modalAttributes}>
 				{video.title}
 			</a>
 		</Heading>

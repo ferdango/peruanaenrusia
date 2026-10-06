@@ -16,7 +16,7 @@
  *   - slug:     identificador en la URL (/blog/{slug}/), en minúsculas, sin
  *               tildes y con guiones. No puede repetirse con el de un video.
  *   - date:     fecha de publicación (AAAA-MM-DD).
- *   - author:   autor de src/data/authors.ts (ej. authors['jose-quinteros']).
+ *   - author:   autor de src/data/authors.ts (ej. authors['grecia-kristal']).
  *   - excerpt:  bajada que aparece bajo el título.
  *   - image:    foto principal (src/assets/images/blog/), mínimo 1536 px de
  *               ancho. `imageAlt` describe la foto para lectores de pantalla.
@@ -25,15 +25,14 @@
  *                 { type: 'heading', text: '…' }     → subtítulo (h2)
  *                 { type: 'list', items: ['…', '…'] } → lista con viñetas
  *
- * ⚠️ CONTENIDO DE EJEMPLO: todos los artículos de esta lista vienen del
- * diseño de Figma (textos, fechas, autor y fotos). Reemplázalos por los
- * artículos reales antes de publicar el sitio.
+ * Por ahora no hay artículos: los de ejemplo del diseño (textos provisionales
+ * y fotos de referencia) se retiraron. Mientras la lista esté vacía, el blog
+ * muestra solo los videos y la sección "Clásicos" no aparece; vuelve sola en
+ * cuanto haya artículos (aquí o desde WordPress).
  */
 import type { ImageSource } from '@lib/content/images';
 
-import { authors, type Author } from './authors';
-import imageFraud from '@assets/images/blog/fraude-financiero.jpg';
-import imageOurPath from '@assets/images/blog/como-encontrar-nuestro-camino.jpg';
+import type { Author } from './authors';
 
 /** Bloque de contenido del cuerpo de un artículo */
 export type ArticleBlock =
@@ -66,78 +65,5 @@ export interface Article {
 	classic?: boolean;
 }
 
-// ----- Texto provisional de los artículos de ejemplo "Cómo encontrar nuestro camino" -----
-const placeholderBody: ArticleBlock[] = [
-	{
-		type: 'paragraph',
-		text: 'Lorem ipsum dolor sit amet consectetur. Risus sodales elit metus gravida consectetur. Amet adipiscing accumsan id in ullamcorper lectus. Id tortor magna neque sit nulla suspendisse nunc sit rhoncus.',
-	},
-	{
-		type: 'paragraph',
-		text: 'Vel nibh semper senectus phasellus libero sed. Integer id in pellentesque nisi cras. Molestie aliquet sit vitae praesent. Nunc consequat vitae et cras.',
-	},
-	{ type: 'heading', text: 'Lorem ipsum dolor sit amet' },
-	{
-		type: 'paragraph',
-		text: 'Elit maecenas sapien amet lectus quis. Tincidunt turpis commodo amet purus ullamcorper pellentesque quis ultricies. Sit hendrerit aliquam sed sit vitae est id aenean tempor.',
-	},
-];
-
-/** Crea un artículo de ejemplo "Cómo encontrar nuestro camino" (como en el diseño) */
-function ourPathExample(slug: string): Article {
-	return {
-		slug,
-		title: 'Cómo encontrar nuestro camino',
-		category: 'Vida en Rusia',
-		date: '2025-05-07',
-		author: authors['jose-quinteros'],
-		excerpt:
-			'Lorem ipsum dolor sit amet consectetur. Risus sodales elit metus gravida consectetur. Amet adipiscing accumsan id in ullamcorper lectus.',
-		image: imageOurPath,
-		imageAlt: 'Dos personas conversando en el set de una entrevista',
-		body: placeholderBody,
-		classic: true,
-	};
-}
-
-export const articles: Article[] = [
-	{
-		slug: 'fraude-financiero-que-es-tipos-y-como-prevenirlo',
-		title: 'Fraude financiero: qué es, tipos y cómo prevenirlo',
-		category: 'Transformación Digital',
-		date: '2023-07-04',
-		author: authors['jose-quinteros'],
-		excerpt:
-			'Conoce cómo el fraude financiero impacta a personas y empresas y cómo un sistema tecnológico puede mitigar este riesgo efectivamente en tu negocio.',
-		image: imageFraud,
-		imageAlt: 'Teléfono inteligente sobre una mesa con la pantalla de inicio llena de aplicaciones',
-		featured: true,
-		body: [
-			{
-				type: 'paragraph',
-				text: 'Sin lugar a dudas, el fraude financiero es una práctica que amenaza las organizaciones bancarias desde hace décadas y, sin embargo, evoluciona constantemente obligando a las empresas a desarrollarse con ellas para fortalecer las vulnerabilidades, procesos e, incluso la fuerza humana para sobrellevar estos riesgos.',
-			},
-			{
-				type: 'paragraph',
-				text: 'Ahora bien, si no sabes a detalle qué es el fraude financiero, cómo funciona o cuáles son los principales tipos, ¡este es el post para ti!',
-			},
-			{ type: 'heading', text: 'Autofraude' },
-			{
-				type: 'paragraph',
-				text: 'Ocurre cuando el propio cliente simula haber sido víctima de una estafa para obtener beneficios indebidos, como reembolsos o cancelaciones de deuda.',
-			},
-			{
-				type: 'paragraph',
-				text: 'Es una práctica fraudulenta que perjudica a las instituciones financieras y suele ser difícil de detectar sin un sistema de monitoreo avanzado.',
-			},
-		],
-	},
-	ourPathExample('como-encontrar-nuestro-camino'),
-	ourPathExample('como-encontrar-nuestro-camino-2'),
-	ourPathExample('como-encontrar-nuestro-camino-3'),
-	ourPathExample('como-encontrar-nuestro-camino-4'),
-	ourPathExample('como-encontrar-nuestro-camino-5'),
-	ourPathExample('como-encontrar-nuestro-camino-6'),
-	ourPathExample('como-encontrar-nuestro-camino-7'),
-	ourPathExample('como-encontrar-nuestro-camino-8'),
-];
+/** Artículos (vacío por ahora; ver arriba cómo agregarlos) */
+export const articles: Article[] = [];

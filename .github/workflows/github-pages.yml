@@ -66,6 +66,13 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base }}
           WORDPRESS_URL_VAR: ${{ vars.WORDPRESS_URL }}
 
+      - name: Actualizar los brochures de las universidades (PDF)
+        # Imprime con Chrome (incluido en el runner) la versión para imprimir de
+        # cada ficha (scripts/brochures.mjs). Si falla, se publican los PDF que
+        # ya están en public/brochures/.
+        continue-on-error: true
+        run: npm run brochures
+
       - name: Subir el HTML a la rama gh-pages
         working-directory: dist/client
         run: |

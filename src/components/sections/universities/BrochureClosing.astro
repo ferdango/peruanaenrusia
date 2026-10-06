@@ -1,0 +1,219 @@
+---
+/**
+ * BrochureClosing — Cierre del brochure de universidad
+ * --------------------------------------------------------------------------
+ * Parte final del brochure para imprimir (src/pages/universidades/[slug]/brochure.astro):
+ * "Así te acompañamos" (los 5 pasos del proceso, src/data/steps.ts), el
+ * recuadro de contacto y el aviso legal. Con `compact` ocupa menos alto (va
+ * en la portada cuando la ficha es corta y el brochure cabe en una página).
+ *
+ * Uso: <BrochureClosing onlineLabel="peruanaenrusia.pe/universidades/…" compact />
+ */
+import Icon from '@components/ui/Icon.astro';
+import { site } from '@data/site';
+import { processSteps } from '@data/steps';
+
+interface Props {
+	/** Dirección de la ficha en línea (sin https://) */
+	onlineLabel: string;
+	/** Versión más baja, para la portada */
+	compact?: boolean;
+}
+
+const { onlineLabel, compact = false } = Astro.props;
+
+// ----- Textos -----
+const content = {
+	steps: 'Así te acompañamos',
+	stepsText: 'Te guiamos en cada paso para estudiar en Rusia con beca:',
+	contactTitle: '¿Quieres postular a esta universidad?',
+	contactText: 'Escríbenos y te contamos carreras, requisitos y fechas de la convocatoria.',
+	online: 'Ficha completa en línea',
+	disclaimer:
+		'Información general con fines orientativos. Los requisitos, programas y fechas pueden cambiar: confírmalos con nuestro equipo antes de postular.',
+};
+---
+
+<div class:list={['closing', { 'closing--compact': compact }]}>
+	<div class="block block--steps">
+		<h2 class="block__title">{content.steps}</h2>
+		<p class="text">{content.stepsText}</p>
+		<ol class="steps">
+			{processSteps.map((step, index) => (
+				<li class="steps__item">
+					<span class="steps__number">{String(index + 1).padStart(2, '0')}</span>
+					<strong>{step.title}</strong>
+					<span>{step.text}</span>
+				</li>
+			))}
+		</ol>
+	</div>
+
+	<div class="contact">
+		<div class="contact__text">
+			<h2 class="contact__title">{content.contactTitle}</h2>
+			<p>{content.contactText}</p>
+		</div>
+		<ul class="contact__list">
+			<li>
+				<Icon name="whatsapp" size={16} />
+				{site.contact.phone}
+			</li>
+			<li>
+				<Icon name="mail" size={16} />
+				{site.contact.email}
+			</li>
+			<li>
+				<Icon name="globe" size={16} />
+				<span>
+					{content.online}: <strong>{onlineLabel}</strong>
+				</span>
+			</li>
+		</ul>
+	</div>
+
+	<p class="disclaimer">{content.disclaimer}</p>
+</div>
+
+<style>
+	.closing {
+		display: flex;
+		flex-direction: column;
+		gap: 7mm;
+	}
+
+	.closing--compact {
+		gap: 4mm;
+		margin-top: 1mm;
+	}
+
+	.block {
+		display: flex;
+		flex-direction: column;
+		gap: 3mm;
+		break-inside: avoid;
+	}
+
+	.block__title {
+		font-size: 14pt;
+		line-height: 1.2;
+		color: var(--color-blue-title);
+	}
+
+	.closing--compact .block__title {
+		font-size: 12pt;
+	}
+
+	.text {
+		font-size: 10pt;
+		line-height: 1.55;
+		color: #2c3030;
+	}
+
+	.closing--compact .text {
+		font-size: 9pt;
+	}
+
+	/* Los 5 pasos del proceso */
+	.steps {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 3mm;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.steps__item {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5mm;
+		padding: 4mm 3.5mm;
+		border-radius: 3mm;
+		background-color: #f3f8fc;
+		font-size: 8pt;
+		line-height: 1.4;
+		color: #3a4652;
+	}
+
+	.steps__item strong {
+		font-size: 9pt;
+		line-height: 1.25;
+		color: var(--text-on-light);
+	}
+
+	.steps__number {
+		font-size: 14pt;
+		font-weight: var(--font-weight-extrabold);
+		line-height: 1;
+		color: var(--color-blue);
+	}
+
+	/* Contacto */
+	.contact {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		align-items: center;
+		gap: 6mm;
+		padding: 7mm;
+		border-radius: 5mm;
+		background: linear-gradient(120deg, #0046ad 0%, #005ad1 50%, #0a72ec 100%);
+		color: var(--color-pure-white);
+		break-inside: avoid;
+	}
+
+	.contact__title {
+		margin-bottom: 1.5mm;
+		font-size: 13pt;
+		line-height: 1.2;
+	}
+
+	.contact__text p {
+		font-size: 9.5pt;
+		line-height: 1.45;
+		color: rgb(255 255 255 / 0.88);
+	}
+
+	.contact__list {
+		display: flex;
+		flex-direction: column;
+		gap: 2mm;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 9pt;
+	}
+
+	.contact__list li {
+		display: flex;
+		align-items: flex-start;
+		gap: 2mm;
+		overflow-wrap: anywhere;
+	}
+
+	.contact__list :global(svg) {
+		flex-shrink: 0;
+		margin-top: 0.4mm;
+	}
+
+	.disclaimer {
+		font-size: 7.5pt;
+		line-height: 1.45;
+		color: #6a7682;
+	}
+
+	.closing--compact .steps__item {
+		gap: 1mm;
+		padding: 3mm;
+		font-size: 7.5pt;
+		line-height: 1.35;
+	}
+
+	.closing--compact .steps__number {
+		font-size: 12pt;
+	}
+
+	.closing--compact .contact {
+		padding: 5mm 6mm;
+	}
+</style>

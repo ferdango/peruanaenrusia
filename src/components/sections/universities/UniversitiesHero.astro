@@ -1,50 +1,80 @@
 ---
 /**
- * UniversitiesHero — "Casas de estudio"
+ * UniversitiesHero — "Conoce nuestras universidades asociadas"
  * --------------------------------------------------------------------------
- * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83) › "Frame 23" (3260:147).
+ * Figma: UI Desktop › "MacBook Pro 14 - 13" (3260:83) › "Frame 23" (3260:147):
+ * título, bajada, ondas de la marca y dos estrellas de 4 puntas.
  *
- * Portada del listado de universidades: título principal (h1), bajada y los
- * recursos gráficos de la marca (onda azul, onda naranja y dos estrellas de
- * 4 puntas), dibujados en un lienzo de 1512px centrado (ancho de Figma).
+ * Con el lenguaje del Home y del Blog: el header es transparente sobre la
+ * portada (body.hero-overlay) y la portada sube bajo el header. Además del
+ * título, muestra cuántas universidades y ciudades hay; las líneas de la
+ * marca (amarilla, roja y celeste, como en las demás portadas) se dibujan al
+ * pie al cargar y las estrellas titilan.
  *
  * Uso: primera sección de src/pages/universidades/index.astro
- *   <UniversitiesHero />
+ *   <UniversitiesHero total={9} cities={6} />
  */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 import StarTall from '@assets/graphics/stars/star-sparkle-tall.svg';
-import Star from '@assets/graphics/stars/star-sparkle.svg';
-import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
-import WaveOrange from '@assets/graphics/waves/wave-orange-universities.svg';
+import tubeLoop from '@assets/graphics/tubes/tube-gradient-loop.webp';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+
+interface Props {
+	/** Cantidad de universidades del listado */
+	total: number;
+	/** Cantidad de ciudades distintas */
+	cities: number;
+}
+
+const { total, cities } = Astro.props;
 
 // ----- Contenido de la sección -----
 const content = {
-	title: 'Casas de estudio',
-	subtitle: 'Todas las universidades que puedes aplicar, en un solo lugar',
+	eyebrow: 'Becas del Gobierno de Rusia',
+	title: 'Conoce nuestras universidades asociadas',
+	subtitle:
+		'Todas las universidades a las que puedes postular, en un solo lugar. Conoce cada una y elige la tuya: te acompañamos en el proceso.',
+	stats: [
+		{ icon: 'landmark', value: total, label: total === 1 ? 'universidad' : 'universidades' },
+		{ icon: 'map-pin', value: cities, label: cities === 1 ? 'ciudad' : 'ciudades' },
+	],
 };
 ---
 
 <section class="universities-hero" aria-labelledby="universities-hero-title">
 	<!-- Ondas planas y estrellas de la marca (decorativas) -->
 	<div class="universities-hero__decor" aria-hidden="true">
-		<div class="universities-hero__art universities-hero__art--wave-blue">
-			<WaveBlue />
-		</div>
-		<div class="universities-hero__art universities-hero__art--wave-orange">
-			<WaveOrange />
-		</div>
-		<div class="universities-hero__art universities-hero__art--star-skyblue">
-			<StarTall />
-		</div>
-		<div class="universities-hero__art universities-hero__art--star-yellow">
-			<Star />
-		</div>
+		<Image src={tubeLoop} alt="" widths={[600, 1100]} sizes="40rem" class="universities-hero__tube" />
+		<BrandLines class="universities-hero__lines" />
+		<StarTall class="universities-hero__star universities-hero__star--sky" />
+		<Star class="universities-hero__star universities-hero__star--yellow" />
 	</div>
 
 	<div class="universities-hero__content container">
+		<p class="universities-hero__eyebrow">
+			<span class="universities-hero__dot" aria-hidden="true"></span>
+			{content.eyebrow}
+		</p>
 		<h1 id="universities-hero-title" class="universities-hero__title">
 			{content.title}
 		</h1>
 		<p class="universities-hero__subtitle">{content.subtitle}</p>
+
+		<ul class="universities-hero__stats" role="list">
+			{content.stats.map((stat) => (
+				<li class="universities-hero__stat">
+					<span class="universities-hero__stat-icon" aria-hidden="true">
+						<Icon name={stat.icon} size={20} />
+					</span>
+					<span>
+						<strong>{stat.value}</strong> {stat.label}
+					</span>
+				</li>
+			))}
+		</ul>
 	</div>
 </section>
 
@@ -52,131 +82,277 @@ const content = {
 	.universities-hero {
 		position: relative;
 		isolation: isolate;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 23.75rem; /* 380px */
-		padding-block: var(--space-10);
+		/* Sube bajo el header (transparente sobre la portada, como en el Home) */
+		margin-top: calc(-1 * var(--header-height));
+		padding-block: calc(var(--header-height) + clamp(3rem, 2rem + 4vw, 6rem))
+			clamp(4rem, 3rem + 4vw, 6.5rem);
+		overflow: hidden; /* respaldo de "clip" en navegadores antiguos */
 		overflow: clip;
-		background-color: var(--surface-dark);
+		background:
+			radial-gradient(56rem 30rem at 90% 0%, rgb(0 122 252 / 0.3), transparent 65%),
+			radial-gradient(40rem 26rem at 0% 100%, rgb(255 123 35 / 0.16), transparent 70%),
+			var(--surface-dark);
+		color: var(--text-on-dark);
 	}
 
-	/* ----- Texto centrado ----- */
-	.universities-hero__content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--space-4);
-		text-align: center;
-		color: var(--color-pure-white);
-	}
-
-	.universities-hero__title {
-		font-size: var(--font-size-display);
-		line-height: 1;
-	}
-
-	.universities-hero__subtitle {
-		max-width: 36rem; /* 576px */
-		font-size: var(--font-size-lg);
-		line-height: 1.75rem;
-	}
-
-	/* ----- Decoración: lienzo de 1512px centrado (coordenadas de Figma) ----- */
+	/* ===== Líneas y estrellas de la marca ===== */
 	.universities-hero__decor {
 		position: absolute;
-		top: 0;
-		left: 50%;
+		inset: 0;
 		z-index: -1;
-		width: 1512px;
-		height: 100%;
-		transform: translateX(-50%);
-		transform-origin: top center;
 		pointer-events: none;
 	}
 
-	.universities-hero__art {
+	/* Tubo degradé de la marca (render oficial), flotando a la derecha */
+	.universities-hero__tube {
 		position: absolute;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.universities-hero__art :global(svg) {
-		flex: none;
+		top: calc(var(--header-height) + 1rem);
+		right: max(-4rem, calc((100% - var(--container-max)) / 2 - 6rem));
+		width: min(40rem, 44%);
 		max-width: none;
+		height: auto;
+		rotate: -8deg;
 	}
 
-	.universities-hero__art--wave-blue {
-		left: -1000px;
-		top: -180px;
-		width: 1882.919px;
-		height: 657.172px;
+	/* Líneas planas (amarilla, roja y celeste) al pie de la portada */
+	.universities-hero__lines {
+		position: absolute;
+		bottom: clamp(-1.5rem, -1vw, -0.5rem);
+		left: 0;
+		width: 100%;
+		height: clamp(5rem, 8vw, 8rem);
 	}
 
-	.universities-hero__art--wave-blue :global(svg) {
-		transform: rotate(171.79deg) scale(1, -1) skewX(4.69deg);
+	.universities-hero__lines :global(.brand-line) {
+		stroke-dasharray: 100 100;
 	}
 
-	.universities-hero__art--wave-orange {
-		left: 753px;
-		top: -101px;
-		width: 1674.036px;
-		height: 789.549px;
+	.universities-hero__star {
+		position: absolute;
+		height: auto;
 	}
 
-	.universities-hero__art--wave-orange :global(svg) {
-		transform: rotate(163.75deg) skewX(4.69deg);
-	}
-
-	.universities-hero__art--star-skyblue {
-		left: 315px;
-		top: 78px;
-		width: 31.616px;
-		height: 41.116px;
+	.universities-hero__star--sky {
+		top: calc(var(--header-height) + 3rem);
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2 + 3rem));
+		width: 1.75rem;
 		color: var(--color-skyblue);
 	}
 
-	.universities-hero__art--star-skyblue :global(svg) {
-		transform: rotate(16.91deg) scale(1, 0.99) skewX(8.11deg);
-	}
-
-	.universities-hero__art--star-yellow {
-		left: 1116px;
-		top: 308px;
-		width: 23.454px;
-		height: 28.141px;
+	.universities-hero__star--yellow {
+		top: 52%;
+		right: max(calc(var(--gutter) + 10rem), calc((100% - var(--container-max)) / 2 + 16rem));
+		width: 1.25rem;
 		color: var(--color-yellow);
 	}
 
-	.universities-hero__art--star-yellow :global(svg) {
-		transform: rotate(-27.65deg) scale(1, 0.99) skewX(-7.4deg);
+	/* ===== Contenido ===== */
+	.universities-hero__content {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
 	}
 
-	/* ----- Tablet y móvil: el lienzo se reduce para que las ondas sigan visibles ----- */
+	.universities-hero__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem;
+		border: 1px solid rgb(255 255 255 / 0.16);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	/* Punto rojo que late (como en "Universidades destacadas") */
+	.universities-hero__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		box-shadow: 0 0 0 0.25rem rgb(255 26 48 / 0.25);
+	}
+
+	.universities-hero__title {
+		max-width: 15ch;
+		font-size: clamp(2.5rem, 1.4rem + 4vw, 4.75rem);
+		line-height: 1.02;
+		letter-spacing: -0.01em;
+		color: var(--color-pure-white);
+		text-wrap: balance;
+	}
+
+	.universities-hero__subtitle {
+		max-width: 40rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	.universities-hero__stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		margin-top: var(--space-2);
+	}
+
+	.universities-hero__stat {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: 0.5rem 1.125rem 0.5rem 0.5rem;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-md);
+		color: var(--text-on-dark-soft);
+	}
+
+	.universities-hero__stat strong {
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
+	}
+
+	.universities-hero__stat-icon {
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+	}
+
+	/* ===== Entrada al cargar ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.universities-hero__content > * {
+			animation: universities-hero-rise 0.9s var(--ease-out) both;
+		}
+
+		.universities-hero__content > :nth-child(2) {
+			animation-delay: 0.08s;
+		}
+
+		.universities-hero__content > :nth-child(3) {
+			animation-delay: 0.16s;
+		}
+
+		.universities-hero__content > :nth-child(4) {
+			animation-delay: 0.24s;
+		}
+
+		.universities-hero__tube {
+			animation:
+				universities-hero-tube 1.6s var(--ease-out) both,
+				universities-hero-float 9s ease-in-out 1.6s infinite;
+		}
+
+		.universities-hero__lines :global(.brand-line) {
+			animation: universities-hero-draw 1.8s 0.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+		}
+
+		.universities-hero__lines :global(.brand-line:nth-of-type(2)) {
+			animation-delay: 0.45s;
+		}
+
+		.universities-hero__lines :global(.brand-line:nth-of-type(3)) {
+			animation-delay: 0.6s;
+		}
+
+		.universities-hero__star {
+			animation: universities-hero-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.universities-hero__star--yellow {
+			animation-delay: -1.6s;
+		}
+
+		.universities-hero__dot {
+			animation: universities-hero-pulse 2.2s ease-out infinite;
+		}
+	}
+
+	@keyframes universities-hero-rise {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+		}
+	}
+
+	@keyframes universities-hero-tube {
+		from {
+			opacity: 0;
+			scale: 0.9;
+			translate: 6% 4%;
+		}
+	}
+
+	@keyframes universities-hero-float {
+		50% {
+			translate: 0 -0.75rem;
+		}
+	}
+
+	@keyframes universities-hero-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes universities-hero-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	@keyframes universities-hero-pulse {
+		70% {
+			box-shadow: 0 0 0 0.6rem rgb(255 26 48 / 0);
+		}
+	}
+
+	/* ===== Tablet y móvil: sin el tubo (taparía el texto) ===== */
 	@media (max-width: 1100px) {
-		.universities-hero {
-			min-height: 20rem;
-		}
-
-		.universities-hero__decor {
-			transform: translateX(-50%) scale(0.72);
+		.universities-hero__tube {
+			display: none;
 		}
 	}
 
+	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
 		.universities-hero {
-			min-height: 15rem;
-			padding-block: var(--space-9) var(--space-8);
+			padding-block: calc(var(--header-height) + var(--space-7)) var(--space-9);
 		}
 
-		.universities-hero__decor {
-			transform: translateX(-50%) scale(0.42);
+		.universities-hero__content {
+			gap: var(--space-4);
+		}
+
+		.universities-hero__title {
+			max-width: none;
+			font-size: var(--font-size-display-mobile);
+			line-height: 1.05;
 		}
 
 		.universities-hero__subtitle {
 			font-size: var(--font-size-md);
 			line-height: 1.5rem;
+		}
+
+		.universities-hero__stat {
+			font-size: var(--font-size-sm);
 		}
 	}
 </style>

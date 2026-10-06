@@ -85,11 +85,11 @@ Las cuentas de estudiantes y las reclamaciones se guardan en WordPress si ademá
 
 ### Universidades
 
-Título = nombre · Extracto = resumen · Imagen destacada = foto principal · Campos: ciudad, destacada en el Home, sitio web, logo, foto de cabecera, 2 fotos de la ficha, descripción (párrafos separados por una línea en blanco), "La universidad cuenta con" (uno por línea), áreas de estudio (una por línea: `Facultad | Descripción`), rankings, vida estudiantil y consejos.
+Título = nombre · Extracto = resumen · Imagen destacada = foto principal · Campos: ciudad, destacada en el Home, sitio web, año de fundación, tipo (ej. Pública), brochure (PDF oficial; si se deja vacío, el sitio ofrece el que genera con la ficha), logo, foto de cabecera, 2 fotos de la ficha, descripción (párrafos separados por una línea en blanco), "La universidad cuenta con" (uno por línea), áreas de estudio (una por línea: `Facultad | Descripción`), rankings, vida estudiantil y consejos.
 
 ### Casos de éxito
 
-Título = nombre del estudiante · Campos: carrera y universidad, país, frase de la tarjeta, foto de perfil, frase de la portada, foto de la portada, miniatura y enlace del video, cita destacada, dos bloques del **paso a paso** (foto grande + 4 casillas de texto o foto), 4 publicaciones (foto, enlace, "tiene varias fotos") y la cita y texto finales. Las secciones sin datos no se muestran.
+Título = nombre del estudiante · Campos: carrera y universidad, país, frase de la tarjeta, foto de perfil, frase de la portada, foto de la portada, miniatura y enlace del video (YouTube o TikTok: se ve en el modal del sitio), cita destacada, dos bloques del **paso a paso** (foto grande + 4 casillas de texto o foto) y la cita y texto finales. Las secciones sin datos no se muestran.
 
 ### Preguntas frecuentes
 

@@ -1,0 +1,196 @@
+---
+/**
+ * ProcessOverview — "Tu avance" (resumen de "Mi proceso")
+ * --------------------------------------------------------------------------
+ * Tarjeta con el porcentaje del proceso en un anillo con el degradé de la
+ * marca, cuántos pasos están terminados, una fila de puntos (uno por paso,
+ * con el color de su estado), el siguiente paso pendiente y el botón para
+ * continuar (lleva al detalle de los pasos).
+ *
+ * Se calcula a partir de los pasos de src/data/portal.ts (processSteps).
+ *
+ * Uso (pantalla "Mi proceso"):
+ *   <ProcessOverview />
+ */
+import PortalButton from './PortalButton.astro';
+import { portalRoutes, processSteps, stepStatusLabels } from '@data/portal';
+
+const total = processSteps.length;
+const done = processSteps.filter((step) => step.status === 'done').length;
+const percent = Math.round((done / total) * 100);
+const next = processSteps.find((step) => step.status !== 'done');
+
+// ----- Textos -----
+const content = {
+	title: 'Tu avance',
+	count: `${done} de ${total} pasos terminados`,
+	percentLabel: `${percent} % de tu proceso completado`,
+	next: 'Siguiente paso',
+	allDone: '¡Completaste todos los pasos!',
+	cta: 'Continuar mi proceso',
+	review: 'Revisar mis pasos',
+};
+---
+
+<section class="process-overview" aria-labelledby="process-overview-title">
+	<h2 id="process-overview-title" class="process-overview__title">
+		{content.title}
+	</h2>
+
+	<div
+		class="process-overview__ring"
+		style={`--percent: ${percent}`}
+		role="img"
+		aria-label={content.percentLabel}
+	>
+		<span class="process-overview__percent" aria-hidden="true">
+			{percent}
+			<small>%</small>
+		</span>
+	</div>
+
+	<p class="process-overview__count">{content.count}</p>
+
+	<ol class="process-overview__dots" role="list" aria-hidden="true">
+		{processSteps.map((step) => (
+			<li
+				class:list={['process-overview__dot', `process-overview__dot--${step.status}`]}
+				title={`${step.number}. ${step.title}: ${stepStatusLabels[step.status]}`}
+			/>
+		))}
+	</ol>
+
+	{next ? (
+		<p class="process-overview__next">
+			<span class="process-overview__next-label">{content.next}</span>
+			<strong>
+				{next.number}. {next.title}
+			</strong>
+		</p>
+	) : (
+		<p class="process-overview__next">
+			<strong>{content.allDone}</strong>
+		</p>
+	)}
+
+	<PortalButton href={portalRoutes.processDetail} block>
+		{next ? content.cta : content.review}
+	</PortalButton>
+</section>
+
+<style>
+	.process-overview {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		padding: var(--space-6);
+		border: var(--portal-card-border);
+		border-radius: var(--portal-radius-card);
+		background:
+			radial-gradient(18rem 10rem at 100% 0%, rgb(0 192 252 / 0.14), transparent 70%),
+			var(--portal-surface);
+		box-shadow: var(--portal-card-shadow);
+		text-align: center;
+	}
+
+	.process-overview__title {
+		align-self: flex-start;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-blue-title);
+	}
+
+	/* Anillo con el avance (conic-gradient) */
+	.process-overview__ring {
+		display: grid;
+		place-items: center;
+		width: 9.5rem;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: conic-gradient(
+			var(--color-skyblue) 0%,
+			var(--color-blue) calc(var(--percent) * 1%),
+			#e3ecf5 calc(var(--percent) * 1%)
+		);
+	}
+
+	.process-overview__ring::before {
+		content: '';
+		grid-area: 1 / 1;
+		width: calc(100% - 1.375rem);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background-color: var(--portal-surface);
+		box-shadow: inset 0 0 0 1px rgb(18 91 168 / 0.06);
+	}
+
+	.process-overview__percent {
+		grid-area: 1 / 1;
+		z-index: 1;
+		font-size: 2.25rem;
+		font-weight: var(--font-weight-extrabold);
+		line-height: 1;
+		color: var(--color-blue-title);
+	}
+
+	.process-overview__percent small {
+		font-size: 1.125rem;
+		font-weight: var(--font-weight-bold);
+	}
+
+	.process-overview__count {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-on-light);
+	}
+
+	/* Un punto por paso, con el color de su estado */
+	.process-overview__dots {
+		display: flex;
+		gap: 0.375rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.process-overview__dot {
+		width: 1.75rem;
+		height: 0.375rem;
+		border-radius: var(--radius-pill);
+		background-color: #dfe7ef;
+	}
+
+	.process-overview__dot--done {
+		background-color: var(--color-green);
+	}
+
+	.process-overview__dot--in-progress {
+		background-color: var(--color-blue);
+	}
+
+	.process-overview__dot--in-review {
+		background-color: var(--color-yellow);
+	}
+
+	.process-overview__next {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		width: 100%;
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--portal-radius-field);
+		background-color: var(--portal-row);
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: var(--text-on-light);
+	}
+
+	.process-overview__next-label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--portal-text-help);
+	}
+</style>

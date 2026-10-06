@@ -4,6 +4,10 @@
  * --------------------------------------------------------------------------
  * Botón flotante de WhatsApp (esquina inferior derecha), visible en todo el
  * sitio público. El número y el mensaje se configuran en src/data/site.ts.
+ *
+ * Si otra barra flotante ocupa la parte de abajo (ej. las pestañas de la
+ * ficha de universidad), esa barra define --whatsapp-lift en el <body> y el
+ * botón sube esa distancia.
  */
 import WhatsAppGraphic from '@assets/graphics/whatsapp-button.svg';
 import { whatsappUrl } from '@data/site';
@@ -25,13 +29,15 @@ import { whatsappUrl } from '@data/site';
 	.whatsapp-button {
 		position: fixed;
 		right: clamp(1rem, 2.6vw, 2.5rem);
-		bottom: clamp(1rem, 2.6vw, 2.5rem);
+		bottom: calc(clamp(1rem, 2.6vw, 2.5rem) + var(--whatsapp-lift, 0px));
 		z-index: var(--z-floating);
 		display: block;
 		width: 80px;
 		height: 80px;
 		border-radius: var(--radius-pill);
-		transition: transform var(--duration-base) var(--ease-out);
+		transition:
+			transform var(--duration-base) var(--ease-out),
+			bottom 0.45s var(--ease-out);
 	}
 
 	/* El SVG (128px) incluye la sombra: lo desplazamos para centrar el círculo */

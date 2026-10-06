@@ -11,7 +11,7 @@
  * Las tarjetas avanzan UNA POR UNA con el scroll: la sección queda fija en
  * pantalla mientras el scroll vertical desplaza el riel en horizontal; cada
  * tarjeta se detiene un momento, la activa se resalta y la barra muestra el
- * avance (src/scripts/home-motion.ts › sliders con scroll, data-scroll-slider).
+ * avance (src/scripts/motion.ts › sliders con scroll, data-scroll-slider).
  * Sin JavaScript o con "reducir movimiento" es un deslizador táctil normal.
  *
  * Cada tarjeta se dibuja en "píxeles de diseño" (--u = ancho de la tarjeta
@@ -258,7 +258,7 @@ const stepNumber = (index: number) => String(index + 1).padStart(2, '0');
 	}
 
 	/* =====================================================================
-	   Slider con scroll (lo activa src/scripts/home-motion.ts)
+	   Slider con scroll (lo activa src/scripts/motion.ts)
 	   La sección mide lo que dura el recorrido: mientras tanto, el bloque queda
 	   fijo bajo el header y el riel se desplaza en horizontal.
 	   ===================================================================== */

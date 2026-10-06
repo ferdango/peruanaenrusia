@@ -3,7 +3,9 @@
  * AuthField — campo de texto del modal de inicio de sesión / registro
  * --------------------------------------------------------------------------
  * Figma: "Modal Login" › campo "Correo (personal o del trabajo)" (1807:4502)
- * y campo "Código" (1809:4546).
+ * y campo "Código" (1809:4546), mejorados: ícono dentro del campo, fondo
+ * blanco y un anillo azul al enfocarlo. El campo del código (variant="code")
+ * muestra los 6 números grandes y separados.
  *
  * Etiqueta + input + mensaje de error. El error se asocia al input con
  * aria-describedby y se anuncia (aria-live). La validación usa los atributos
@@ -16,21 +18,28 @@
  *       label="Correo (personal o del trabajo)"
  *       name="email"
  *       type="email"
+ *       icon="mail"
  *       required
  *       messages={{ required: 'Ingresa tu correo.', invalid: 'Revisa el formato.' }}
  *   />
  */
 import type { HTMLAttributes } from 'astro/types';
 
+import Icon, { type IconName } from '@components/ui/Icon.astro';
+
 interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name'> {
 	id: string;
 	label: string;
 	name: string;
+	/** Ícono dentro del campo, a la izquierda (src/assets/icons/) */
+	icon?: IconName;
+	/** "code": números grandes y separados (código de verificación) */
+	variant?: 'text' | 'code';
 	/** Mensajes de error: campo vacío y formato inválido */
 	messages: { required: string; invalid?: string };
 }
 
-const { id, label, name, messages, class: className, ...attrs } = Astro.props;
+const { id, label, name, icon, variant = 'text', messages, class: className, ...attrs } = Astro.props;
 const errorId = `${id}-error`;
 ---
 
@@ -38,15 +47,22 @@ const errorId = `${id}-error`;
 	<label class="auth-field__label" for={id}>
 		{label}
 	</label>
-	<input
-		class:list={['auth-field__input', className]}
-		id={id}
-		name={name}
-		aria-describedby={errorId}
-		data-msg-required={messages.required}
-		data-msg-invalid={messages.invalid}
-		{...attrs}
-	/>
+	<div class="auth-field__control">
+		{icon && <Icon name={icon} size={20} class="auth-field__icon" />}
+		<input
+			class:list={[
+				'auth-field__input',
+				{ 'auth-field__input--icon': icon, 'auth-field__input--code': variant === 'code' },
+				className,
+			]}
+			id={id}
+			name={name}
+			aria-describedby={errorId}
+			data-msg-required={messages.required}
+			data-msg-invalid={messages.invalid}
+			{...attrs}
+		/>
+	</div>
 	<p class="auth-field__error" id={errorId} aria-live="polite" data-auth-error></p>
 </div>
 
@@ -54,6 +70,7 @@ const errorId = `${id}-error`;
 	.auth-field {
 		/* Rojo de marca oscurecido: contraste AA sobre el fondo claro del modal */
 		--auth-field-error: color-mix(in srgb, var(--color-red) 75%, var(--color-black));
+		--auth-field-border: color-mix(in srgb, var(--color-black) 22%, transparent);
 
 		display: flex;
 		flex-direction: column;
@@ -61,21 +78,36 @@ const errorId = `${id}-error`;
 
 	/* Figma: Circular Std Medium 12/16 → Poppins Medium */
 	.auth-field__label {
-		margin-bottom: var(--space-1);
+		margin-bottom: var(--space-2);
 		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-medium);
+		font-weight: var(--font-weight-semibold);
 		line-height: 1rem;
 		color: var(--text-on-light);
 	}
 
-	/* Figma: borde 1px negro 40 %, alto 60px, padding 16px (borde interior), radio 12px */
+	.auth-field__control {
+		position: relative;
+	}
+
+	.auth-field__icon {
+		position: absolute;
+		top: 50%;
+		left: var(--space-4);
+		color: color-mix(in srgb, var(--color-black) 50%, transparent);
+		pointer-events: none;
+		translate: 0 -50%;
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	/* Figma: alto 60px, padding 16px (borde interior), radio 12px */
 	.auth-field__input {
 		width: 100%;
-		height: 3.75rem;
-		padding: calc(var(--space-4) - 1px);
-		border: 1px solid color-mix(in srgb, var(--color-black) 40%, transparent);
+		height: 3.5rem;
+		padding: 0 calc(var(--space-4) - 1px);
+		border: 1px solid var(--auth-field-border);
 		border-radius: var(--radius-md);
-		background-color: transparent;
+		background-color: var(--surface-white);
+		box-shadow: 0 1px 2px rgb(23 26 26 / 0.04);
 		font-size: var(--font-size-md);
 		line-height: 1.25rem;
 		color: var(--text-on-light);
@@ -84,21 +116,52 @@ const errorId = `${id}-error`;
 			box-shadow var(--duration-base) var(--ease-out);
 	}
 
+	.auth-field__input--icon {
+		padding-left: calc(var(--space-4) + 20px + var(--space-3));
+	}
+
 	.auth-field__input::placeholder {
-		color: color-mix(in srgb, var(--color-black) 64%, transparent);
+		color: color-mix(in srgb, var(--color-black) 52%, transparent);
 		opacity: 1;
 	}
 
 	.auth-field__input:hover {
-		border-color: color-mix(in srgb, var(--color-black) 64%, transparent);
+		border-color: color-mix(in srgb, var(--color-black) 45%, transparent);
 	}
 
 	.auth-field__input:focus-visible {
-		border-color: var(--color-blue-title);
+		border-color: var(--color-blue);
+		outline: none;
+		box-shadow: 0 0 0 4px rgb(0 122 252 / 0.16);
+	}
+
+	.auth-field__control:focus-within .auth-field__icon {
+		color: var(--color-blue);
 	}
 
 	.auth-field__input[aria-invalid='true'] {
 		border-color: var(--auth-field-error);
+	}
+
+	.auth-field__input[aria-invalid='true']:focus-visible {
+		box-shadow: 0 0 0 4px rgb(255 26 48 / 0.14);
+	}
+
+	/* Código: 6 números grandes y separados (el texto de ayuda queda normal) */
+	.auth-field__input--code {
+		font-size: 1.5rem;
+		font-weight: var(--font-weight-semibold);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.5em;
+		text-align: center;
+		text-indent: 0.5em; /* compensa el espacio después del último número */
+	}
+
+	.auth-field__input--code::placeholder {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-regular);
+		letter-spacing: normal;
+		text-indent: 0;
 	}
 
 	/* Vacío no ocupa espacio (no mueve el diseño); con texto se separa del input */

@@ -5,8 +5,9 @@
  * Figma: UI Desktop › "MacBook Pro 14' - 12" › lista de pasos (2113:44) y
  * "MacBook Pro 14' - 8" › tarjetas de cada paso (2026:137).
  *
- * Cabecera común: número del paso en un círculo, título (+ bajada opcional)
- * y la etiqueta de estado (StatusBadge). El contenido va en el <slot />.
+ * Cabecera común: número del paso en un círculo con el color de su estado
+ * (check en los terminados), título (+ bajada opcional) y la etiqueta de
+ * estado (StatusBadge). El contenido va en el <slot />.
  *
  * Variantes:
  *   variant="summary" → fila compacta del resumen (MBP12). El contenido se
@@ -20,6 +21,7 @@
  *       <p>8/8 documentos enviados</p>
  *   </StepCard>
  */
+import Icon from '@components/ui/Icon.astro';
 import StatusBadge from './StatusBadge.astro';
 import type { StepStatus } from '@data/portal';
 
@@ -65,6 +67,7 @@ const isMuted = variant === 'summary' && status === 'upcoming';
 	class:list={[
 		'step-card',
 		`step-card--${variant}`,
+		`step-card--status-${status}`,
 		{
 			'step-card--muted': isMuted,
 			'step-card--header-gap-lg': headerGap === 40,
@@ -76,7 +79,7 @@ const isMuted = variant === 'summary' && status === 'upcoming';
 >
 	<header class="step-card__header">
 		<span class="step-card__number" aria-hidden="true">
-			{number}
+			{status === 'done' ? <Icon name="check" size={18} /> : number}
 		</span>
 		<div class="step-card__heading">
 			<Heading id={titleId} class="step-card__title">
@@ -97,18 +100,61 @@ const isMuted = variant === 'summary' && status === 'upcoming';
 
 <style>
 	.step-card {
+		/* Color del estado: número y acento del borde izquierdo */
+		--step-accent: var(--color-blue-title);
+		--step-accent-bg: transparent;
+		--step-accent-text: var(--color-blue-title);
+
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
 		width: 100%;
 		padding: var(--space-6) var(--space-5); /* 32px 24px */
-		border-radius: var(--radius-lg);
+		overflow: clip;
+		border: var(--portal-card-border);
+		border-radius: var(--portal-radius-card);
 		background-color: var(--portal-surface);
+		box-shadow: var(--portal-card-shadow);
 		color: var(--text-on-light);
 	}
 
+	.step-card--status-done {
+		--step-accent: var(--color-green);
+		--step-accent-bg: var(--color-green);
+		--step-accent-text: var(--color-pure-white);
+	}
+
+	.step-card--status-in-progress {
+		--step-accent: var(--color-blue);
+		--step-accent-bg: var(--color-blue);
+		--step-accent-text: var(--color-pure-white);
+	}
+
+	.step-card--status-in-review {
+		--step-accent: #e0a000;
+		--step-accent-bg: var(--color-yellow);
+		--step-accent-text: #002546;
+	}
+
+	.step-card--status-upcoming {
+		--step-accent: rgb(18 91 168 / 0.25);
+		--step-accent-text: rgb(18 91 168 / 0.6);
+	}
+
+	/* Acento de color a la izquierda */
+	.step-card::before {
+		content: '';
+		position: absolute;
+		inset: var(--space-5) auto var(--space-5) 0;
+		width: 4px;
+		border-radius: 0 4px 4px 0;
+		background-color: var(--step-accent);
+	}
+
 	.step-card--muted {
-		background-color: var(--color-white);
+		background-color: #f7fafc;
+		box-shadow: none;
 	}
 
 	/* ----- Cabecera: número + título + estado ----- */
@@ -124,11 +170,12 @@ const isMuted = variant === 'summary' && status === 'upcoming';
 		flex-shrink: 0;
 		width: 2.5rem; /* 40px */
 		height: 2.5rem;
-		border: 1px solid var(--color-blue-title);
+		border: 2px solid var(--step-accent);
 		border-radius: var(--radius-pill);
-		color: var(--color-blue-title);
-		font-size: 1.25rem; /* 20px */
-		font-weight: var(--font-weight-medium);
+		background-color: var(--step-accent-bg);
+		color: var(--step-accent-text);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
 		line-height: 1.5rem;
 	}
 

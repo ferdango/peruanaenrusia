@@ -4,12 +4,15 @@
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628417" (3314:111).
  *
- * Navegación por anclas dentro de la ficha de universidad. Como en Figma,
- * la píldora se superpone a la foto de portada y queda fija (sticky) bajo el
- * header mientras se recorre la hoja. El enlace de la sección visible se
- * resalta con un borde (scroll spy en el <script> de este componente).
+ * Navegación por anclas dentro de la ficha de universidad. Queda fija abajo
+ * y centrada desde que carga la página (a la altura del botón de WhatsApp,
+ * que en tablet y móvil sube para no taparla). Al terminar la ficha (antes
+ * de "Más universidades" y el footer) baja y se oculta. El enlace de la
+ * sección visible se resalta (scroll spy en el <script> de este componente).
  *
- * Debe ser hijo directo de la hoja (así se mantiene fija en todo su alto).
+ * Va dentro del contenedor de las secciones (.university-page): con él se
+ * calcula cuándo termina la ficha. En móvil, si no caben, los enlaces se
+ * deslizan.
  *
  * Uso:
  *   <UniversityTabs items={[{ id: 'de-un-vistazo', label: 'De un vistazo' }, …]} />
@@ -57,9 +60,11 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 <script>
 	/**
 	 * Scroll spy: marca como activo el enlace de la última sección cuyo borde
-	 * superior ya pasó por debajo de la píldora.
+	 * superior ya pasó el 40 % de la pantalla. Al terminar la ficha la píldora
+	 * se oculta (clase is-away).
 	 */
 	document.querySelectorAll<HTMLElement>('[data-university-tabs]').forEach((nav) => {
+		const page = nav.parentElement;
 		const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('[data-tab-link]'));
 		const sections = links
 			.map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
@@ -80,8 +85,7 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 
 		const update = () => {
 			ticking = false;
-			// Línea de referencia: un poco por debajo de la píldora
-			const referenceLine = nav.getBoundingClientRect().bottom + 32;
+			const referenceLine = window.innerHeight * 0.4;
 			let activeIndex = 0;
 
 			sections.forEach((section, index) => {
@@ -89,6 +93,10 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 			});
 
 			setActive(activeIndex);
+
+			// La ficha terminó: ya se ve lo que sigue ("Más universidades")
+			const pageEnd = page?.getBoundingClientRect().bottom ?? Infinity;
+			nav.classList.toggle('is-away', pageEnd < window.innerHeight - 8);
 		};
 
 		const requestUpdate = () => {
@@ -104,14 +112,36 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 </script>
 
 <style>
+	/* Fija abajo y centrada, a la altura del botón de WhatsApp */
 	.university-tabs {
-		position: sticky;
-		top: calc(var(--header-height) + var(--space-4));
-		z-index: 2;
+		position: fixed;
+		inset-inline: var(--space-4);
+		bottom: clamp(1rem, 2.6vw, 2.5rem);
+		z-index: var(--z-floating);
 		width: fit-content;
-		max-width: calc(100% - 2 * var(--space-4));
-		/* Se superpone 38.5px a la foto de portada (como en Figma) */
-		margin: -2.40625rem auto 0;
+		margin-inline: auto;
+		transition:
+			translate 0.45s var(--ease-out),
+			opacity 0.3s var(--ease-out),
+			visibility 0s;
+	}
+
+	/* Al terminar la ficha baja y se oculta (sin foco con el teclado) */
+	.university-tabs:global(.is-away) {
+		translate: 0 calc(100% + 3rem);
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			translate 0.45s var(--ease-out),
+			opacity 0.3s var(--ease-out),
+			visibility 0s linear 0.45s;
+	}
+
+	/* Tablet y móvil: el botón de WhatsApp sube sobre la píldora mientras se ve */
+	@media (max-width: 900px) {
+		:global(body:has(.university-tabs:not(.is-away))) {
+			--whatsapp-lift: 5.5rem;
+		}
 	}
 
 	.university-tabs__pill {
@@ -119,8 +149,10 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		align-items: center;
 		gap: var(--space-2); /* 8px */
 		padding: var(--space-2);
+		border: 1px solid rgb(255 255 255 / 0.18);
 		border-radius: var(--radius-lg); /* 24px */
 		background-color: var(--color-blue);
+		box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 60 150 / 0.7);
 	}
 
 	/* Recuadro azul oscuro con el logo (60 × 60 px) */
@@ -139,6 +171,13 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.university-tabs__list::-webkit-scrollbar {
+		display: none;
 	}
 
 	.university-tabs__link {
@@ -165,11 +204,22 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 	/* Sección visible: borde claro (estado "De un vistazo" del diseño) */
 	.university-tabs__link.is-active {
 		border-color: var(--color-white);
+		background-color: rgb(244 244 244 / 0.12);
+	}
+
+	.university-tabs__link:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 2px;
 	}
 
 	@media (max-width: 640px) {
+		:global(body:has(.university-tabs:not(.is-away))) {
+			--whatsapp-lift: 3.75rem;
+		}
+
 		.university-tabs {
-			margin-top: -1.75rem;
+			inset-inline: var(--space-3);
+			bottom: var(--space-3);
 		}
 
 		.university-tabs__logo {
@@ -182,13 +232,19 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		}
 
 		.university-tabs__list {
-			gap: var(--space-1);
+			gap: 0.125rem;
 		}
 
 		.university-tabs__link {
 			height: 2.5rem;
-			padding-inline: 0.625rem;
-			font-size: var(--font-size-sm);
+			padding-inline: 0.4375rem;
+			font-size: 0.8125rem;
+		}
+	}
+
+	@media print {
+		.university-tabs {
+			display: none;
 		}
 	}
 </style>

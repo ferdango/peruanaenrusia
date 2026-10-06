@@ -12,7 +12,7 @@
  *   · Tarjetas flotantes: video, ruta Perú → Rusia y acompañamiento.
  *
  * Movimiento: entrada al cargar (CSS, abajo), flotación continua, parallax con
- * el puntero y con el scroll (src/scripts/home-motion.ts lee data-hero-scene y
+ * el puntero y con el scroll (src/scripts/motion.ts lee data-hero-scene y
  * escribe --px, --py y --hero-scroll). Con "reducir movimiento" todo es estático.
  *
  * VIDEO: "Ver video" y la tarjeta flotante abren el video destacado
@@ -296,7 +296,7 @@ const videoLink = {
 		align-items: flex-start;
 		gap: var(--space-5);
 		padding-block: var(--space-8) var(--space-10);
-		/* Al bajar, el texto sube y se desvanece (src/scripts/home-motion.ts) */
+		/* Al bajar, el texto sube y se desvanece (src/scripts/motion.ts) */
 		transform: translate3d(0, calc(var(--hero-scroll, 0) * -5rem), 0);
 		opacity: calc(1 - var(--hero-scroll, 0) * 1.2);
 	}

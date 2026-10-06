@@ -4,11 +4,15 @@
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "My testimony" (1616:222) › "Group 134" (1732:2003):
  * fondo celeste (#DEF7FF) y un mosaico de bloques. Cada bloque tiene una foto
- * grande (632 × 580) y 4 casillas de 356 × 278 (textos "Mi historia" o
- * fotos) en 2 filas. La foto grande va a la derecha en el primer bloque y a
- * la izquierda en el segundo (se alternan).
- * Móvil: UI Mobile › Caso de éxito: todo en una columna (textos centrados
- * sobre blanco y fotos a todo el ancho).
+ * grande (632 × 580) y 4 casillas de 356 × 278 (textos o fotos) en 2 filas.
+ * La foto grande va a la derecha en el primer bloque y a la izquierda en el
+ * segundo (se alternan).
+ *
+ * Mejorado: encabezado con etiqueta y bajada, las casillas de texto llevan su
+ * número de paso (01, 02…) y las fotos se acercan al pasar el cursor. Las
+ * casillas aparecen en cascada al hacer scroll (src/scripts/motion.ts).
+ * Tablet: la foto grande arriba y las casillas en 2 columnas. Móvil: una
+ * columna de tarjetas con margen (textos y fotos intercalados).
  *
  * Los bloques vienen de `testimonial.story` (src/data/testimonials.ts o
  * WordPress).
@@ -17,6 +21,7 @@
  */
 import MediaImage from '@components/ui/MediaImage.astro';
 import type { Testimonial, TestimonialStoryTile } from '@data/testimonials';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 interface Props {
 	id: string;
@@ -24,23 +29,43 @@ interface Props {
 }
 
 const { id, testimonial } = Astro.props;
-const blocks = testimonial.story ?? [];
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Paso a paso',
 	title: 'Cómo lo logré: el paso a paso',
+	text: `Así fue el camino de ${testimonial.name} para estudiar en Rusia.`,
 };
 
 const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialStoryTile, { photo: unknown }> =>
 	'photo' in tile;
+
+/** 0 → "01" */
+const stepNumber = (index: number) => String(index + 1).padStart(2, '0');
+
+// Las casillas de texto se numeran en orden de lectura, de bloque en bloque
+let textCount = 0;
+const blocks = (testimonial.story ?? []).map((block) => ({
+	...block,
+	tiles: block.tiles.map((tile) =>
+		isPhotoTile(tile) ? tile : { ...tile, number: stepNumber(textCount++) },
+	),
+}));
 ---
 
 {blocks.length > 0 && (
 	<section id={id} class="testimony-story" aria-labelledby={`${id}-title`}>
 		<div class="testimony-story__inner">
-			<h2 id={`${id}-title`} class="testimony-story__title">
-				{content.title}
-			</h2>
+			<header class="testimony-story__header">
+				<p class="testimony-story__eyebrow">
+					<Star class="testimony-story__eyebrow-star" aria-hidden="true" />
+					{content.eyebrow}
+				</p>
+				<h2 id={`${id}-title`} class="testimony-story__title">
+					{content.title}
+				</h2>
+				<p class="testimony-story__text">{content.text}</p>
+			</header>
 
 			{blocks.map((block, blockIndex) => (
 				<div class:list={['story-block', { 'story-block--reverse': blockIndex % 2 === 1 }]}>
@@ -49,7 +74,7 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 							image={block.photo.src}
 							alt={block.photo.alt}
 							widths={[480, 632, 1264]}
-							sizes="(max-width: 640px) 100vw, (max-width: 1512px) 42vw, 632px"
+							sizes="(max-width: 640px) 92vw, (max-width: 1512px) 42vw, 632px"
 							class="story-block__image"
 						/>
 					</div>
@@ -61,12 +86,15 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 									image={tile.photo.src}
 									alt={tile.photo.alt}
 									widths={[360, 712]}
-									sizes="(max-width: 640px) 100vw, 356px"
+									sizes="(max-width: 640px) 92vw, 356px"
 									class="story-block__image"
 								/>
 							</div>
 						) : (
 							<div class="story-tile story-tile--text">
+								<span class="story-tile__number" aria-hidden="true">
+									{tile.number}
+								</span>
 								<h3 class="story-tile__title">{tile.title}</h3>
 								<p class="story-tile__text">{tile.text}</p>
 							</div>
@@ -80,7 +108,11 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 
 <style>
 	.testimony-story {
-		background-color: #def7ff; /* Figma: "Rectangle" 1732:2004 */
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		/* Figma: "Rectangle" 1732:2004 (#DEF7FF), con un brillo celeste arriba */
+		background: radial-gradient(50rem 26rem at 90% 0%, rgb(0 192 252 / 0.2), transparent 70%), #def7ff;
 		color: var(--text-on-light);
 		scroll-margin-top: var(--header-height);
 	}
@@ -93,18 +125,53 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 		max-width: calc(87rem + 2 * var(--gutter)); /* 1392px */
 		margin-inline: auto;
 		/* Figma: 65px a los lados (el mosaico mide 1392px en una pantalla de 1512px) */
-		padding: 4.875rem clamp(1rem, 4.3vw, 4.0625rem) 5.75rem; /* 78px (título) · 92px */
+		padding: clamp(var(--space-9), 6vw, 6rem) clamp(1rem, 4.3vw, 4.0625rem)
+			clamp(var(--space-9), 7vw, 6.5rem);
+	}
+
+	/* ===== Encabezado ===== */
+	.testimony-story__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		margin-bottom: var(--space-6);
+	}
+
+	.testimony-story__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.8);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.testimony-story__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-red);
 	}
 
 	/* Figma: Poppins Bold 48/56 */
 	.testimony-story__title {
-		margin-bottom: 3.25rem; /* 52px + 24px de separación = 76px hasta el mosaico */
 		font-size: var(--font-size-h1);
 		line-height: 1.1667;
 		color: var(--color-blue-title);
 	}
 
-	/* ----- Bloque: 2 casillas + 2 casillas + foto grande ----- */
+	.testimony-story__text {
+		max-width: 38rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: #363636;
+	}
+
+	/* ===== Bloque: 2 casillas + 2 casillas + foto grande ===== */
 	.story-block {
 		display: grid;
 		grid-template-columns: 356fr 356fr 632fr;
@@ -141,9 +208,11 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 		grid-area: photo;
 		overflow: clip;
 		border-radius: 1.75rem; /* 28px */
+		box-shadow: 0 1.5rem 3rem -2rem rgb(18 91 168 / 0.5);
 	}
 
 	.story-tile {
+		position: relative;
 		aspect-ratio: 356 / 277.72;
 		overflow: clip;
 		border-radius: 1.75rem;
@@ -153,36 +222,65 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		transition: scale 0.9s var(--ease-out);
 	}
 
-	/* Casilla de texto: blanco al 80 % (Figma) */
+	.story-block__photo:hover .story-block__image,
+	.story-tile--photo:hover .story-block__image {
+		scale: 1.05;
+	}
+
+	/* Casilla de texto: tarjeta blanca con el número del paso */
 	.story-tile--text {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 1.125rem; /* 18px */
-		padding: var(--space-5);
-		background-color: rgb(255 255 255 / 0.8);
-		text-align: center;
+		align-items: flex-start;
+		justify-content: flex-end;
+		gap: var(--space-3);
+		padding: var(--space-6);
+		border: 1px solid rgb(255 255 255 / 0.9);
+		background: linear-gradient(160deg, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.82));
+		box-shadow: 0 1.5rem 3rem -2.25rem rgb(18 91 168 / 0.55);
+		transition:
+			translate var(--duration-slow) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+
+	.story-tile--text:hover {
+		box-shadow: 0 2rem 3.5rem -2rem rgb(18 91 168 / 0.6);
+		translate: 0 -4px;
+	}
+
+	/* Número grande del paso, con el degradé azul de la marca */
+	.story-tile__number {
+		position: absolute;
+		top: var(--space-5);
+		left: var(--space-6);
+		font-size: 2.5rem;
+		font-weight: var(--font-weight-bold);
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
 	}
 
 	/* Figma: Poppins Bold 18.5 */
 	.story-tile__title {
-		font-size: 1.1543rem;
-		line-height: 1.1;
+		font-size: var(--font-size-lg);
+		line-height: 1.3;
 		color: var(--color-blue-title);
 	}
 
 	/* Figma: Poppins Regular 13.5/17, #363636 */
 	.story-tile__text {
-		max-width: 19.25rem; /* 308px */
-		font-size: 0.842rem;
-		line-height: 1.0625rem;
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
 		color: #363636;
 	}
 
-	/* ===== Tablet: 2 columnas ===== */
+	/* ===== Tablet: la foto grande arriba y las casillas en 2 columnas ===== */
 	@media (max-width: 1100px) {
 		.story-block,
 		.story-block--reverse {
@@ -197,69 +295,67 @@ const isPhotoTile = (tile: TestimonialStoryTile): tile is Extract<TestimonialSto
 			aspect-ratio: 632 / 400;
 		}
 
-		.story-tile__text {
-			font-size: var(--font-size-sm);
-			line-height: 1.25rem;
+		.story-tile--text {
+			aspect-ratio: auto;
+			min-height: 15rem;
 		}
 	}
 
-	/* ===== Móvil: una columna, fotos a todo el ancho ===== */
+	/* ===== Móvil: una columna de tarjetas con margen ===== */
 	@media (max-width: 640px) {
-		.testimony-story {
-			background-color: var(--surface-white);
+		.testimony-story__inner {
+			gap: var(--space-3);
+			padding: var(--space-9) var(--space-3) var(--space-9);
 		}
 
-		.testimony-story__inner {
-			gap: 0;
-			padding: var(--space-8) 0 0;
+		.testimony-story__header {
+			align-items: center;
+			margin-bottom: var(--space-4);
+			padding-inline: var(--space-2);
+			text-align: center;
 		}
 
 		.testimony-story__title {
-			margin-bottom: var(--space-6);
-			padding-inline: var(--gutter);
-			font-size: 2rem;
-			line-height: 1.125;
-			text-align: center;
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.testimony-story__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
 		}
 
 		.story-block,
 		.story-block--reverse {
 			display: flex;
 			flex-direction: column;
-			gap: 0;
+			gap: var(--space-3);
 		}
 
 		/* Orden de lectura: textos y fotos intercalados, la foto grande al final */
 		.story-block__photo {
 			order: 1;
-			aspect-ratio: 360 / 277;
-			border-radius: 0;
+			aspect-ratio: 4 / 3;
+			border-radius: var(--radius-lg);
 		}
 
 		.story-tile {
-			border-radius: 0;
+			border-radius: var(--radius-lg);
 		}
 
 		.story-tile--photo {
-			aspect-ratio: 360 / 277;
+			aspect-ratio: 4 / 3;
 		}
 
 		.story-tile--text {
-			aspect-ratio: auto;
-			min-height: 17.3125rem; /* 277px */
-			padding: var(--space-8) var(--gutter);
-			background-color: var(--surface-white);
+			min-height: 0;
+			padding: 4.25rem var(--space-5) var(--space-5);
 		}
 
-		/* Figma móvil: Poppins Bold 24 y Regular 15/20 */
-		.story-tile__title {
-			font-size: var(--font-size-h4);
-		}
-
-		.story-tile__text {
-			max-width: 21rem;
-			font-size: 0.9375rem;
-			line-height: 1.25rem;
+		.story-tile__number {
+			top: var(--space-5);
+			left: var(--space-5);
+			font-size: 2rem;
 		}
 	}
 </style>

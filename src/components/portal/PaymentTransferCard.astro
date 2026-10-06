@@ -135,8 +135,10 @@ const defaultBank = banks.find((bank) => bank.id === payment.defaultBankId);
 		flex-direction: column;
 		gap: var(--space-5); /* 24px */
 		padding: 1.75rem; /* 28px */
-		border-radius: var(--radius-lg);
+		border: var(--portal-card-border);
+		border-radius: var(--portal-radius-card);
 		background-color: var(--portal-surface);
+		box-shadow: var(--portal-card-shadow);
 	}
 
 	/* ----- Monto ----- */
@@ -332,6 +334,23 @@ const defaultBank = banks.find((bank) => bank.id === payment.defaultBankId);
 
 		.payment-transfer__value {
 			white-space: normal;
+		}
+
+		/* La etiqueta usa todo el ancho (el logo y la flecha van en la fila del valor) */
+		.bank-select__label {
+			left: var(--space-3);
+			right: var(--space-3);
+		}
+	}
+
+	/* Pantallas muy angostas: la etiqueta puede ocupar dos líneas */
+	@media (max-width: 360px) {
+		.bank-select {
+			min-height: 5.5rem;
+		}
+
+		.bank-select__control {
+			padding-top: 3.25rem;
 		}
 	}
 </style>

@@ -1,9 +1,11 @@
 /**
- * Movimiento de la portada (solo Home)
+ * Movimiento de las páginas inmersivas (Home, Blog, Caso de éxito y Universidades)
  * --------------------------------------------------------------------------
- * Da vida al Home sin librerías externas:
+ * Da vida a las páginas con body.motion sin librerías externas (cada regla
+ * actúa solo si encuentra sus elementos en la página):
  *
- *   1. (El header transparente sobre el hero es solo CSS: src/styles/home.css.)
+ *   1. (El header transparente sobre el hero es solo CSS: src/styles/motion.css,
+ *      con body.hero-overlay.)
  *   2. Hero: parallax con el puntero (--px / --py) y con el scroll (--hero-scroll).
  *   3. Apariciones al hacer scroll (REVEALS): títulos palabra por palabra,
  *      textos y tarjetas que entran en cascada.
@@ -13,11 +15,15 @@
  *   6. Botones "magnéticos" (atributo data-magnetic).
  *   7. Franjas de lemas empujadas por el scroll (--marquee-shift).
  *   8. Sliders que avanzan con el scroll (data-scroll-slider): "¿Qué tengo que
- *      hacer?" pasa las tarjetas una por una; "¿Por qué elegir…?" y "Redes
- *      sociales" las deslizan.
+ *      hacer?", "¿Por qué elegir…?", "Universidades destacadas" (tablet y
+ *      móvil) y los testimonios quedan fijos y pasan las tarjetas una por una;
+ *      "Redes sociales" y "Videoblogs" las deslizan.
+ *   9. "Soy Grecia Kristal": las fotos suben y se apilan; después, el texto.
+ *  10. "Universidades destacadas" (desktop): la sección queda fija mientras se
+ *      abren los paneles uno tras otro.
  *
  * Todo se configura en las listas de abajo (selectores de cada sección), sin
- * tocar los componentes. Estilos: src/styles/home.css.
+ * tocar los componentes. Estilos: src/styles/motion.css.
  *
  * Accesibilidad y rendimiento:
  *   - Con "reducir movimiento" no se activa nada: el contenido se ve completo y
@@ -39,7 +45,14 @@ interface RevealRule {
 	delay?: number;
 	/** Retraso entre elementos que aparecen juntos (ms): efecto cascada */
 	stagger?: number;
+	/** Solo se aplica si se cumple esta media query (al cargar la página) */
+	media?: string;
 }
+
+/** Desktop con altura suficiente: "Soy Grecia Kristal" queda fija mientras se apilan las fotos */
+const FOUNDER_PIN = '(min-width: 1101px) and (min-height: 700px)';
+/** Lo contrario: la sección no se fija y el texto aparece al llegar */
+const FOUNDER_FLOW = `not all and ${FOUNDER_PIN}`;
 
 /* ==========================================================================
    Coreografía de cada sección (en orden de aparición)
@@ -50,11 +63,11 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-intro__title', effect: 'words' },
 	{ selector: '.home-intro__text', effect: 'up', delay: 150 },
 	{ selector: '.intro-video', effect: 'clip', delay: 150 },
-	// Soy Grecia Kristal
-	{ selector: '.founder-photo', effect: 'up', stagger: 160 },
-	{ selector: '.home-founder__star', effect: 'pop', delay: 200 },
-	{ selector: '.home-founder__title', effect: 'words' },
-	{ selector: '.home-founder__text > p', effect: 'up', stagger: 120, delay: 200 },
+	// Soy Grecia Kristal (las fotos y, en desktop, el texto los mueve initFounderStack)
+	{ selector: '.home-founder__eyebrow', effect: 'up', media: FOUNDER_FLOW },
+	{ selector: '.home-founder__title', effect: 'words', delay: 80, media: FOUNDER_FLOW },
+	{ selector: '.home-founder__text > p', effect: 'up', stagger: 120, delay: 200, media: FOUNDER_FLOW },
+	{ selector: '.home-founder__fact', effect: 'up', stagger: 90, delay: 300, media: FOUNDER_FLOW },
 	// ¿Por qué elegir Peruana en Rusia?
 	{ selector: '.home-why__eyebrow', effect: 'up' },
 	{ selector: '.home-why__title', effect: 'words', delay: 80 },
@@ -73,21 +86,31 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.start-cta__button', effect: 'up', delay: 260 },
 	{ selector: '.start-cta__person', effect: 'up', stagger: 180 },
 	// Universidades destacadas
-	{ selector: '.home-universities__title', effect: 'words' },
-	{ selector: '.home-universities__subtitle', effect: 'up', delay: 150 },
-	{ selector: '.university-card', effect: 'up', stagger: 110 },
+	{ selector: '.home-universities__eyebrow', effect: 'up' },
+	{ selector: '.home-universities__title', effect: 'words', delay: 80 },
+	{ selector: '.home-universities__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.home-universities__cta', effect: 'fade', delay: 300 },
+	{ selector: '.uni-panel', effect: 'up', stagger: 110 },
 	// Reserva tu llamada / Resuelve tus dudas
-	{ selector: '.contact-split__panel', effect: 'left' },
-	{ selector: '.contact-split__media', effect: 'scale', delay: 120 },
+	{ selector: '.contact-split__eyebrow', effect: 'up' },
+	{ selector: '.contact-split__title', effect: 'up', delay: 80 },
+	{ selector: '.contact-split__text', effect: 'up', delay: 180 },
+	{ selector: '.contact-split__point', effect: 'left', stagger: 90, delay: 260 },
+	{ selector: '.contact-split__cta', effect: 'fade', delay: 450 },
+	{ selector: '.contact-split__media', effect: 'clip' },
 	// Casos de éxito
-	{ selector: '.home-cases__title', effect: 'words' },
-	{ selector: '.home-cases__subtitle', effect: 'up', delay: 150 },
+	{ selector: '.home-cases__eyebrow', effect: 'up' },
+	{ selector: '.home-cases__title', effect: 'words', delay: 80 },
+	{ selector: '.home-cases__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.home-cases__stat', effect: 'up', stagger: 100, delay: 260 },
+	{ selector: '.case-video', effect: 'clip', stagger: 160 },
 	{ selector: '.testimonial-card', effect: 'scale', stagger: 80 },
-	// Comunidad
-	{ selector: '.home-community__title', effect: 'words' },
-	{ selector: '.community-photo', effect: 'clip', stagger: 90 },
-	{ selector: '.home-gallery__title', effect: 'words' },
-	{ selector: '.gallery-photo', effect: 'up', stagger: 100 },
+	// Comunidad (mosaico de momentos)
+	{ selector: '.home-community__eyebrow', effect: 'up' },
+	{ selector: '.home-community__title', effect: 'words', delay: 80 },
+	{ selector: '.home-community__text', effect: 'up', delay: 180 },
+	{ selector: '.moment__card', effect: 'clip', stagger: 90 },
+	{ selector: '.home-community__join', effect: 'up', delay: 200 },
 	// Redes sociales (TikTok)
 	{ selector: '.home-social__eyebrow', effect: 'up' },
 	{ selector: '.home-social__title', effect: 'words', delay: 80 },
@@ -100,10 +123,66 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-stories__text', effect: 'up', delay: 180 },
 	{ selector: '.story-feature', effect: 'clip', delay: 120 },
 	{ selector: '.story-item', effect: 'up', stagger: 100, delay: 200 },
+	// Blog: Novedades y Videoblogs (el hero entra con su propia animación al cargar)
+	{ selector: '.blog-news__eyebrow', effect: 'up' },
+	{ selector: '.blog-news__title', effect: 'words', delay: 80 },
+	{ selector: '.blog-news__text', effect: 'up', delay: 180 },
+	{ selector: '.post-tile', effect: 'up', stagger: 120 },
+	{ selector: '.blog-videoblogs__eyebrow', effect: 'up' },
+	{ selector: '.blog-videoblogs__title', effect: 'words', delay: 80 },
+	{ selector: '.blog-videoblogs__text', effect: 'up', delay: 180 },
+	{ selector: '.blog-videoblogs__cta', effect: 'fade', delay: 300 },
+	{ selector: '.video-card', effect: 'up', stagger: 90 },
+	// Caso de éxito (la portada entra con su propia animación al cargar)
+	{ selector: '.testimony-video__eyebrow', effect: 'up' },
+	{ selector: '.testimony-video__title', effect: 'words', delay: 80 },
+	{ selector: '.testimony-video__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.testimony-video__card', effect: 'scale', delay: 120 },
+	{ selector: '.testimony-highlight__mark', effect: 'pop' },
+	{ selector: '.testimony-highlight__quote', effect: 'up', delay: 120 },
+	{ selector: '.testimony-highlight__author', effect: 'up', delay: 500 },
+	{ selector: '.testimony-story__eyebrow', effect: 'up' },
+	{ selector: '.testimony-story__title', effect: 'words', delay: 80 },
+	{ selector: '.testimony-story__text', effect: 'up', delay: 180 },
+	{ selector: '.story-block__photo', effect: 'scale' },
+	{ selector: '.story-tile', effect: 'scale', stagger: 90, delay: 100 },
+	{ selector: '.testimony-closing__media', effect: 'scale' },
+	{ selector: '.testimony-closing__text > *', effect: 'up', stagger: 110, delay: 150 },
+	{ selector: '.more-cases__eyebrow', effect: 'up' },
+	// (título con versión de móvil: aparece entero; "words" mostraría las dos versiones)
+	{ selector: '.more-cases__title', effect: 'up', delay: 80 },
+	{ selector: '.more-cases__subtitle', effect: 'up', delay: 180 },
+	{ selector: '.more-cases__cta', effect: 'fade', delay: 300 },
+	// Universidades: listado y ficha (las portadas entran con su propia animación al cargar)
+	{ selector: '.universities-grid__toolbar', effect: 'fade' },
+	{ selector: '.universities-grid .university-card', effect: 'up', stagger: 90 },
+	{ selector: '.university-overview__eyebrow', effect: 'up' },
+	{ selector: '.university-overview__title', effect: 'words', delay: 80 },
+	{ selector: '.university-overview__paragraph', effect: 'up', stagger: 100, delay: 180 },
+	{ selector: '.university-overview__highlights', effect: 'up', delay: 260 },
+	{ selector: '.university-overview__pending', effect: 'up', delay: 200 },
+	{ selector: '.university-overview__photo', effect: 'scale', stagger: 160 },
+	{ selector: '.university-overview__badge', effect: 'pop', delay: 400 },
+	{ selector: '.university-details__eyebrow', effect: 'up' },
+	{ selector: '.university-details__title', effect: 'words', delay: 80 },
+	{ selector: '.faculty', effect: 'up', stagger: 80, delay: 150 },
+	{ selector: '.university-details__card', effect: 'up', stagger: 140, delay: 150 },
+	{ selector: '.university-tips__eyebrow', effect: 'up' },
+	{ selector: '.university-tips__title', effect: 'words', delay: 80 },
+	{ selector: '.university-tips__text', effect: 'up', delay: 180 },
+	{ selector: '.tip-card', effect: 'scale', stagger: 110 },
+	{ selector: '.university-brochure__panel', effect: 'up' },
+	{ selector: '.university-more__eyebrow', effect: 'up' },
+	{ selector: '.university-more__title', effect: 'words', delay: 80 },
+	{ selector: '.university-more__text', effect: 'up', delay: 180 },
+	{ selector: '.university-more__cta', effect: 'fade', delay: 300 },
 	// Preguntas frecuentes
-	{ selector: '.home-faq__title', effect: 'words' },
-	{ selector: '.faq-video', effect: 'up', delay: 150 },
+	{ selector: '.home-faq__eyebrow', effect: 'up' },
+	{ selector: '.home-faq__title', effect: 'words', delay: 80 },
+	{ selector: '.home-faq__text', effect: 'up', delay: 180 },
 	{ selector: '.faq-item', effect: 'up', stagger: 80 },
+	{ selector: '.faq-video', effect: 'up', delay: 120 },
+	{ selector: '.faq-help', effect: 'up', delay: 220 },
 	// Flechas y puntos de todos los carruseles
 	{ selector: '#contenido .carousel__controls', effect: 'fade', delay: 250 },
 ];
@@ -119,7 +198,6 @@ const DESKTOP = '(min-width: 1101px)';
  * `media`: solo se mueven mientras se cumple esa media query.
  */
 const PARALLAX: { selector: string; speed: number; media?: string }[] = [
-	{ selector: '.home-founder__decor', speed: 0.12 },
 	{ selector: '.home-why__tube', speed: 0.1 },
 	{ selector: '.home-why__item:nth-child(3n + 1)', speed: 0.04, media: DESKTOP },
 	{ selector: '.home-why__item:nth-child(3n + 2)', speed: 0.12, media: DESKTOP },
@@ -130,6 +208,8 @@ const PARALLAX: { selector: string; speed: number; media?: string }[] = [
 	{ selector: '.home-universities__wave--blue', speed: -0.1 },
 	{ selector: '.home-faq__wave--red', speed: 0.12 },
 	{ selector: '.home-faq__wave--blue', speed: -0.08 },
+	{ selector: '.testimony-highlight__star', speed: 0.14 },
+	{ selector: '.testimony-closing__wave', speed: -0.06 },
 ];
 
 /** Tarjetas con inclinación 3D y brillo */
@@ -137,12 +217,16 @@ const TILT = [
 	'.intro-video',
 	'.benefit-card',
 	'.step-card__inner',
-	'.university-card',
-	'.testimonial-card',
-	'.community-photo',
-	'.gallery-photo',
+	'.case-video',
+	'.moment__card',
 	'.tiktok-card',
 	'.story-feature',
+	'.post-tile',
+	'.video-card',
+	'.blog-hero__feature',
+	'.testimony-video__card',
+	'.testimony-closing__media',
+	'.university-card',
 ].join(', ');
 
 /* ==========================================================================
@@ -279,6 +363,7 @@ function initReveals(): void {
 	const pending: HTMLElement[] = [];
 
 	REVEALS.forEach((rule, group) => {
+		if (rule.media && !window.matchMedia(rule.media).matches) return;
 		document.querySelectorAll<HTMLElement>(rule.selector).forEach((element) => {
 			if (element.dataset.reveal) return;
 
@@ -470,11 +555,21 @@ function initMarquee(): void {
    [data-slider-track] › [data-slider-item]… (+ [data-slider-bar] y
    [data-slider-current], opcionales). Los estilos viven en cada sección.
 
-     pin   → la sección queda fija y el scroll vertical pasa las tarjetas una
-             por una: cada una se detiene un momento antes de dar paso a la
-             siguiente ("¿Qué tengo que hacer?").
+     pin   → el bloque queda fijo bajo el header y el scroll vertical pasa
+             las tarjetas una por una: cada una se detiene un momento antes de
+             dar paso a la siguiente. Al llegar a la última, el siguiente
+             scroll ya sigue a la sección de abajo ("¿Qué tengo que hacer?",
+             "¿Por qué elegir…?", "Universidades destacadas" en tablet y
+             móvil, los testimonios).
      drift → sin fijar: la fila se desliza mientras la sección cruza la
-             pantalla ("¿Por qué elegir…?").
+             pantalla ("Redes sociales", "Videoblogs"…).
+
+   data-slider-step="0.4" (opcional, solo "pin"): scroll que dura cada tarjeta,
+   en fracciones del alto de la pantalla (por defecto 0.45).
+
+   El elemento con data-scroll-slider="pin" mide (por CSS) el alto de la
+   pantalla más --slider-length, y su primer hijo queda fijo (sticky) mientras
+   tanto. Puede ser la sección entera o un bloque dentro de ella.
 
    Solo se activa (clase .is-scroll-slider) si las tarjetas no caben en el
    ancho disponible; si no, quedan quietas.
@@ -488,17 +583,24 @@ interface ScrollSlider {
 	items: HTMLElement[];
 	bar: HTMLElement | null;
 	current: HTMLElement | null;
+	/** Scroll que dura cada tarjeta ("pin"), en fracciones del alto de la pantalla */
+	step: number;
 	/** Desplazamiento del riel en el que cada tarjeta queda en su lugar (px) */
+	itemStops: number[];
+	/** Las mismas paradas sin repetidas: las últimas tarjetas ya caben y no se mueven */
 	stops: number[];
 	/** Cuánto sobra el riel respecto del ancho visible (px) */
 	maxShift: number;
-	/** Recorrido de scroll mientras la sección está fija (px, solo "pin") */
+	/** Recorrido de scroll mientras el bloque está fijo (px, solo "pin") */
 	length: number;
 	active: number;
 }
 
 /** Fracción de cada tramo en que la tarjeta queda quieta antes y después de moverse */
 const SLIDER_HOLD = 0.18;
+
+/** Scroll por tarjeta por defecto (fracción del alto de la pantalla) */
+const SLIDER_STEP = 0.45;
 
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -510,6 +612,7 @@ function initScrollSliders(): void {
 		const track = section.querySelector<HTMLElement>('[data-slider-track]');
 		const items = Array.from(section.querySelectorAll<HTMLElement>('[data-slider-item]'));
 		if (!viewport || !track || items.length < 2) return;
+		const step = Number(section.dataset.sliderStep);
 		sliders.push({
 			section,
 			mode: section.dataset.scrollSlider === 'pin' ? 'pin' : 'drift',
@@ -518,6 +621,8 @@ function initScrollSliders(): void {
 			items,
 			bar: section.querySelector<HTMLElement>('[data-slider-bar]'),
 			current: section.querySelector<HTMLElement>('[data-slider-current]'),
+			step: Number.isFinite(step) && step > 0 ? step : SLIDER_STEP,
+			itemStops: [],
 			stops: [],
 			maxShift: 0,
 			length: 0,
@@ -536,13 +641,18 @@ function initScrollSliders(): void {
 			const paddingLeft = parseFloat(getComputedStyle(viewport).paddingLeft) || 0;
 			slider.maxShift = Math.max(0, paddingLeft + track.offsetWidth - viewport.clientWidth);
 			const first = items[0].offsetLeft;
-			slider.stops = items.map((item) => Math.min(item.offsetLeft - first, slider.maxShift));
+			slider.itemStops = items.map((item) => Math.min(item.offsetLeft - first, slider.maxShift));
+			// Sin tramos "muertos": cuando las últimas tarjetas ya caben, el riel no se
+			// mueve más y la sección suelta enseguida (sigue el scroll de la página)
+			slider.stops = slider.itemStops.filter(
+				(stop, index, all) => index === 0 || stop - all[index - 1] > 1,
+			);
 
 			const enabled = slider.maxShift > 1;
 			section.classList.toggle('is-scroll-slider', enabled);
 			if (slider.mode === 'pin') {
-				const step = clamp(window.innerHeight * 0.45, 260, 460);
-				slider.length = enabled ? (items.length - 1) * step : 0;
+				const step = clamp(window.innerHeight * slider.step, 220, 460);
+				slider.length = enabled ? (slider.stops.length - 1) * step : 0;
 				section.style.setProperty('--slider-length', `${Math.round(slider.length)}px`);
 			}
 		}
@@ -557,29 +667,30 @@ function initScrollSliders(): void {
 			const rect = slider.section.getBoundingClientRect();
 			if (rect.bottom < 0 || rect.top > viewportHeight) continue;
 
-			const last = slider.items.length - 1;
 			let shift: number;
 			let progress: number;
 			let active: number;
 
 			if (slider.mode === 'pin') {
-				// 0 cuando la sección llega bajo el header → 1 al terminar el recorrido
+				// 0 cuando el bloque llega bajo el header → 1 al terminar el recorrido
 				progress = slider.length ? clamp((headerOffset - rect.top) / slider.length, 0, 1) : 0;
-				const position = progress * last;
-				const index = Math.min(Math.floor(position), last - 1);
+				const segments = slider.stops.length - 1;
+				const position = progress * segments;
+				const index = Math.min(Math.floor(position), segments - 1);
 				// Pausa al inicio y al final de cada tramo: "una por una"
 				const local = clamp((position - index - SLIDER_HOLD) / (1 - 2 * SLIDER_HOLD), 0, 1);
 				const from = slider.stops[index];
 				shift = from + (slider.stops[index + 1] - from) * easeInOutCubic(local);
-				active = Math.round(position);
+				// La tarjeta resaltada y el contador recorren todas las tarjetas
+				active = Math.round(progress * (slider.items.length - 1));
 			} else {
 				// 0 cuando la sección asoma por abajo → 1 cuando sale por arriba
 				const travel = clamp((viewportHeight - rect.top) / (viewportHeight + rect.height), 0, 1);
 				progress = clamp((travel - 0.2) / 0.55, 0, 1);
 				shift = easeInOutCubic(progress) * slider.maxShift;
-				active = slider.stops.reduce(
+				active = slider.itemStops.reduce(
 					(best, stop, index) =>
-						Math.abs(stop - shift) < Math.abs(slider.stops[best] - shift) ? index : best,
+						Math.abs(stop - shift) < Math.abs(slider.itemStops[best] - shift) ? index : best,
 					0,
 				);
 			}
@@ -607,13 +718,180 @@ function initScrollSliders(): void {
 }
 
 /* ==========================================================================
+   9. "Soy Grecia Kristal": las fotos suben y se apilan; después, el texto
+   --------------------------------------------------------------------------
+   Marcado: [data-founder-stack] › [data-founder-photos] › [data-founder-card]…
+   El script escribe en cada foto --in (0 → 1, cuánto subió) y --covered
+   (cuánto la tapa la siguiente), y en la sección --founder-p (avance).
+   Desktop (FOUNDER_PIN): la sección queda fija (.is-pinned) mientras se
+   apilan las fotos; al terminar, .is-text-in muestra el texto.
+   Tablet y móvil: sin fijar; las fotos se apilan mientras cruzan la pantalla.
+   ========================================================================== */
+
+/** Tramo del avance (0–1) en que sube cada foto: [desde, hasta] */
+const FOUNDER_CARDS_PINNED: [number, number][] = [
+	[0, 0.24],
+	[0.2, 0.44],
+	[0.4, 0.64],
+];
+const FOUNDER_CARDS_FLOW: [number, number][] = [
+	[0, 0.4],
+	[0.25, 0.65],
+	[0.5, 0.9],
+];
+/** Avance en que aparece el texto (desktop) */
+const FOUNDER_TEXT_AT = 0.66;
+
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
+function initFounderStack(): void {
+	const section = document.querySelector<HTMLElement>('[data-founder-stack]');
+	const photos = section?.querySelector<HTMLElement>('[data-founder-photos]');
+	if (!section || !photos) return;
+
+	const cards = Array.from(photos.querySelectorAll<HTMLElement>('[data-founder-card]'));
+	const title = section.querySelector<HTMLElement>('.home-founder__title');
+	const header = document.querySelector<HTMLElement>('.site-header');
+	const pinQuery = window.matchMedia(FOUNDER_PIN);
+	let pinned = false;
+	let length = 0;
+
+	const measure = () => {
+		pinned = pinQuery.matches;
+		section.classList.toggle('is-pinned', pinned);
+		if (pinned && title) splitWords(title);
+		// Recorrido mientras la sección está fija
+		length = pinned ? Math.round(window.innerHeight * 1.2) : 0;
+		section.style.setProperty('--founder-length', `${length}px`);
+	};
+
+	const update = () => {
+		const viewportHeight = window.innerHeight;
+		let progress: number;
+
+		if (pinned) {
+			// Empieza cuando la sección llega a la mitad de la pantalla y termina
+			// al final del recorrido fijo (la primera foto sube mientras entra)
+			const top = section.getBoundingClientRect().top;
+			const headerOffset = header?.offsetHeight ?? 0;
+			const lead = viewportHeight * 0.5 - headerOffset;
+			progress = clamp((viewportHeight * 0.5 - top) / (lead + length), 0, 1);
+		} else {
+			const rect = photos.getBoundingClientRect();
+			progress = clamp((viewportHeight * 0.95 - rect.top) / (viewportHeight * 0.75), 0, 1);
+		}
+
+		const ranges = pinned ? FOUNDER_CARDS_PINNED : FOUNDER_CARDS_FLOW;
+		const amounts = cards.map((_, index) => {
+			const [from, to] = ranges[Math.min(index, ranges.length - 1)];
+			return easeOutCubic(clamp((progress - from) / (to - from), 0, 1));
+		});
+		cards.forEach((card, index) => {
+			card.style.setProperty('--in', amounts[index].toFixed(3));
+			card.style.setProperty('--covered', (amounts[index + 1] ?? 0).toFixed(3));
+		});
+
+		section.style.setProperty('--founder-p', progress.toFixed(3));
+		if (pinned) section.classList.toggle('is-text-in', progress >= FOUNDER_TEXT_AT);
+	};
+
+	measure();
+	onScroll(update);
+
+	const refresh = () => {
+		measure();
+		update();
+	};
+	window.addEventListener('resize', refresh, { passive: true });
+	pinQuery.addEventListener('change', refresh);
+}
+
+/* ==========================================================================
+   10. "Universidades destacadas" (desktop): el panel abierto avanza con el scroll
+   --------------------------------------------------------------------------
+   Marcado: [data-uni-section] › [data-uni-gallery] › [data-uni-panel]…
+   Desktop con altura suficiente (UNI_PIN): la sección queda fija (.is-pinned,
+   --uni-length) mientras se abren los paneles uno tras otro; después del
+   último, el scroll sigue a la sección de abajo. Desktop bajo: sin fijar, se
+   abren mientras la galería cruza la pantalla. Con el cursor o el teclado
+   manda el panel señalado (solo CSS). En tablet y móvil la fila es un slider
+   "pin" como los demás (sección 8).
+   ========================================================================== */
+
+/** Desktop con altura suficiente para ver la sección completa mientras está fija */
+const UNI_PIN = '(min-width: 1101px) and (min-height: 760px)';
+
+/** Scroll que dura cada panel abierto (fracción del alto de la pantalla) */
+const UNI_STEP = 0.3;
+
+function initUniversityGallery(): void {
+	const gallery = document.querySelector<HTMLElement>('[data-uni-gallery]');
+	if (!gallery) return;
+	const panels = Array.from(gallery.querySelectorAll<HTMLElement>('[data-uni-panel]'));
+	if (panels.length < 2) return;
+
+	const section = gallery.closest<HTMLElement>('[data-uni-section]');
+	const header = document.querySelector<HTMLElement>('.site-header');
+	const desktop = window.matchMedia('(min-width: 1101px)');
+	const pinQuery = window.matchMedia(UNI_PIN);
+	let pinned = false;
+	let length = 0;
+	let active = 0;
+
+	const measure = () => {
+		pinned = Boolean(section) && pinQuery.matches;
+		section?.classList.toggle('is-pinned', pinned);
+		length = pinned ? Math.round(window.innerHeight * UNI_STEP * panels.length) : 0;
+		section?.style.setProperty('--uni-length', `${length}px`);
+	};
+
+	const update = () => {
+		if (!desktop.matches) return;
+		const viewportHeight = window.innerHeight;
+		let progress: number;
+
+		if (pinned && section) {
+			// 0 cuando la sección llega bajo el header → 1 al terminar el recorrido fijo
+			const rect = section.getBoundingClientRect();
+			if (rect.bottom < 0 || rect.top > viewportHeight) return;
+			const headerOffset = header?.offsetHeight ?? 0;
+			progress = clamp((headerOffset - rect.top) / length, 0, 0.999);
+		} else {
+			const rect = gallery.getBoundingClientRect();
+			if (rect.bottom < 0 || rect.top > viewportHeight) return;
+			// 0 cuando la galería asoma por abajo → 1 cuando su parte de abajo llega arriba
+			progress = clamp(
+				(viewportHeight * 0.85 - rect.top) / (viewportHeight * 0.85 + rect.height * 0.25),
+				0,
+				0.999,
+			);
+		}
+
+		const index = Math.floor(progress * panels.length);
+		if (index === active) return;
+		active = index;
+		panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
+	};
+
+	measure();
+	onScroll(update);
+
+	const refresh = () => {
+		measure();
+		update();
+	};
+	window.addEventListener('resize', refresh, { passive: true });
+	pinQuery.addEventListener('change', refresh);
+}
+
+/* ==========================================================================
    Inicio
    ========================================================================== */
 
-export function initHomeMotion(): void {
+export function initMotion(): void {
 	const root = document.documentElement;
-	if (root.dataset.homeMotion === 'ready') return;
-	root.dataset.homeMotion = 'ready';
+	if (root.dataset.motion === 'ready') return;
+	root.dataset.motion = 'ready';
 
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -621,7 +899,9 @@ export function initHomeMotion(): void {
 	initHero(finePointer);
 	initMarquee();
 	initReveals();
+	initFounderStack();
 	initScrollSliders();
+	initUniversityGallery();
 	initParallax();
 	if (finePointer) {
 		initTilt();

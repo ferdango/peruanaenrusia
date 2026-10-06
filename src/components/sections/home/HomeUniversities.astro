@@ -2,14 +2,31 @@
 /**
  * HomeUniversities — "Universidades destacadas"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628110".
- * Carrusel con las universidades marcadas como `featured` en
- * src/data/universities.ts y dos ondas planas de la marca (azul y naranja).
+ * Figma: Home › "Frame 628110" (carrusel de tarjetas con la forma de color de
+ * la marca y dos ondas planas, azul y naranja), mejorado:
+ *
+ *   - Desktop: paneles que se expanden. Al llegar a la sección, queda fija
+ *     bajo el header y el scroll abre un panel tras otro; después del último,
+ *     el scroll sigue a la sección de abajo (en pantallas bajas no se fija: se
+ *     abren mientras la sección cruza la pantalla). Con el cursor o el
+ *     teclado se abre el que se señala. El abierto muestra el resumen y
+ *     "Conocer más".
+ *   - Tablet y móvil: tarjetas en una fila; la sección queda fija y el scroll
+ *     las pasa una por una, con contador y barra de avance
+ *     (data-scroll-slider="pin"); sin JavaScript se desliza con el dedo.
+ *   - Las ondas de la marca se dibujan con el scroll (--draw,
+ *     src/scripts/scroll-draw.ts).
+ *
+ * Universidades: las marcadas con `featured` en src/data/universities.ts (o
+ * WordPress). Movimiento: src/scripts/motion.ts › universidades.
+ *
+ * Uso: <HomeUniversities /> (página de inicio).
  */
-import UniversityCard from '@components/cards/UniversityCard.astro';
 import Button from '@components/ui/Button.astro';
-import Carousel from '@components/ui/Carousel.astro';
-import { routes } from '@data/navigation';
+import SliderProgress from '@components/ui/SliderProgress.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { detailRoutes, routes } from '@data/navigation';
 import type { UniversityAccent } from '@data/universities';
 import { getFeaturedUniversities } from '@lib/content';
 import WaveBlue from '@assets/graphics/waves/wave-blue-universities.svg';
@@ -19,79 +36,233 @@ const featuredUniversities = await getFeaturedUniversities();
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Becas del Gobierno de Rusia',
 	title: 'Universidades destacadas',
 	subtitle:
-		'Desde planificaciones por temporadas hasta consejos de mejores universidades y conocer sobre nosotros',
-	mobileCta: 'Ver todos los centros',
+		'Algunas de las universidades públicas rusas a las que puedes postular con beca. Te acompañamos a elegir la tuya.',
+	cta: 'Ver todas las universidades',
+	more: 'Conocer más',
+	/** Si la universidad no tiene resumen */
+	summaryFallback: 'Carreras, requisitos, vida estudiantil y cómo postular con beca.',
+	listLabel: 'Universidades destacadas',
 };
 
-/** Colores de las formas de las tarjetas, en orden (se repiten si hay más) */
+/** Colores de marca de cada panel, en orden (se repiten si hay más) */
 const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
+
+/** 0 → "01" */
+const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 ---
 
-<section class="home-universities section" id="universidades" aria-labelledby="home-universities-title">
-	<!-- Ondas planas de la marca (decorativas) -->
-	<div class="home-universities__decor" aria-hidden="true">
-		<div class="home-universities__wave home-universities__wave--orange">
-			<WaveOrange />
+<section
+	class="home-universities section"
+	id="universidades"
+	aria-labelledby="home-universities-title"
+	data-scroll-slider="pin"
+	data-slider-step="0.4"
+	data-uni-section
+	data-scroll-draw="0.9 0.3"
+>
+	<!-- Bloque que queda fijo mientras pasan las universidades -->
+	<div class="home-universities__stage">
+		<!-- Ondas planas de la marca (decorativas): se dibujan con el scroll -->
+		<div class="home-universities__decor" aria-hidden="true">
+			<div class="home-universities__wave home-universities__wave--orange">
+				<WaveOrange />
+			</div>
+			<div class="home-universities__wave home-universities__wave--blue">
+				<WaveBlue />
+			</div>
 		</div>
-		<div class="home-universities__wave home-universities__wave--blue">
-			<WaveBlue />
+
+		<header class="home-universities__header container">
+			<div class="home-universities__intro">
+				<p class="home-universities__eyebrow">
+					<span class="home-universities__dot" aria-hidden="true"></span>
+					{content.eyebrow}
+				</p>
+				<h2 id="home-universities-title" class="home-universities__title">
+					{content.title}
+				</h2>
+				<p class="home-universities__subtitle">{content.subtitle}</p>
+			</div>
+			<Button href={routes.universities} size="md" class="home-universities__cta">
+				{content.cta}
+			</Button>
+		</header>
+
+		<div class="home-universities__viewport" data-slider-viewport>
+			<ul
+				class="uni-gallery"
+				role="list"
+				aria-label={content.listLabel}
+				data-slider-track
+				data-uni-gallery
+			>
+				{featuredUniversities.map((university, index) => (
+					<li
+						class:list={[
+							'uni-panel',
+							`uni-panel--${accents[index % accents.length]}`,
+							{ 'is-active': index === 0 },
+						]}
+						data-slider-item
+						data-uni-panel
+					>
+						<article class="uni-panel__card">
+							<MediaImage
+								image={university.image}
+								alt=""
+								widths={[400, 800, 1200]}
+								sizes="(max-width: 1100px) 80vw, 640px"
+								class="uni-panel__photo"
+							/>
+							<span class="uni-panel__shade" aria-hidden="true" />
+
+							<div class="uni-panel__top" aria-hidden="true">
+								<span class="uni-panel__city">{university.city}</span>
+								<span class="uni-panel__index">{panelNumber(index)}</span>
+							</div>
+
+							<div class="uni-panel__body">
+								<h3 class="uni-panel__name">{university.name}</h3>
+								<!-- Resumen y botón: se despliegan en el panel abierto -->
+								<div class="uni-panel__more">
+									<div class="uni-panel__more-inner">
+										<p class="uni-panel__summary">
+											{university.summary ?? content.summaryFallback}
+										</p>
+										<a
+											href={detailRoutes.university(university.slug)}
+											class="uni-panel__link"
+										>
+											<span>{content.more}</span>
+											<span class="visually-hidden"> sobre {university.name}</span>
+											<span class="uni-panel__arrow" aria-hidden="true">
+												<Icon name="arrow-right" size={18} />
+											</span>
+										</a>
+									</div>
+								</div>
+							</div>
+						</article>
+					</li>
+				))}
+			</ul>
 		</div>
-	</div>
 
-	<header class="home-universities__header container">
-		<h2 id="home-universities-title" class="home-universities__title">
-			{content.title}
-		</h2>
-		<p class="home-universities__subtitle">{content.subtitle}</p>
-	</header>
+		<SliderProgress
+			total={featuredUniversities.length}
+			tone="light"
+			class="home-universities__progress container"
+		/>
 
-	<Carousel label={content.title} gap={24}>
-		{featuredUniversities.map((university, index) => (
-			<UniversityCard university={university} accent={accents[index % accents.length]} />
-		))}
-	</Carousel>
-
-	<div class="home-universities__mobile-cta container">
-		<Button href={routes.universities} size="md">
-			{content.mobileCta}
-		</Button>
+		<div class="home-universities__mobile-cta container">
+			<Button href={routes.universities} size="md" block>
+				{content.cta}
+			</Button>
+		</div>
 	</div>
 </section>
 
 <style>
 	.home-universities {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-9);
+		/* Margen del contenido: alinea los paneles con el texto */
+		--uni-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
+		position: relative;
 		overflow: clip;
+		/* El espacio vertical va en el bloque (que queda fijo con el slider) */
+		padding-block: 0;
 		background-color: var(--surface-dark);
-		--carousel-controls-gap: 2.25rem;
 	}
 
-	/* ----- Encabezado centrado ----- */
-	.home-universities__header {
+	.home-universities__stage {
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
+		gap: clamp(var(--space-8), 4vw, var(--space-9));
+		padding-block: var(--section-padding-y);
+	}
+
+	/* Fija bajo el header mientras pasan las tarjetas (tablet y móvil,
+	   .is-scroll-slider) o se abren los paneles (desktop, .is-pinned): la
+	   sección mide lo que dura el recorrido */
+	.home-universities:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+	}
+
+	.home-universities:global(.is-pinned) {
+		height: calc(100svh - var(--header-height) + var(--uni-length, 0px));
+	}
+
+	.home-universities:is(:global(.is-scroll-slider), :global(.is-pinned)) .home-universities__stage {
+		position: sticky;
+		top: var(--header-height);
+		justify-content: center;
+		gap: var(--space-6);
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
+		overflow: clip;
+	}
+
+	/* ===== Encabezado: texto a la izquierda, botón a la derecha ===== */
+	.home-universities__header {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.home-universities__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
 		gap: var(--space-4);
-		max-width: calc(44.1875rem + 2 * var(--gutter)); /* 707px */
-		text-align: center;
+		max-width: 42rem;
+	}
+
+	.home-universities__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	/* Punto rojo que late */
+	.home-universities__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		box-shadow: 0 0 0 0.25rem rgb(255 26 48 / 0.25);
 	}
 
 	.home-universities__title {
 		font-size: var(--font-size-h1);
-		line-height: 1.33;
+		line-height: 1.1;
 	}
 
 	.home-universities__subtitle {
+		max-width: 36rem;
 		font-size: var(--font-size-lg);
 		line-height: 1.75rem;
+		color: rgb(244 244 244 / 0.8);
 	}
 
-	/* ----- Ondas: se dibujan en un lienzo de 1512px centrado (ancho de Figma) ----- */
+	.home-universities :global(.home-universities__cta) {
+		flex-shrink: 0;
+	}
+
+	/* ===== Ondas: lienzo de 1512px centrado (ancho de Figma), se dibujan con el scroll ===== */
 	.home-universities__decor {
 		position: absolute;
 		top: 0;
@@ -114,9 +285,16 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 		max-width: none;
 	}
 
+	.home-universities__wave :global(.brand-line) {
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * clamp(0, (var(--draw, 1) - var(--line-delay, 0)) / 0.7, 1));
+	}
+
 	.home-universities__wave--orange {
+		--line-delay: 0.15;
+
 		left: 657px;
-		top: -99px;
+		top: -230px;
 		width: 1674px;
 		height: 789.5px;
 	}
@@ -129,7 +307,7 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 
 	.home-universities__wave--blue {
 		left: -1208px;
-		top: 108px;
+		top: 250px;
 		width: 1800.4px;
 		height: 1241.4px;
 	}
@@ -140,16 +318,373 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 		transform: rotate(150deg) scale(1, -1) skewX(4.69deg);
 	}
 
-	/* ----- Botón "Ver todos los centros" (solo móvil, como en Figma) ----- */
-	.home-universities__mobile-cta {
-		display: none;
-		justify-content: center;
+	/* Tablet con el bloque fijo: el contenido se centra en la pantalla y las
+	   ondas (ubicadas para desktop) pasarían sobre los textos */
+	@media (max-width: 1100px) {
+		.home-universities:global(.is-scroll-slider) .home-universities__decor {
+			display: none;
+		}
 	}
 
+	/* ===== Paneles / tarjetas ===== */
+	.home-universities__viewport {
+		position: relative;
+		z-index: 1;
+		padding-inline: var(--uni-inset);
+	}
+
+	.uni-gallery {
+		display: flex;
+		gap: var(--space-4);
+	}
+
+	.uni-panel {
+		/* Color de marca del panel */
+		--accent: var(--color-skyblue);
+
+		position: relative;
+		min-width: 0;
+	}
+
+	.uni-panel--green {
+		--accent: var(--color-green);
+	}
+
+	.uni-panel--yellow {
+		--accent: var(--color-yellow);
+	}
+
+	.uni-panel--blue {
+		--accent: var(--color-blue);
+	}
+
+	.uni-panel__card {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		height: 100%;
+		padding: var(--space-5);
+		overflow: clip;
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
+		color: var(--color-pure-white);
+	}
+
+	.uni-panel__photo {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: scale 1.2s var(--ease-out);
+	}
+
+	/* Degradé con el color de la marca del panel: el texto se lee sobre cualquier foto */
+	.uni-panel__shade {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background:
+			linear-gradient(
+				to top,
+				color-mix(in srgb, var(--accent) 55%, rgb(8 12 20)) 0%,
+				color-mix(in srgb, var(--accent) 22%, rgb(8 12 20 / 0.55)) 38%,
+				rgb(8 12 20 / 0.08) 70%
+			),
+			linear-gradient(to bottom, rgb(8 12 20 / 0.45), transparent 26%);
+	}
+
+	.uni-panel__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+	}
+
+	.uni-panel__city {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		padding: 0.3125rem 0.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 0 0 / 0.38);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+
+	.uni-panel__city::before {
+		content: '';
+		flex-shrink: 0;
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
+	}
+
+	.uni-panel__index {
+		flex-shrink: 0;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		font-variant-numeric: tabular-nums;
+		color: rgb(255 255 255 / 0.75);
+	}
+
+	.uni-panel__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.uni-panel__more {
+		display: grid;
+		grid-template-rows: 1fr;
+		width: 100%;
+	}
+
+	.uni-panel__more-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		min-height: 0;
+		padding-top: var(--space-3);
+		/* Deja ver el foco y la sombra del botón */
+		padding-bottom: 0.25rem;
+		overflow: hidden;
+	}
+
+	.uni-panel__name {
+		font-size: 1.375rem;
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		text-wrap: balance;
+	}
+
+	.uni-panel__summary {
+		max-width: 30rem;
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	/* "Conocer más": píldora blanca con flecha (toda la tarjeta es clicable) */
+	.uni-panel__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: 0.3125rem 0.3125rem 0.3125rem 1rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: #0b1f3a;
+		transition: gap var(--duration-slow) var(--ease-out);
+	}
+
+	.uni-panel__arrow {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
+		color: var(--color-pure-white);
+		transition: rotate var(--duration-slow) var(--ease-out);
+	}
+
+	.uni-panel--yellow .uni-panel__arrow {
+		color: #111;
+	}
+
+	.uni-panel__link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		border-radius: var(--radius-xl);
+	}
+
+	.uni-panel__card:hover .uni-panel__photo {
+		scale: 1.06;
+	}
+
+	.uni-panel__card:hover .uni-panel__link {
+		gap: var(--space-4);
+	}
+
+	.uni-panel__card:hover .uni-panel__arrow {
+		rotate: -45deg;
+	}
+
+	.uni-panel__link:focus-visible {
+		outline: none;
+	}
+
+	.uni-panel__card:has(.uni-panel__link:focus-visible) {
+		outline: 3px solid var(--accent);
+		outline-offset: 3px;
+	}
+
+	/* =====================================================================
+	   Desktop: paneles que se expanden (el abierto avanza con el scroll;
+	   con el cursor o el teclado se abre el que se señala)
+	   ===================================================================== */
+	@media (min-width: 1101px) {
+		.uni-gallery {
+			height: clamp(28rem, 34vw, 33rem);
+		}
+
+		.uni-panel {
+			flex: 1 1 0;
+			transition: flex-grow 0.75s cubic-bezier(0.65, 0, 0.35, 1);
+		}
+
+		/* Abierto: el que marca el scroll (.is-active) o el que se señala con el cursor
+		   o el teclado (en ese caso el de .is-active se cierra) */
+		.uni-panel.is-active,
+		.uni-panel:hover,
+		.uni-panel:focus-within {
+			flex-grow: 2.2;
+		}
+
+		.uni-gallery:has(.uni-panel:hover, .uni-panel:focus-within)
+			.uni-panel.is-active:not(:hover, :focus-within) {
+			flex-grow: 1;
+		}
+
+		/* Resumen y botón solo en el panel abierto: se pliegan (0fr) y despliegan (1fr) */
+		.uni-panel__more {
+			grid-template-rows: 0fr;
+			opacity: 0;
+			transition:
+				grid-template-rows 0.6s cubic-bezier(0.65, 0, 0.35, 1),
+				opacity 0.35s var(--ease-out);
+		}
+
+		.uni-panel.is-active .uni-panel__more,
+		.uni-panel:hover .uni-panel__more,
+		.uni-panel:focus-within .uni-panel__more {
+			grid-template-rows: 1fr;
+			opacity: 1;
+			transition-delay: 0.15s, 0.35s;
+		}
+
+		.uni-gallery:has(.uni-panel:hover, .uni-panel:focus-within)
+			.uni-panel.is-active:not(:hover, :focus-within)
+			.uni-panel__more {
+			grid-template-rows: 0fr;
+			opacity: 0;
+			transition-delay: 0s;
+		}
+
+		/* Cerrado: nombre más chico (cabe en la columna angosta); abierto: más grande */
+		.uni-panel__name {
+			font-size: clamp(1.0625rem, 0.8rem + 0.45vw, 1.25rem);
+			transition: font-size 0.5s var(--ease-out);
+		}
+
+		.uni-panel.is-active .uni-panel__name,
+		.uni-panel:hover .uni-panel__name,
+		.uni-panel:focus-within .uni-panel__name {
+			font-size: clamp(1.375rem, 0.9rem + 0.8vw, 1.75rem);
+		}
+
+		.uni-gallery:has(.uni-panel:hover, .uni-panel:focus-within)
+			.uni-panel.is-active:not(:hover, :focus-within)
+			.uni-panel__name {
+			font-size: clamp(1.0625rem, 0.8rem + 0.45vw, 1.25rem);
+		}
+
+		.home-universities__mobile-cta {
+			display: none;
+		}
+
+		/* Fija: la galería cabe en la pantalla junto al encabezado */
+		.home-universities:global(.is-pinned) .uni-gallery {
+			height: min(clamp(28rem, 34vw, 33rem), calc(100svh - var(--header-height) - 17rem));
+		}
+	}
+
+	/* =====================================================================
+	   Tablet y móvil: tarjetas en fila que se desliza con el scroll
+	   ===================================================================== */
+	@media (max-width: 1100px) {
+		.home-universities :global(.home-universities__cta) {
+			display: none;
+		}
+
+		.home-universities__viewport {
+			overflow-x: auto;
+			overscroll-behavior-x: contain;
+			scroll-snap-type: x mandatory;
+			scroll-padding-inline: var(--uni-inset);
+			scrollbar-width: none;
+		}
+
+		.home-universities__viewport::-webkit-scrollbar {
+			display: none;
+		}
+
+		.uni-gallery {
+			width: max-content;
+		}
+
+		.uni-panel {
+			flex-shrink: 0;
+			width: min(20rem, 78vw);
+			aspect-ratio: 4 / 5;
+			scroll-snap-align: start;
+		}
+
+		/* Con el slider activo, la fila avanza con el scroll (--slider-x) */
+		.home-universities:global(.is-scroll-slider) .home-universities__viewport {
+			overflow: hidden;
+			scroll-snap-type: none;
+		}
+
+		.home-universities:global(.is-scroll-slider) .uni-gallery {
+			transform: translate3d(var(--slider-x, 0px), 0, 0);
+			will-change: transform;
+		}
+
+		.home-universities__mobile-cta {
+			display: flex;
+			justify-content: center;
+		}
+
+		.home-universities__mobile-cta :global(.btn) {
+			max-width: 26rem;
+		}
+	}
+
+	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
-		.home-universities__subtitle {
-			font-size: var(--font-size-md);
-			line-height: 1.5rem;
+		.home-universities__stage {
+			gap: var(--space-7);
+			padding-block: var(--space-9);
+		}
+
+		.home-universities:global(.is-scroll-slider) .home-universities__stage {
+			gap: var(--space-5);
+			padding-block: var(--space-5);
+		}
+
+		.home-universities__header {
+			justify-content: center;
+		}
+
+		.home-universities__intro {
+			align-items: center;
+			text-align: center;
 		}
 
 		.home-universities__title {
@@ -157,16 +692,40 @@ const accents: UniversityAccent[] = ['skyblue', 'green', 'yellow', 'blue'];
 			line-height: var(--line-height-title-mobile);
 		}
 
-		.home-universities {
-			gap: var(--space-7);
-		}
-
-		.home-universities__mobile-cta {
-			display: flex;
+		.home-universities__subtitle {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
 		}
 
 		.home-universities__decor {
 			display: none;
+		}
+
+		.uni-panel__card {
+			padding: var(--space-4);
+			border-radius: var(--radius-lg);
+		}
+
+		.uni-panel__name {
+			font-size: var(--font-size-card-title-mobile);
+		}
+
+		.uni-panel__summary {
+			font-size: 0.8125rem;
+			line-height: 1.25rem;
+		}
+	}
+
+	/* ===== Movimiento: el punto del antetítulo late ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.home-universities__dot {
+			animation: home-universities-pulse 2s ease-in-out infinite;
+		}
+	}
+
+	@keyframes home-universities-pulse {
+		50% {
+			box-shadow: 0 0 0 0.5rem rgb(255 26 48 / 0);
 		}
 	}
 </style>

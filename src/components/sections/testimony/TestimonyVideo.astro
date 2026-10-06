@@ -5,20 +5,21 @@
  * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628320" (1734:2245).
  * Móvil: UI Mobile › 1758:3823 (el título va arriba del video).
  *
- * Tarjeta de video a todo el ancho del contenido: miniatura, onda amarilla de
- * la marca, botón ▶ y el título con el nombre del estudiante.
+ * Encabezado (etiqueta, título y el nombre y la carrera del estudiante) y la
+ * tarjeta del video a todo el ancho del contenido: miniatura, onda amarilla
+ * de la marca (se dibuja con el scroll, src/scripts/scroll-draw.ts) y botón ▶.
  *
- * VIDEO: el botón ▶ abre `testimonial.video.url` (YouTube). Si no hay URL,
- * abre el canal de YouTube de la marca (src/data/site.ts).
+ * VIDEO: se reproduce en el modal del sitio (VideoModal), como en el Home:
+ * el de `testimonial.video.url` (YouTube o TikTok) o, si el caso no tiene
+ * video propio, el caso de éxito del canal de YouTube que se ve en el Home
+ * (src/data/testimonials.ts › testimonialVideo).
  *
  * Uso: <TestimonyVideo id="conoce-mi-historia" testimonial={testimonial} />
  */
-import MediaImage from '@components/ui/MediaImage.astro';
-
 import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { testimonialVideo, type Testimonial } from '@data/testimonials';
 import WaveYellow from '@assets/graphics/waves/wave-yellow-video.svg';
-import { site } from '@data/site';
-import type { Testimonial } from '@data/testimonials';
 
 interface Props {
 	id: string;
@@ -29,91 +30,169 @@ const { id, testimonial } = Astro.props;
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'En video',
 	title: 'Conoce mi historia',
-	playLabel: `Ver el video de ${testimonial.name} en YouTube`,
+	watch: 'Ver video',
+	playLabel: `Ver el video de ${testimonial.name}`,
 };
 
-const youtubeChannel = site.socials.find((social) => social.icon === 'youtube')?.href ?? '#';
 const poster = testimonial.video?.poster ?? testimonial.portrait;
-const videoHref = testimonial.video?.url ?? youtubeChannel;
+const video = testimonialVideo(testimonial);
+
+/** Nombre del video: el del caso o, si no tiene video propio, el del video del Home */
+const videoTitle = video.title ?? content.playLabel;
+const videoLabel = video.title ? `Ver el video: ${video.title}` : content.playLabel;
+
+/** Enlace del video: en el modal del sitio (sin JavaScript, en una pestaña nueva) */
+const videoLink = {
+	href: video.href,
+	target: '_blank',
+	rel: 'noopener',
+	...(video.youtubeId || video.tiktokId
+		? {
+				'data-video-open': '',
+				'data-video-title': videoTitle,
+				...(video.youtubeId
+					? { 'data-video-youtube': video.youtubeId }
+					: { 'data-video-tiktok': video.tiktokId }),
+			}
+		: {}),
+};
 ---
 
 {poster && (
-	<section id={id} class="testimony-video" aria-labelledby={`${id}-title`}>
-		<div class="testimony-video__card">
-			<div class="testimony-video__media">
+	<section
+		id={id}
+		class="testimony-video section"
+		aria-labelledby={`${id}-title`}
+		data-scroll-draw="0.95 0.35"
+	>
+		<header class="testimony-video__header container">
+			<p class="testimony-video__eyebrow">
+				<Icon name="youtube-play" size={18} class="testimony-video__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h2 id={`${id}-title`} class="testimony-video__title">
+				{content.title}
+			</h2>
+			<p class="testimony-video__subtitle">
+				<strong>{testimonial.name}</strong> · {testimonial.role}
+			</p>
+		</header>
+
+		<div class="container">
+			<a class="testimony-video__card" aria-label={videoLabel} {...videoLink}>
 				<MediaImage
 					image={poster.src}
-					alt={poster.alt}
+					alt=""
 					widths={[480, 800, 1200, 1600, 2000]}
-					sizes="(max-width: 640px) 240vw, (max-width: 1512px) 115vw, 1550px"
+					sizes="(max-width: 640px) 92vw, (max-width: 1512px) 90vw, 1352px"
 					class="testimony-video__image"
 				/>
+				<span class="testimony-video__shade" aria-hidden="true"></span>
 
-				<div class="testimony-video__wave" aria-hidden="true">
+				<span class="testimony-video__wave" aria-hidden="true">
 					<WaveYellow />
-				</div>
+				</span>
 
-				<a
-					href={videoHref}
-					class="testimony-video__play"
-					target="_blank"
-					rel="noopener"
-					aria-label={content.playLabel}
-				>
+				<span class="testimony-video__play" aria-hidden="true">
 					<Icon name="play" size={28} />
-				</a>
-			</div>
+				</span>
 
-			<div class="testimony-video__caption">
-				<h2 id={`${id}-title`} class="testimony-video__title">
-					{content.title}
-				</h2>
-				<p class="testimony-video__name">{testimonial.name}</p>
-			</div>
+				<span class="testimony-video__chip" aria-hidden="true">
+					<Icon name="play" size={12} />
+					{content.watch}
+				</span>
+			</a>
 		</div>
 	</section>
 )}
 
 <style>
 	.testimony-video {
-		padding: var(--space-7) var(--gutter); /* 40px 80px */
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-6), 3vw, var(--space-8));
 		background-color: var(--surface-white);
-		scroll-margin-top: var(--space-4);
+		color: var(--text-on-light);
+		scroll-margin-top: var(--header-height);
 	}
 
-	/* Tarjeta: el texto se superpone abajo a la izquierda de la miniatura */
+	/* ===== Encabezado ===== */
+	.testimony-video__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.testimony-video__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.testimony-video__eyebrow-icon {
+		color: var(--color-red);
+	}
+
+	.testimony-video__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--text-heading-light);
+	}
+
+	.testimony-video__subtitle {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: #363636;
+	}
+
+	.testimony-video__subtitle strong {
+		color: var(--text-on-light);
+	}
+
+	/* ===== Tarjeta del video (encuadre de Figma: 1352 × 760) ===== */
 	.testimony-video__card {
-		display: grid;
-		max-width: var(--container-max);
-		margin-inline: auto;
-	}
-
-	.testimony-video__media,
-	.testimony-video__caption {
-		grid-area: 1 / 1;
-	}
-
-	/* ----- Miniatura (1352 × 760 px, encuadre de Figma) ----- */
-	.testimony-video__media {
 		position: relative;
 		isolation: isolate;
+		display: block;
 		aspect-ratio: 1352 / 760;
-		border-radius: var(--radius-xl); /* 32px */
 		overflow: clip;
+		border-radius: var(--radius-xl); /* 32px */
+		background-color: #1d2a3a;
+		box-shadow: 0 2.5rem 4.5rem -2.5rem rgb(18 91 168 / 0.55);
+		color: var(--color-pure-white);
 	}
 
 	.testimony-video__image {
 		position: absolute;
-		top: -21.69%;
-		left: -8.47%;
-		z-index: -1;
-		width: 114.66%;
-		max-width: none;
-		height: auto;
+		inset: 0;
+		z-index: -2;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: scale 1s var(--ease-out);
 	}
 
-	/* Onda amarilla de la marca (posición y giro de Figma, en % de la tarjeta) */
+	.testimony-video__shade {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background:
+			radial-gradient(circle at 50% 50%, rgb(0 0 0 / 0.12), transparent 45%),
+			linear-gradient(to top, rgb(6 10 20 / 0.45), transparent 40%);
+	}
+
+	/* Onda amarilla de la marca (posición y giro de Figma, en % de la tarjeta):
+	   se dibuja con el scroll (--draw); sin JavaScript, completa */
 	.testimony-video__wave {
 		position: absolute;
 		top: 44.61%;
@@ -135,92 +214,103 @@ const videoHref = testimonial.video?.url ?? youtubeChannel;
 		transform: rotate(-8.91deg);
 	}
 
-	/* ----- Botón ▶ (círculo de 64px + anillo translúcido de 24px) ----- */
+	.testimony-video__wave :global(.brand-line) {
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * clamp(0, (var(--draw, 1) - 0.1) / 0.75, 1));
+	}
+
+	/* Botón ▶: círculo blanco con anillo translúcido */
 	.testimony-video__play {
 		position: absolute;
 		top: 50%;
-		left: 51.63%;
-		z-index: 1;
+		left: 50%;
 		display: grid;
 		place-items: center;
-		width: 4rem;
-		height: 4rem;
+		width: 5.5rem;
+		height: 5.5rem;
 		border-radius: var(--radius-pill);
-		background-color: var(--color-white);
-		box-shadow: 0 0 0 1.527rem rgb(244 244 244 / 0.32);
+		background-color: var(--color-pure-white);
+		box-shadow:
+			0 0 0 1rem rgb(255 255 255 / 0.24),
+			0 1.25rem 2.5rem -1rem rgb(0 0 0 / 0.6);
 		color: var(--color-blue);
-		transform: translate(-50%, -50%);
-		transition: transform var(--duration-base) var(--ease-out);
+		translate: -50% -50%;
+		transition: scale var(--duration-slow) var(--ease-out);
 	}
 
-	.testimony-video__play:hover {
-		transform: translate(-50%, -50%) scale(1.08);
+	.testimony-video__play :global(svg) {
+		margin-left: 0.25rem;
 	}
 
-	/* ----- Título + nombre ----- */
-	.testimony-video__caption {
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		align-self: end;
-		justify-self: start;
+	.testimony-video__chip {
+		position: absolute;
+		top: var(--space-5);
+		left: var(--space-5);
+		display: inline-flex;
+		align-items: center;
 		gap: var(--space-2);
-		padding: var(--space-7); /* 40px */
-		color: var(--color-white);
-		pointer-events: none;
-	}
-
-	.testimony-video__title {
-		font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem); /* 36px */
+		padding: 0.375rem 0.875rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 0 0 / 0.5);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
-		line-height: 1.11; /* 40px */
 	}
 
-	.testimony-video__name {
-		font-size: 1.25rem; /* 20px */
-		line-height: 1.5rem;
+	.testimony-video__card:hover .testimony-video__image {
+		scale: 1.04;
 	}
 
-	/* ----- Móvil: título arriba y video a todo el ancho (Figma móvil) ----- */
+	.testimony-video__card:hover .testimony-video__play {
+		scale: 1.08;
+	}
+
+	.testimony-video__card:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 4px;
+	}
+
+	/* ===== Móvil: video vertical, sin la onda (Figma móvil) ===== */
 	@media (max-width: 640px) {
-		.testimony-video {
-			padding: 0;
-		}
-
-		.testimony-video__caption {
-			grid-area: 1 / 1;
-			justify-self: center;
-			padding: var(--space-8) var(--space-4) var(--space-6);
-			color: var(--color-blue-title);
+		.testimony-video__header {
+			align-items: center;
 			text-align: center;
 		}
 
-		.testimony-video__media {
-			grid-area: 2 / 1;
-			aspect-ratio: 360 / 530;
-			border-radius: 0;
+		.testimony-video__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.testimony-video__subtitle {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.testimony-video__card {
+			aspect-ratio: 4 / 5;
+			border-radius: var(--radius-lg);
 		}
 
 		.testimony-video__image {
-			inset: 0;
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
 			object-position: 58% center;
 		}
 
-		/* El diseño móvil no muestra la onda en este video */
 		.testimony-video__wave {
 			display: none;
 		}
 
-		.testimony-video__title {
-			font-size: 1.75rem;
-			font-weight: var(--font-weight-bold);
+		.testimony-video__play {
+			width: 4.25rem;
+			height: 4.25rem;
+			box-shadow:
+				0 0 0 0.75rem rgb(255 255 255 / 0.24),
+				0 1rem 2rem -1rem rgb(0 0 0 / 0.6);
 		}
 
-		.testimony-video__name {
-			display: none;
+		.testimony-video__chip {
+			top: var(--space-4);
+			left: var(--space-4);
 		}
 	}
 </style>

@@ -13,8 +13,17 @@
  * mismo vector de la marca que usan los consejos de la ficha de universidad,
  * estirado como en el diseño de esta sección (lienzo de 1512 × 890).
  *
+ * Mejorado: las comillas de la marca arriba, la frase aparece palabra por
+ * palabra al hacer scroll (src/scripts/motion.ts) y la firma lleva la foto
+ * del estudiante con su bandera, centrada bajo la frase.
+ *
  * Uso: <TestimonyHighlight testimonial={testimonial} />
  */
+import { Image } from 'astro:assets';
+
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { countries } from '@data/countries';
 import Shape from '@assets/graphics/shapes/shape-hourglass-highlight.svg';
 import StarRed from '@assets/graphics/stars/star-red-small.svg';
 import StarYellow from '@assets/graphics/stars/star-yellow-small.svg';
@@ -25,6 +34,7 @@ interface Props {
 }
 
 const { testimonial } = Astro.props;
+const country = countries[testimonial.country];
 ---
 
 {testimonial.highlight && (
@@ -36,12 +46,34 @@ const { testimonial } = Astro.props;
 		</div>
 
 		<figure class="testimony-highlight__inner">
+			<span class="testimony-highlight__mark" aria-hidden="true">
+				<Icon name="quote" width={30} height={34} />
+			</span>
 			<blockquote class="testimony-highlight__quote">
 				<p>“{testimonial.highlight}”</p>
 			</blockquote>
 			<figcaption class="testimony-highlight__author">
-				<strong class="testimony-highlight__name">{testimonial.name}</strong>
-				<span>{testimonial.role}</span>
+				<span class="testimony-highlight__avatar-ring">
+					<MediaImage
+						image={testimonial.avatar}
+						alt=""
+						width={48}
+						height={48}
+						class="testimony-highlight__avatar"
+					/>
+					<Image
+						src={country.flag}
+						alt={country.name}
+						width={20}
+						height={20}
+						densities={[1, 2]}
+						class="testimony-highlight__flag"
+					/>
+				</span>
+				<span class="testimony-highlight__who">
+					<strong class="testimony-highlight__name">{testimonial.name}</strong>
+					<span>{testimonial.role}</span>
+				</span>
 			</figcaption>
 		</figure>
 	</section>
@@ -53,7 +85,7 @@ const { testimonial } = Astro.props;
 		isolation: isolate;
 		display: grid;
 		align-items: center;
-		min-height: 55.625rem; /* 890px */
+		min-height: clamp(40rem, 52vw, 50rem); /* Figma: 890px */
 		overflow: clip;
 		background-color: var(--surface-light);
 		color: var(--text-on-light);
@@ -84,16 +116,17 @@ const { testimonial } = Astro.props;
 		max-width: none;
 	}
 
+	/* Posiciones de Figma, en % del alto (la sección es más baja que en Figma) */
 	.testimony-highlight__star--yellow {
-		left: 1268px;
-		top: 219px;
+		left: 1300px;
+		top: 13%;
 		width: 17px;
 		height: auto;
 	}
 
 	.testimony-highlight__star--red {
 		left: 180px;
-		top: 625px;
+		top: 76%;
 		width: 16px;
 		height: auto;
 	}
@@ -101,7 +134,8 @@ const { testimonial } = Astro.props;
 	/* ----- Frase ----- */
 	.testimony-highlight__inner {
 		display: grid;
-		gap: var(--space-8);
+		justify-items: center;
+		gap: var(--space-6);
 		width: 100%;
 		max-width: calc(80rem + 2 * var(--gutter)); /* 1280px */
 		margin: 0 auto;
@@ -120,15 +154,63 @@ const { testimonial } = Astro.props;
 		text-wrap: balance;
 	}
 
-	/* Nombre y carrera, abajo a la derecha (Figma: 16/20 y 14/20) */
+	/* Comillas de la marca en un círculo azul */
+	.testimony-highlight__mark {
+		display: grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue));
+		box-shadow: 0 1rem 2rem -1rem rgb(0 122 252 / 0.8);
+		color: var(--color-pure-white);
+	}
+
+	/* Firma: foto con anillo degradé y bandera + nombre y carrera (Figma: 16/20 y 14/20) */
 	.testimony-highlight__author {
-		display: flex;
-		flex-direction: column;
-		justify-self: end;
-		max-width: 13.5rem; /* 216px */
-		margin-right: calc(9.5rem - var(--gutter));
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.85);
+		box-shadow: 0 1rem 2rem -1.5rem rgb(18 91 168 / 0.6);
 		font-size: var(--font-size-sm);
 		line-height: 1.25rem;
+	}
+
+	.testimony-highlight__avatar-ring {
+		position: relative;
+		flex-shrink: 0;
+		padding: 2px;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-red));
+	}
+
+	.testimony-highlight__avatar {
+		display: block;
+		width: 3rem;
+		height: 3rem;
+		border: 2px solid var(--surface-white);
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.testimony-highlight__flag {
+		position: absolute;
+		right: -0.25rem;
+		bottom: -0.125rem;
+		width: 1.25rem;
+		height: 1.25rem;
+		border: 2px solid var(--surface-white);
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.testimony-highlight__who {
+		display: flex;
+		flex-direction: column;
+		max-width: 16rem;
 	}
 
 	.testimony-highlight__name {
@@ -147,37 +229,34 @@ const { testimonial } = Astro.props;
 		.testimony-highlight__star {
 			display: none;
 		}
-
-		.testimony-highlight__author {
-			margin-right: 0;
-		}
 	}
 
 	@media (max-width: 640px) {
 		.testimony-highlight {
-			min-height: 55.4375rem; /* 887px */
+			min-height: 46rem;
 		}
 
 		.testimony-highlight__inner {
-			gap: var(--space-9);
+			gap: var(--space-6);
 			padding-block: var(--space-9);
 		}
 
+		.testimony-highlight__mark {
+			width: 3.5rem;
+			height: 3.5rem;
+		}
+
 		.testimony-highlight__quote {
-			font-size: 2.5rem; /* 40px */
+			font-size: 2.25rem;
 			line-height: 1.1;
 		}
 
-		/* En móvil el nombre va centrado bajo la frase, sobre la banda celeste */
 		.testimony-highlight__author {
-			justify-self: center;
-			max-width: 13.5rem;
-			font-size: var(--font-size-md);
-			line-height: 1.375rem;
+			padding-right: var(--space-4);
 		}
 
-		.testimony-highlight__name {
-			font-size: 1.125rem;
+		.testimony-highlight__who {
+			max-width: 13rem;
 		}
 	}
 </style>

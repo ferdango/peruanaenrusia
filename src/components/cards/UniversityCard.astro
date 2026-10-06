@@ -2,27 +2,30 @@
 /**
  * UniversityCard
  * --------------------------------------------------------------------------
- * Tarjeta de universidad: foto de fondo, forma de color de la marca, logo,
- * nombre y enlace "Conocer más" (Figma: "Universidades destacadas" y
- * "Casas de estudio"). Toda la tarjeta es clicable.
+ * Tarjeta de universidad con el mismo diseño de "Universidades destacadas"
+ * del Home (src/components/sections/home/HomeUniversities.astro): foto a
+ * sangre, degradé con el color de la marca de la tarjeta, la ciudad y el
+ * número arriba, y abajo el nombre, el resumen y la píldora "Conocer más".
+ * Toda la tarjeta es clicable; al pasar el cursor la foto se acerca y la
+ * flecha gira.
  *
- * El color de la forma (accent) se elige por tarjeta para alternar colores
- * de la marca. El acento "green" usa la forma diagonal; el resto, la curva.
+ * Se usa en el listado /universidades/ y en "Otras universidades" de cada
+ * ficha. El ancho lo da la celda que la contiene (proporción 4:5).
  *
  * Uso:
- *   <UniversityCard university={university} accent="yellow" />
+ *   <UniversityCard university={university} accent="yellow" index={0} />
  */
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
-import CardBlob from '@assets/graphics/shapes/card-blob.svg';
-import CardSlope from '@assets/graphics/shapes/card-slope.svg';
 import { detailRoutes } from '@data/navigation';
 import type { University, UniversityAccent } from '@data/universities';
 
 interface Props {
 	university: University;
 	accent?: UniversityAccent;
-	/** Texto del enlace (en móvil el diseño usa "Más información") */
+	/** Posición en la lista (se muestra como "01", "02"…); si no se pasa, no hay número */
+	index?: number;
+	/** Texto del enlace */
 	linkLabel?: string;
 	/** Nivel del título según la jerarquía de la página */
 	headingLevel?: 'h2' | 'h3';
@@ -32,61 +35,77 @@ interface Props {
 const {
 	university,
 	accent = 'skyblue',
+	index,
 	linkLabel = 'Conocer más',
 	headingLevel: Heading = 'h3',
 	class: className,
 } = Astro.props;
 
-const Shape = accent === 'green' ? CardSlope : CardBlob;
 const href = detailRoutes.university(university.slug);
+
+// ----- Textos -----
+const content = {
+	/** Si la universidad no tiene resumen */
+	summaryFallback: 'Carreras, requisitos, vida estudiantil y cómo postular con beca.',
+	founded: 'Desde',
+};
 ---
 
 <article class:list={['university-card', `university-card--${accent}`, className]}>
-	<!-- Fondo: foto + forma de color -->
 	<MediaImage
 		image={university.image}
 		alt=""
-		class="university-card__photo"
 		widths={[420, 840]}
-		sizes="(max-width: 640px) 80vw, 420px"
+		sizes="(max-width: 640px) 88vw, (max-width: 1100px) 46vw, 420px"
+		class="university-card__photo"
 	/>
-	<Shape
-		class:list={['university-card__shape', accent === 'green' ? 'is-slope' : 'is-blob']}
-		aria-hidden="true"
-	/>
+	<span class="university-card__shade" aria-hidden="true"></span>
 
-	<!-- Contenido -->
-	<div class="university-card__content">
-		<div class="university-card__logo">
-			<MediaImage image={university.logo} alt={`Logo de ${university.name}`} width={344} />
-		</div>
+	<div class="university-card__top">
+		<span class="university-card__city">{university.city}</span>
+		{index !== undefined && (
+			<span class="university-card__index" aria-hidden="true">
+				{String(index + 1).padStart(2, '0')}
+			</span>
+		)}
+	</div>
 
-		<div class="university-card__info">
-			<Heading class="university-card__name">{university.name}</Heading>
-			<a href={href} class="university-card__link">
-				{linkLabel}
-				<Icon name="arrow-right" size={20} />
-			</a>
-		</div>
+	<div class="university-card__body">
+		{university.founded && (
+			<p class="university-card__founded">
+				{content.founded} {university.founded}
+			</p>
+		)}
+		<Heading class="university-card__name">{university.name}</Heading>
+		<p class="university-card__summary">{university.summary ?? content.summaryFallback}</p>
+		<a href={href} class="university-card__link">
+			<span>{linkLabel}</span>
+			<span class="visually-hidden"> sobre {university.name}</span>
+			<span class="university-card__arrow" aria-hidden="true">
+				<Icon name="arrow-right" size={18} />
+			</span>
+		</a>
 	</div>
 </article>
 
 <style>
 	.university-card {
+		/* Color de marca de la tarjeta */
 		--accent: var(--color-skyblue);
 
 		position: relative;
 		isolation: isolate;
 		display: flex;
-		width: var(--university-card-width, 26.25rem); /* 420px */
-		aspect-ratio: 420 / 381;
-		padding: var(--space-4) var(--space-5);
-		border-radius: var(--radius-2xl);
+		flex-direction: column;
+		justify-content: space-between;
+		aspect-ratio: 4 / 5;
+		padding: var(--space-5);
 		overflow: clip;
-		color: var(--color-white);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
+		color: var(--color-pure-white);
 	}
 
-	/* Colores de acento disponibles */
 	.university-card--green {
 		--accent: var(--color-green);
 	}
@@ -96,10 +115,9 @@ const href = detailRoutes.university(university.slug);
 	}
 
 	.university-card--blue {
-		--accent: var(--color-blue-title);
+		--accent: var(--color-blue);
 	}
 
-	/* ----- Fondo ----- */
 	.university-card__photo {
 		position: absolute;
 		inset: 0;
@@ -107,102 +125,167 @@ const href = detailRoutes.university(university.slug);
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform var(--duration-slow) var(--ease-out);
+		transition: scale 1.2s var(--ease-out);
 	}
 
-	.university-card:hover .university-card__photo {
-		transform: scale(1.04);
-	}
-
-	/* La forma se posiciona en % para escalar junto con la tarjeta */
-	.university-card__shape {
+	/* Degradé con el color de la marca: el texto se lee sobre cualquier foto */
+	.university-card__shade {
 		position: absolute;
+		inset: 0;
 		z-index: -1;
-		max-width: none;
-		color: var(--accent);
+		background:
+			linear-gradient(
+				to top,
+				color-mix(in srgb, var(--accent) 55%, rgb(8 12 20)) 0%,
+				color-mix(in srgb, var(--accent) 22%, rgb(8 12 20 / 0.55)) 42%,
+				rgb(8 12 20 / 0.08) 72%
+			),
+			linear-gradient(to bottom, rgb(8 12 20 / 0.45), transparent 26%);
 	}
 
-	.university-card__shape.is-blob {
-		left: -30.5%;
-		top: 73.5%;
-		width: 90.75%;
-		height: auto;
-	}
-
-	.university-card__shape.is-slope {
-		left: -27%;
-		top: 41%;
-		width: 158.25%;
-		height: auto;
-	}
-
-	/* ----- Contenido ----- */
-	.university-card__content {
+	/* ----- Arriba: ciudad + número ----- */
+	.university-card__top {
 		display: flex;
-		flex: 1;
-		flex-direction: column;
+		align-items: center;
 		justify-content: space-between;
+		gap: var(--space-3);
 	}
 
-	/* El logo del diseño se muestra recortado en una caja de 126 × 61 px */
-	.university-card__logo {
-		width: 7.875rem; /* 126px */
-		height: 3.8125rem; /* 61px */
-		overflow: clip;
+	.university-card__city {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-width: 0;
+		padding: 0.3125rem 0.75rem;
+		overflow: hidden;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 0 0 / 0.38);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.university-card__logo img {
-		position: relative;
-		top: -7.05%;
-		width: 136.5%;
-		max-width: none;
-		height: auto;
+	.university-card__city::before {
+		content: '';
+		flex-shrink: 0;
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
 	}
 
-	.university-card__info {
+	.university-card__index {
+		flex-shrink: 0;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		font-variant-numeric: tabular-nums;
+		color: rgb(255 255 255 / 0.75);
+	}
+
+	/* ----- Abajo: año, nombre, resumen y enlace ----- */
+	.university-card__body {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
-		padding-block: var(--space-2);
+		align-items: flex-start;
+		gap: var(--space-2);
+	}
+
+	.university-card__founded {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgb(255 255 255 / 0.8);
 	}
 
 	.university-card__name {
-		font-size: var(--font-size-h3);
+		font-size: clamp(1.25rem, 1rem + 0.6vw, 1.625rem);
 		font-weight: var(--font-weight-bold);
-		line-height: 1.15;
+		line-height: 1.2;
+		text-wrap: balance;
 	}
 
+	.university-card__summary {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	/* "Conocer más": píldora blanca con flecha (toda la tarjeta es clicable) */
 	.university-card__link {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-1);
-		font-size: var(--font-size-md);
-		line-height: 1.5rem;
+		gap: var(--space-3);
+		margin-top: var(--space-2);
+		padding: 0.3125rem 0.3125rem 0.3125rem 1rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: #0b1f3a;
+		transition: gap var(--duration-slow) var(--ease-out);
 	}
 
-	/* Toda la tarjeta es clicable (el enlace se "estira" sobre ella) */
+	.university-card__arrow {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
+		color: var(--color-pure-white);
+		transition: rotate var(--duration-slow) var(--ease-out);
+	}
+
+	.university-card--yellow .university-card__arrow {
+		color: #111;
+	}
+
 	.university-card__link::after {
 		content: '';
 		position: absolute;
 		inset: 0;
-		border-radius: inherit;
+		z-index: 2;
+		border-radius: var(--radius-xl);
+	}
+
+	.university-card:hover .university-card__photo {
+		scale: 1.06;
+	}
+
+	.university-card:hover .university-card__link {
+		gap: var(--space-4);
+	}
+
+	.university-card:hover .university-card__arrow {
+		rotate: -45deg;
 	}
 
 	.university-card__link:focus-visible {
-		box-shadow: none;
+		outline: none;
 	}
 
-	.university-card__link:focus-visible::after {
-		box-shadow: inset 0 0 0 3px var(--color-skyblue);
+	.university-card:has(.university-card__link:focus-visible) {
+		outline: 3px solid var(--accent);
+		outline-offset: 3px;
 	}
 
 	@media (max-width: 640px) {
 		.university-card {
-			--university-card-width: min(80vw, 18rem);
+			padding: var(--space-4);
+			border-radius: var(--radius-lg);
 		}
 
-		.university-card__name {
-			font-size: var(--font-size-card-title-mobile);
+		.university-card__link::after {
+			border-radius: var(--radius-lg);
 		}
 	}
 </style>

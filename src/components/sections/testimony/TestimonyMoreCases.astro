@@ -3,18 +3,26 @@
  * TestimonyMoreCases — "Más casos de éxito"
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "My testimony" (1616:222) › "Frame 628099" (1624:412):
- * fondo oscuro, título alineado a la izquierda y carrusel de tarjetas de
- * casos de éxito (379px) con sus controles.
+ * fondo oscuro, título y las tarjetas de casos de éxito.
  * Móvil: UI Mobile › Caso de éxito: "Nuestros testimonios" centrado, con
- * bajada, y una tarjeta por vista.
+ * bajada.
+ *
+ * Con el lenguaje del Home ("Nuestros casos de éxito"): etiqueta, título,
+ * bajada, el botón "Ver todos" (vuelve a la sección del Home) y las tarjetas
+ * en una fila: al llegar a la sección queda fija y el scroll las pasa una por
+ * una; después de la última, el scroll sigue (src/scripts/motion.ts ›
+ * data-scroll-slider="pin"). Sin JavaScript se desliza con el dedo.
  *
  * Muestra los demás casos de éxito (sin el de la página actual).
  *
  * Uso: <TestimonyMoreCases currentSlug={testimonial.slug} />
  */
 import TestimonialCard from '@components/cards/TestimonialCard.astro';
-import Carousel from '@components/ui/Carousel.astro';
+import Button from '@components/ui/Button.astro';
+import SliderProgress from '@components/ui/SliderProgress.astro';
+import { routes } from '@data/navigation';
 import { getTestimonials } from '@lib/content';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 interface Props {
 	/** Slug del caso de éxito actual (se excluye de la lista) */
@@ -26,39 +34,127 @@ const others = (await getTestimonials()).filter((testimonial) => testimonial.slu
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Historias reales',
 	title: 'Más casos de éxito',
 	mobileTitle: 'Nuestros testimonios',
 	subtitle:
 		'Te acompañamos en cada paso para ganar tu beca y vivir la experiencia que transformará tu vida.',
+	cta: 'Ver todos',
+	listLabel: 'Otros casos de éxito',
 };
 ---
 
 {others.length > 0 && (
-	<section class="more-cases section" aria-labelledby="more-cases-title">
-		<header class="more-cases__header container">
-			<h2 id="more-cases-title" class="more-cases__title">
-				<span class="more-cases__title-desktop">{content.title}</span>
-				<span class="more-cases__title-mobile">{content.mobileTitle}</span>
-			</h2>
-			<p class="more-cases__subtitle">{content.subtitle}</p>
-		</header>
+	<section
+		class="more-cases section"
+		aria-labelledby="more-cases-title"
+		data-scroll-slider="pin"
+		data-slider-step="0.34"
+	>
+		<div class="more-cases__stage">
+			<header class="more-cases__header container">
+				<div class="more-cases__intro">
+					<p class="more-cases__eyebrow">
+						<Star class="more-cases__eyebrow-star" aria-hidden="true" />
+						{content.eyebrow}
+					</p>
+					<h2 id="more-cases-title" class="more-cases__title">
+						<span class="more-cases__title-desktop">{content.title}</span>
+						<span class="more-cases__title-mobile">{content.mobileTitle}</span>
+					</h2>
+					<p class="more-cases__subtitle">{content.subtitle}</p>
+				</div>
+				<Button href={routes.successCases} size="sm" class="more-cases__cta">
+					{content.cta}
+				</Button>
+			</header>
 
-		<Carousel label={content.title} gap={24} class="more-cases__carousel">
-			{others.map((testimonial) => (
-				<TestimonialCard testimonial={testimonial} />
-			))}
-		</Carousel>
+			<div class="more-cases__viewport" data-slider-viewport>
+				<ul class="more-cases__track" role="list" aria-label={content.listLabel} data-slider-track>
+					{others.map((testimonial) => (
+						<li class="more-cases__item" data-slider-item>
+							<TestimonialCard testimonial={testimonial} />
+						</li>
+					))}
+				</ul>
+			</div>
+
+			<SliderProgress total={others.length} tone="light" class="more-cases__progress container" />
+		</div>
 	</section>
 )}
 
 <style>
 	.more-cases {
+		/* Margen izquierdo del contenido: la fila empieza alineada con el título */
+		--cases-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		background:
+			radial-gradient(46rem 26rem at 100% 0%, rgb(0 122 252 / 0.22), transparent 70%),
+			var(--surface-dark);
+		color: var(--text-on-dark);
+	}
+
+	.more-cases__stage {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-8); /* 48px */
-		background-color: var(--surface-dark);
-		color: var(--text-on-dark);
-		--carousel-controls-gap: var(--space-7);
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+	}
+
+	/* Con el slider activo: la sección mide lo que dura el recorrido y el bloque
+	   queda fijo bajo el header mientras pasan las tarjetas */
+	.more-cases:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+		padding-block: 0;
+	}
+
+	.more-cases:global(.is-scroll-slider) .more-cases__stage {
+		position: sticky;
+		top: var(--header-height);
+		justify-content: center;
+		gap: var(--space-6);
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
+		overflow: clip;
+	}
+
+	/* ===== Encabezado ===== */
+	.more-cases__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6);
+	}
+
+	.more-cases__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		max-width: 44rem;
+	}
+
+	.more-cases__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(244 244 244 / 0.16);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-pure-white);
+	}
+
+	.more-cases__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-yellow);
 	}
 
 	/* Figma: Poppins Bold 48/56 */
@@ -67,28 +163,100 @@ const content = {
 		line-height: 1.1667;
 	}
 
-	.more-cases__title-mobile,
-	.more-cases__subtitle {
+	.more-cases__title-mobile {
 		display: none;
 	}
 
-	.more-cases :global(.testimonial-card) {
-		--testimonial-card-width: 23.6875rem; /* 379px */
+	.more-cases__subtitle {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
 	}
 
-	/* ===== Móvil: título centrado con bajada ===== */
+	.more-cases :global(.more-cases__cta) {
+		flex-shrink: 0;
+	}
+
+	/* ===== Fila de tarjetas ===== */
+	.more-cases__viewport {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--cases-inset);
+		scrollbar-width: none;
+		/* Espacio para la elevación y la sombra de las tarjetas */
+		padding-block: var(--space-3) var(--space-7);
+		margin-block: calc(-1 * var(--space-3)) calc(-1 * var(--space-7));
+	}
+
+	.more-cases__viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.more-cases__track {
+		display: flex;
+		align-items: stretch;
+		gap: var(--space-4);
+		width: max-content;
+		margin: 0;
+		padding-inline: var(--cases-inset);
+	}
+
+	.more-cases__item {
+		display: flex;
+		flex-shrink: 0;
+		scroll-snap-align: start;
+	}
+
+	.more-cases :global(.testimonial-card) {
+		--testimonial-card-width: 22rem;
+	}
+
+	.more-cases:global(.is-scroll-slider) .more-cases__viewport {
+		overflow: hidden;
+		scroll-snap-type: none;
+	}
+
+	.more-cases:global(.is-scroll-slider) .more-cases__track {
+		transform: translate3d(var(--slider-x, 0px), 0, 0);
+		will-change: transform;
+	}
+
+	/* ===== Tablet ===== */
+	@media (max-width: 1100px) {
+		.more-cases__header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+
+	/* ===== Móvil: título centrado con bajada (Figma móvil) ===== */
 	@media (max-width: 640px) {
 		.more-cases {
-			gap: var(--space-7);
+			--cases-inset: var(--space-3);
+		}
+
+		.more-cases__stage {
+			gap: var(--space-6);
+		}
+
+		.more-cases:global(.is-scroll-slider) .more-cases__stage {
+			gap: var(--space-4);
+			padding-block: var(--space-5);
 		}
 
 		.more-cases__header {
+			align-items: center;
 			text-align: center;
 		}
 
+		.more-cases__intro {
+			align-items: center;
+		}
+
 		.more-cases__title {
-			font-size: 2rem;
-			line-height: 1.125;
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
 		}
 
 		.more-cases__title-desktop {
@@ -100,13 +268,16 @@ const content = {
 		}
 
 		.more-cases__subtitle {
-			display: block;
-			margin-top: var(--space-4);
-			line-height: 1.75rem;
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.more-cases__track {
+			gap: var(--space-3);
 		}
 
 		.more-cases :global(.testimonial-card) {
-			--testimonial-card-width: min(82vw, 20.375rem);
+			--testimonial-card-width: min(82vw, 20rem);
 		}
 	}
 </style>

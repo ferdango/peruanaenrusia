@@ -8,6 +8,16 @@
  *     "Servicio contratado" y "Reclamación y pedido"; consentimiento de datos,
  *     botón "Enviar reclamación" y "¿Qué sucede después…?".
  *
+ * Con el lenguaje del Home y del Blog:
+ *   · Hero oscuro (el header es transparente encima, body.hero-overlay) con
+ *     el título, la base legal y los datos del proveedor (razón social, RUC
+ *     y plazo de respuesta); el tubo rojo del Home flota a la derecha y las
+ *     líneas de la marca se dibujan al cargar.
+ *   · Desktop: el formulario a la izquierda (tarjetas numeradas 1, 2 y 3) y a
+ *     la derecha una columna fija con "¿Reclamo o queja?", "¿Qué sucede
+ *     después…?" y el correo de contacto. Tablet y móvil: una columna, con la
+ *     información después del formulario.
+ *
  * Además de los campos del diseño se piden el domicilio y, si quien reclama
  * es menor de edad, los datos de su padre, madre o apoderado (exigidos por el
  * Reglamento del Libro de Reclamaciones), y el monto reclamado (opcional).
@@ -21,8 +31,13 @@
  * reclamación: se muestra un aviso con el correo para reclamar y el
  * formulario no se envía (nunca se simula una constancia).
  *
+ * El script de abajo depende de los atributos data-complaint* / data-complaints-*
+ * y de los `name` de los campos: si cambias el marcado, consérvalos.
+ *
  * Uso: <ComplaintsForm /> (página /libro-de-reclamaciones/).
  */
+import { Image } from 'astro:assets';
+
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
 import FormCheck from '@components/forms/FormCheck.astro';
@@ -37,13 +52,24 @@ import {
 import { routes } from '@data/navigation';
 import { site } from '@data/site';
 import { DEPLOY_TARGET } from 'astro:env/client';
+import tubeRed from '@assets/graphics/tubes/tube-red.webp';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 /** Versión estática (sin servidor): el formulario no puede registrar reclamaciones */
 const isStatic = DEPLOY_TARGET === 'static';
 
 // ----- Contenido -----
 const content = {
+	eyebrow: 'Atención al consumidor',
 	title: 'Libro de reclamaciones',
+	lead: `Registra aquí tu reclamo o queja sobre nuestros servicios. Te responderemos en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles, conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571).`,
+	facts: [
+		{ label: 'Razón social', value: site.legal.companyName },
+		{ label: 'RUC', value: site.legal.ruc },
+		{ label: 'Plazo de respuesta', value: `${RESPONSE_DEADLINE_DAYS} días hábiles` },
+	],
+	sheet: 'Hoja de reclamación virtual',
 	codeLabel: 'Código de identificación:',
 	consumer: {
 		title: 'Consumidor reclamante',
@@ -61,6 +87,23 @@ const content = {
 		'Al enviar esta reclamación, usted acepta y consiente expresamente que sus datos personales serán tratados para gestionar su reclamación, conforme a nuestras políticas de privacidad y las leyes peruanas aplicables, incluyendo la Ley N° 29733. Nos comprometemos a tratar estos datos con la máxima confidencialidad y seguridad. Para más información, consulte nuestra',
 	submit: 'Enviar reclamación',
 	sending: 'Enviando…',
+	/** Texto de la hoja de reclamación del Reglamento (D.S. N° 011-2011-PCM) */
+	indecopi:
+		'La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI.',
+	asideLabel: 'Información sobre el libro de reclamaciones',
+	types: {
+		title: '¿Reclamo o queja?',
+		items: [
+			{
+				term: 'Reclamo',
+				text: 'Disconformidad relacionada con los productos o servicios que contrataste.',
+			},
+			{
+				term: 'Queja',
+				text: 'Disconformidad no relacionada con los productos o servicios, o malestar con la atención al público.',
+			},
+		],
+	},
 	next: {
 		title: '¿Qué sucede después de enviar su reclamación?',
 		items: [
@@ -69,6 +112,9 @@ const content = {
 			`La empresa responderá a su reclamación en un plazo máximo de ${RESPONSE_DEADLINE_DAYS} días hábiles conforme a la Ley N° 29571.`,
 		],
 	},
+	contact: 'También puedes presentar tu reclamación escribiendo a',
+	noscript:
+		'Para enviar el formulario necesitas activar JavaScript en tu navegador. También puedes presentar tu reclamación escribiendo a',
 	unavailable: {
 		title: 'Esta versión del sitio todavía no registra reclamaciones en línea.',
 		before: 'Para presentar un reclamo o una queja, escríbenos a',
@@ -88,317 +134,416 @@ const content = {
 };
 
 const L = complaintLimits;
+const mailto = `mailto:${site.contact.email}`;
 ---
 
 <div class="complaints" data-complaints>
-	<header class="complaints__header">
-		<h1 class="complaints__title">{content.title}</h1>
-		<p class="complaints__code">
-			{content.codeLabel} <span data-complaint-code>—</span>
-		</p>
-		<p class="complaints__company">
-			<strong>{site.legal.companyName}</strong>
-			<span>RUC {site.legal.ruc}</span>
-		</p>
+	<!-- ===== Hero: título, base legal y datos del proveedor ===== -->
+	<header class="complaints__hero">
+		<div class="complaints__decor" aria-hidden="true">
+			<Image src={tubeRed} alt="" widths={[700, 1400]} sizes="44rem" class="complaints__tube" />
+			<BrandLines class="complaints__lines" />
+			<Star class="complaints__star complaints__star--yellow" />
+			<Star class="complaints__star complaints__star--sky" />
+		</div>
+
+		<div class="complaints__hero-inner container">
+			<p class="complaints__eyebrow">
+				<Icon name="book" size={18} class="complaints__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h1 class="complaints__title">{content.title}</h1>
+			<p class="complaints__lead">{content.lead}</p>
+
+			<dl class="complaints__facts">
+				{content.facts.map((fact) => (
+					<div class="complaints__fact">
+						<dt>{fact.label}</dt>
+						<dd>{fact.value}</dd>
+					</div>
+				))}
+			</dl>
+		</div>
 	</header>
 
-	{isStatic && (
-		<p class="complaints__notice" data-complaints-unavailable>
-			<strong>{content.unavailable.title}</strong>
-			<span>
-				{content.unavailable.before} <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>{' '}
-				{content.unavailable.after}
-			</span>
-		</p>
-	)}
+	<div class="complaints__body container">
+		<div class="complaints__main">
+			<noscript>
+				<p class="complaints__notice complaints__notice--plain">
+					{content.noscript} <a href={mailto}>{site.contact.email}</a>.
+				</p>
+			</noscript>
 
-	<form class="complaints__form" data-complaints-form novalidate>
-		<input type="hidden" name="id" data-complaint-id />
-		<!-- Campo trampa para bots: las personas no lo ven ni lo llenan -->
-		<div class="complaints__trap" aria-hidden="true">
-			<label for="c-website">No llenar este campo</label>
-			<input id="c-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+			{isStatic && (
+				<div class="complaints__notice">
+					<Icon name="info" size={22} class="complaints__notice-icon" />
+					<p class="complaints__notice-text" data-complaints-unavailable>
+						<strong>{content.unavailable.title}</strong>
+						<span>
+							{content.unavailable.before} <a href={mailto}>{site.contact.email}</a>{' '}
+							{content.unavailable.after}
+						</span>
+					</p>
+				</div>
+			)}
+
+			<form class="complaints__form" data-complaints-form novalidate>
+				<input type="hidden" name="id" data-complaint-id />
+				<!-- Campo trampa para bots: las personas no lo ven ni lo llenan -->
+				<div class="complaints__trap" aria-hidden="true">
+					<label for="c-website">No llenar este campo</label>
+					<input id="c-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+				</div>
+
+				<!-- Hoja y su código de identificación -->
+				<div class="complaints__sheet">
+					<p class="complaints__sheet-title">{content.sheet}</p>
+					<p class="complaints__code">
+						{content.codeLabel} <span data-complaint-code>—</span>
+					</p>
+				</div>
+
+				<!-- 1. Consumidor reclamante -->
+				<fieldset class="complaints__card">
+					<legend class="complaints__card-heading">
+						<span class="complaints__card-number" aria-hidden="true">
+							1
+						</span>
+						<span class="complaints__card-titles">
+							<span class="complaints__card-title">{content.consumer.title}</span>
+							<span class="complaints__card-text">{content.consumer.text}</span>
+						</span>
+					</legend>
+
+					<div class="complaints__fields">
+						<FormField
+							id="c-name"
+							name="fullName"
+							label="Nombres completos"
+							autocomplete="name"
+							required
+							maxlength={L.name}
+							messages={{ required: 'Ingrese sus nombres completos.' }}
+						/>
+
+						<FormCheck id="c-minor" name="isMinor" controls="c-guardian">
+							Soy menor de edad
+						</FormCheck>
+
+						<div id="c-guardian" class="complaints__guardian" data-complaints-guardian hidden>
+							<FormField
+								id="c-guardian-name"
+								name="guardianName"
+								label="Nombre del padre, madre o apoderado"
+								help="Si eres menor de edad, la reclamación la presenta tu padre, madre o apoderado."
+								autocomplete="off"
+								required
+								maxlength={L.name}
+								messages={{ required: 'Ingrese el nombre de su padre, madre o apoderado.' }}
+							/>
+						</div>
+
+						<div class="complaints__row">
+							<FormField
+								id="c-doc-type"
+								name="documentType"
+								label="Tipo de documento"
+								as="select"
+								options={[...documentTypes]}
+								help="Elija el tipo de documento de identidad que usará para identificarse."
+								required
+								messages={{ required: 'Elija el tipo de documento.' }}
+							/>
+							<FormField
+								id="c-doc-number"
+								name="documentNumber"
+								label="Número de documento"
+								help="Número de su documento de identidad."
+								autocomplete="off"
+								required
+								pattern="[A-Za-z0-9\-]{6,20}"
+								maxlength={L.document}
+								messages={{
+									required: 'Ingrese su número de documento.',
+									invalid:
+										'Revise el número: solo letras, números y guiones (6 a 20 caracteres).',
+								}}
+							/>
+						</div>
+
+						<div class="complaints__row">
+							<FormField
+								id="c-email"
+								name="email"
+								label="Correo electrónico"
+								type="email"
+								inputmode="email"
+								autocomplete="email"
+								help="Su dirección de correo electrónico para poder comunicar la respuesta a su reclamación."
+								required
+								maxlength={L.email}
+								pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+								messages={{
+									required: 'Ingrese su correo electrónico.',
+									invalid: 'Ingrese un correo válido, por ejemplo: nombre@gmail.com.',
+								}}
+							/>
+
+							<FormField
+								id="c-phone"
+								name="phone"
+								label="Celular"
+								type="tel"
+								inputmode="tel"
+								autocomplete="tel"
+								help="Su número de teléfono para poder comunicar la respuesta a su reclamación."
+								required
+								pattern="[+0-9 \(\)\-]{6,20}"
+								maxlength={L.phone}
+								messages={{
+									required: 'Ingrese su número de celular.',
+									invalid: 'Revise el número: solo números, espacios y el signo +.',
+								}}
+							/>
+						</div>
+
+						<FormField
+							id="c-address"
+							name="address"
+							label="Domicilio"
+							autocomplete="street-address"
+							help="Dirección, distrito y provincia."
+							required
+							maxlength={L.address}
+							messages={{ required: 'Ingrese su domicilio.' }}
+						/>
+					</div>
+				</fieldset>
+
+				<!-- 2. Servicio contratado -->
+				<fieldset class="complaints__card">
+					<legend class="complaints__card-heading">
+						<span class="complaints__card-number" aria-hidden="true">
+							2
+						</span>
+						<span class="complaints__card-titles">
+							<span class="complaints__card-title">{content.service.title}</span>
+							<span class="complaints__card-text">{content.service.text}</span>
+						</span>
+					</legend>
+
+					<div class="complaints__fields">
+						<div class="complaints__row">
+							<FormField
+								id="c-service"
+								name="service"
+								label="Servicio contratado"
+								as="select"
+								options={[...contractedServices]}
+								help="Elija el servicio que tuviste inconvenientes"
+								required
+								messages={{ required: 'Elija el servicio contratado.' }}
+							/>
+							<FormField
+								id="c-amount"
+								name="amount"
+								label="Monto reclamado (S/)"
+								type="number"
+								inputmode="decimal"
+								min={0}
+								step="any"
+								help="Si su reclamación incluye un monto, indíquelo en soles."
+								messages={{ invalid: 'Ingrese un monto válido (solo números).' }}
+							/>
+						</div>
+						<FormField
+							id="c-description"
+							name="description"
+							label="Descripción del reclamo"
+							as="textarea"
+							help="Ayúdenos a identificar el producto o servicio sobre el que desea reclamar."
+							required
+							maxlength={L.text}
+							messages={{ required: 'Describa el servicio sobre el que reclama.' }}
+						/>
+					</div>
+				</fieldset>
+
+				<!-- 3. Reclamación y pedido -->
+				<fieldset class="complaints__card">
+					<legend class="complaints__card-heading">
+						<span class="complaints__card-number" aria-hidden="true">
+							3
+						</span>
+						<span class="complaints__card-titles">
+							<span class="complaints__card-title">{content.claim.title}</span>
+							<span class="complaints__card-text">{content.claim.text}</span>
+						</span>
+					</legend>
+
+					<div class="complaints__fields">
+						<FormField
+							id="c-type"
+							name="claimType"
+							label="Tipo de reclamación"
+							as="select"
+							options={[...claimTypes]}
+							help={
+								'Elija "Reclamo" si la disconformidad es con el producto o servicio.\nElija "Queja" si la disconformidad es con la atención, u otros aspectos no relacionados con el producto o servicio.'
+							}
+							required
+							messages={{ required: 'Elija el tipo de reclamación.' }}
+						/>
+						<FormField
+							id="c-detail"
+							name="detail"
+							label="Detalle del reclamo"
+							as="textarea"
+							help="Detalle por favor el motivo de su reclamación."
+							required
+							minlength={10}
+							maxlength={L.text}
+							messages={{
+								required: 'Cuéntenos el motivo de su reclamación.',
+								invalid: 'Cuéntenos un poco más (al menos 10 caracteres).',
+							}}
+						/>
+						<FormField
+							id="c-request"
+							name="request"
+							label="Su pedido es"
+							as="textarea"
+							help="Cuéntenos qué espera como solución a su reclamación."
+							required
+							maxlength={L.text}
+							messages={{ required: 'Cuéntenos qué solución espera.' }}
+						/>
+					</div>
+				</fieldset>
+
+				<!-- Consentimiento y envío -->
+				<div class="complaints__card complaints__card--submit">
+					<p class="complaints__consent-text">
+						{content.consentText}
+						<a href={`${routes.legal}#proteccion-de-datos`}>política de privacidad</a> y nuestros
+						<a href={`${routes.legal}#condiciones-generales`}>términos y condiciones</a>.
+					</p>
+
+					<FormCheck
+						id="c-consent"
+						name="consent"
+						required
+						messages={{
+							required: 'Para enviar la reclamación debe aceptar el tratamiento de sus datos.',
+						}}
+					>
+						He leído y acepto el tratamiento de mis datos personales según lo descrito.
+					</FormCheck>
+
+					<p class="complaints__status" role="alert" data-complaints-status></p>
+
+					<Button
+						type="submit"
+						variant="primary"
+						size="sm"
+						icon="arrow-right"
+						block
+						class="complaints__submit"
+						data-complaints-submit
+					>
+						<span data-label-idle>{content.submit}</span>
+						<span data-label-busy hidden>
+							{content.sending}
+						</span>
+					</Button>
+
+					<p class="complaints__legal-note">{content.indecopi}</p>
+				</div>
+			</form>
+
+			<!-- Constancia (se muestra al registrar la reclamación) -->
+			<section
+				class="complaints__success"
+				data-complaints-success
+				hidden
+				aria-labelledby="c-success-title"
+			>
+				<span class="complaints__success-icon" aria-hidden="true">
+					<Icon name="check" size={32} />
+				</span>
+				<h2 id="c-success-title" class="complaints__success-title" tabindex="-1">
+					{content.success.title}
+				</h2>
+				<dl class="complaints__receipt">
+					<div>
+						<dt>{content.success.code}</dt>
+						<dd data-success-code></dd>
+					</div>
+					<div>
+						<dt>{content.success.date}</dt>
+						<dd data-success-date></dd>
+					</div>
+				</dl>
+				<p class="complaints__success-text" data-success-sent>
+					{content.success.emailBefore} <strong data-success-email></strong>.{' '}
+					{content.success.deadline}
+				</p>
+				<p class="complaints__success-text" data-success-failed hidden>
+					{content.success.emailFailed} {content.success.deadline}
+				</p>
+				<div class="complaints__success-actions">
+					<Button variant="primary" size="sm" data-complaints-print icon={null}>
+						{content.success.print}
+					</Button>
+					<Button href={routes.home} tone="dark" size="sm">
+						{content.success.home}
+					</Button>
+				</div>
+			</section>
 		</div>
 
-		<!-- 1. Consumidor reclamante -->
-		<fieldset class="complaints__card">
-			<legend class="complaints__card-heading">
-				<span class="complaints__card-title">{content.consumer.title}</span>
-				<span class="complaints__card-text">{content.consumer.text}</span>
-			</legend>
+		<!-- ===== Columna de información (fija en desktop) ===== -->
+		<aside class="complaints__aside" aria-label={content.asideLabel}>
+			<section class="complaints__info" aria-labelledby="c-types-title">
+				<h2 id="c-types-title" class="complaints__info-title">
+					<Icon name="info" size={20} class="complaints__info-icon" />
+					{content.types.title}
+				</h2>
+				<dl class="complaints__types">
+					{content.types.items.map((type) => (
+						<div class="complaints__type">
+							<dt>{type.term}</dt>
+							<dd>{type.text}</dd>
+						</div>
+					))}
+				</dl>
+			</section>
 
-			<div class="complaints__fields">
-				<FormField
-					id="c-name"
-					name="fullName"
-					label="Nombres completos"
-					autocomplete="name"
-					required
-					maxlength={L.name}
-					messages={{ required: 'Ingrese sus nombres completos.' }}
-				/>
-
-				<FormCheck id="c-minor" name="isMinor" controls="c-guardian">
-					Soy menor de edad
-				</FormCheck>
-
-				<div id="c-guardian" class="complaints__guardian" data-complaints-guardian hidden>
-					<FormField
-						id="c-guardian-name"
-						name="guardianName"
-						label="Nombre del padre, madre o apoderado"
-						help="Si eres menor de edad, la reclamación la presenta tu padre, madre o apoderado."
-						autocomplete="off"
-						required
-						maxlength={L.name}
-						messages={{ required: 'Ingrese el nombre de su padre, madre o apoderado.' }}
-					/>
-				</div>
-
-				<div class="complaints__row">
-					<FormField
-						id="c-doc-type"
-						name="documentType"
-						label="Tipo de documento"
-						as="select"
-						options={[...documentTypes]}
-						help="Elija el tipo de documento de identidad que usará para identificarse."
-						required
-						messages={{ required: 'Elija el tipo de documento.' }}
-					/>
-					<FormField
-						id="c-doc-number"
-						name="documentNumber"
-						label="Número de documento"
-						help="Número de su documento de identidad."
-						autocomplete="off"
-						required
-						pattern="[A-Za-z0-9\-]{6,20}"
-						maxlength={L.document}
-						messages={{
-							required: 'Ingrese su número de documento.',
-							invalid: 'Revise el número: solo letras, números y guiones (6 a 20 caracteres).',
-						}}
-					/>
-				</div>
-
-				<FormField
-					id="c-email"
-					name="email"
-					label="Correo electrónico"
-					type="email"
-					inputmode="email"
-					autocomplete="email"
-					help="Su dirección de correo electrónico para poder comunicar la respuesta a su reclamación."
-					required
-					maxlength={L.email}
-					pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
-					messages={{
-						required: 'Ingrese su correo electrónico.',
-						invalid: 'Ingrese un correo válido, por ejemplo: nombre@gmail.com.',
-					}}
-				/>
-
-				<FormField
-					id="c-phone"
-					name="phone"
-					label="Celular"
-					type="tel"
-					inputmode="tel"
-					autocomplete="tel"
-					help="Su número de teléfono para poder comunicar la respuesta a su reclamación."
-					required
-					pattern="[+0-9 \(\)\-]{6,20}"
-					maxlength={L.phone}
-					messages={{
-						required: 'Ingrese su número de celular.',
-						invalid: 'Revise el número: solo números, espacios y el signo +.',
-					}}
-				/>
-
-				<FormField
-					id="c-address"
-					name="address"
-					label="Domicilio"
-					autocomplete="street-address"
-					help="Dirección, distrito y provincia."
-					required
-					maxlength={L.address}
-					messages={{ required: 'Ingrese su domicilio.' }}
-				/>
-			</div>
-		</fieldset>
-
-		<!-- 2. Servicio contratado -->
-		<fieldset class="complaints__card">
-			<legend class="complaints__card-heading">
-				<span class="complaints__card-title">{content.service.title}</span>
-				<span class="complaints__card-text">{content.service.text}</span>
-			</legend>
-
-			<div class="complaints__fields">
-				<FormField
-					id="c-service"
-					name="service"
-					label="Servicio contratado"
-					as="select"
-					options={[...contractedServices]}
-					help="Elija el servicio que tuviste inconvenientes"
-					required
-					messages={{ required: 'Elija el servicio contratado.' }}
-				/>
-				<FormField
-					id="c-amount"
-					name="amount"
-					label="Monto reclamado (S/)"
-					type="number"
-					inputmode="decimal"
-					min={0}
-					step="any"
-					help="Si su reclamación incluye un monto, indíquelo en soles."
-					messages={{ invalid: 'Ingrese un monto válido (solo números).' }}
-				/>
-				<FormField
-					id="c-description"
-					name="description"
-					label="Descripción del reclamo"
-					as="textarea"
-					help="Ayúdenos a identificar el producto o servicio sobre el que desea reclamar."
-					required
-					maxlength={L.text}
-					messages={{ required: 'Describa el servicio sobre el que reclama.' }}
-				/>
-			</div>
-		</fieldset>
-
-		<!-- 3. Reclamación y pedido -->
-		<fieldset class="complaints__card">
-			<legend class="complaints__card-heading">
-				<span class="complaints__card-title">{content.claim.title}</span>
-				<span class="complaints__card-text">{content.claim.text}</span>
-			</legend>
-
-			<div class="complaints__fields">
-				<FormField
-					id="c-type"
-					name="claimType"
-					label="Tipo de reclamación"
-					as="select"
-					options={[...claimTypes]}
-					help={
-						'Elija "Reclamo" si la disconformidad es con el producto o servicio.\nElija "Queja" si la disconformidad es con la atención, u otros aspectos no relacionados con el producto o servicio.'
-					}
-					required
-					messages={{ required: 'Elija el tipo de reclamación.' }}
-				/>
-				<FormField
-					id="c-detail"
-					name="detail"
-					label="Detalle del reclamo"
-					as="textarea"
-					help="Detalle por favor el motivo de su reclamación."
-					required
-					minlength={10}
-					maxlength={L.text}
-					messages={{
-						required: 'Cuéntenos el motivo de su reclamación.',
-						invalid: 'Cuéntenos un poco más (al menos 10 caracteres).',
-					}}
-				/>
-				<FormField
-					id="c-request"
-					name="request"
-					label="Su pedido es"
-					as="textarea"
-					help="Cuéntenos qué espera como solución a su reclamación."
-					required
-					maxlength={L.text}
-					messages={{ required: 'Cuéntenos qué solución espera.' }}
-				/>
-			</div>
-		</fieldset>
-
-		<!-- Consentimiento y envío -->
-		<div class="complaints__footer">
-			<p class="complaints__consent-text">
-				{content.consentText}
-				<a href={`${routes.legal}#proteccion-de-datos`}>política de privacidad</a> y nuestros
-				<a href={`${routes.legal}#condiciones-generales`}>términos y condiciones</a>.
-			</p>
-
-			<FormCheck
-				id="c-consent"
-				name="consent"
-				required
-				messages={{
-					required: 'Para enviar la reclamación debe aceptar el tratamiento de sus datos.',
-				}}
-			>
-				He leído y acepto el tratamiento de mis datos personales según lo descrito.
-			</FormCheck>
-
-			<p class="complaints__status" role="alert" data-complaints-status></p>
-
-			<Button
-				type="submit"
-				variant="primary"
-				size="sm"
-				block
-				class="complaints__submit"
-				data-complaints-submit
-			>
-				<span data-label-idle>{content.submit}</span>
-				<span data-label-busy hidden>
-					{content.sending}
-				</span>
-			</Button>
-
-			<aside class="complaints__next" aria-labelledby="c-next-title">
-				<h2 id="c-next-title" class="complaints__next-title">
+			<section class="complaints__info complaints__next" aria-labelledby="c-next-title">
+				<h2 id="c-next-title" class="complaints__info-title">
+					<Icon name="clock" size={20} class="complaints__info-icon" />
 					{content.next.title}
 				</h2>
-				<ul role="list" class="complaints__next-list">
-					{content.next.items.map((item) => (
-						<li>{item}</li>
+				<ol role="list" class="complaints__next-list">
+					{content.next.items.map((item, index) => (
+						<li class="complaints__next-item">
+							<span class="complaints__next-number" aria-hidden="true">
+								{index + 1}
+							</span>
+							<span>{item}</span>
+						</li>
 					))}
-				</ul>
-			</aside>
-		</div>
-	</form>
+				</ol>
+			</section>
 
-	<!-- Constancia (se muestra al registrar la reclamación) -->
-	<section class="complaints__success" data-complaints-success hidden aria-labelledby="c-success-title">
-		<span class="complaints__success-icon" aria-hidden="true">
-			<Icon name="check" size={32} />
-		</span>
-		<h2 id="c-success-title" class="complaints__success-title" tabindex="-1">
-			{content.success.title}
-		</h2>
-		<dl class="complaints__receipt">
-			<div>
-				<dt>{content.success.code}</dt>
-				<dd data-success-code></dd>
-			</div>
-			<div>
-				<dt>{content.success.date}</dt>
-				<dd data-success-date></dd>
-			</div>
-		</dl>
-		<p class="complaints__success-text" data-success-sent>
-			{content.success.emailBefore} <strong data-success-email></strong>. {content.success.deadline}
-		</p>
-		<p class="complaints__success-text" data-success-failed hidden>
-			{content.success.emailFailed} {content.success.deadline}
-		</p>
-		<div class="complaints__success-actions">
-			<Button variant="primary" size="sm" data-complaints-print icon={null}>
-				{content.success.print}
-			</Button>
-			<Button href={routes.home} tone="dark" size="sm">
-				{content.success.home}
-			</Button>
-		</div>
-	</section>
+			<p class="complaints__contact">
+				<Icon name="mail" size={20} class="complaints__contact-icon" />
+				<span>
+					{content.contact} <a href={mailto}>{site.contact.email}</a>
+				</span>
+			</p>
+		</aside>
+	</div>
 </div>
 
 <script>
@@ -513,51 +658,289 @@ const L = complaintLimits;
 <style>
 	.complaints {
 		--complaints-text: #2c3030;
+		--complaints-card-shadow: 0 1.5rem 3rem -2.5rem rgb(18 91 168 / 0.45);
 
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-5);
-		width: 100%;
-		max-width: 29.5rem; /* 472px */
-		margin-inline: auto;
 		color: var(--text-on-light);
 	}
 
-	/* ----- Encabezado ----- */
-	.complaints__header {
+	/* ==========================================================================
+	   Hero (oscuro, debajo del header transparente)
+	   ========================================================================== */
+	.complaints__hero {
+		position: relative;
+		isolation: isolate;
+		margin-top: calc(-1 * var(--header-height));
+		padding-block: calc(var(--header-height) + clamp(3rem, 6vw, 5.5rem)) clamp(6rem, 9vw, 8.5rem);
+		overflow: hidden; /* respaldo de "clip" en navegadores antiguos */
+		overflow: clip;
+		background:
+			radial-gradient(52rem 30rem at 88% 0%, rgb(0 122 252 / 0.32), transparent 70%),
+			radial-gradient(38rem 26rem at 0% 100%, rgb(255 26 48 / 0.18), transparent 70%),
+			var(--surface-dark);
+		color: var(--text-on-dark);
+	}
+
+	.complaints__decor {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Tubo rojo (render oficial, el mismo del Home) a la derecha */
+	.complaints__tube {
+		position: absolute;
+		top: calc(var(--header-height) + 0.5rem);
+		right: max(-6rem, calc((100% - var(--container-max)) / 2 - 8rem));
+		width: min(44rem, 45%);
+		max-width: none;
+		height: auto;
+		rotate: -6deg;
+	}
+
+	/* Líneas planas (amarilla, roja y celeste) al pie del hero */
+	.complaints__lines {
+		position: absolute;
+		bottom: clamp(-1.5rem, -1vw, -0.5rem);
+		left: 0;
+		width: 100%;
+		height: clamp(5rem, 8vw, 8rem);
+	}
+
+	.complaints__lines :global(.brand-line) {
+		stroke-dasharray: 100 100;
+	}
+
+	.complaints__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.complaints__star--yellow {
+		top: calc(var(--header-height) + 2rem);
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2 + 2rem));
+		width: 2.25rem;
+		color: var(--color-yellow);
+	}
+
+	.complaints__star--sky {
+		bottom: 9rem;
+		right: max(calc(var(--gutter) + 18rem), calc((100% - var(--container-max)) / 2 + 30rem));
+		width: 1.25rem;
+		color: var(--color-skyblue);
+	}
+
+	.complaints__hero-inner {
 		display: flex;
 		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+	}
+
+	.complaints__eyebrow {
+		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		padding-block: var(--space-9) var(--space-7); /* 64px 40px */
-		text-align: center;
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(244 244 244 / 0.18);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
 	}
 
-	/* Figma: Poppins Bold 36, azul */
+	.complaints__eyebrow-icon {
+		color: var(--color-yellow);
+	}
+
 	.complaints__title {
-		font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
-		line-height: 1.2;
-		color: var(--color-blue-title);
+		max-width: 16ch;
+		font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+		line-height: 1.02;
+		color: var(--color-pure-white);
 	}
 
-	.complaints__code {
-		font-size: var(--font-size-xs);
-		line-height: 1rem;
-		overflow-wrap: anywhere;
+	.complaints__lead {
+		max-width: 44rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
 	}
 
-	.complaints__company {
+	/* Datos del proveedor en píldoras de vidrio */
+	.complaints__facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		margin: var(--space-2) 0 0;
+	}
+
+	.complaints__fact {
 		display: flex;
 		flex-direction: column;
-		margin-top: var(--space-5);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-medium);
-		line-height: 1.25rem;
+		gap: 0.125rem;
+		padding: var(--space-3) var(--space-5);
+		border: 1px solid rgb(244 244 244 / 0.16);
+		border-radius: var(--radius-lg);
+		background-color: rgb(255 255 255 / 0.06);
+		backdrop-filter: blur(10px);
 	}
 
-	.complaints__company strong {
+	.complaints__fact dt {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-on-dark-muted);
+	}
+
+	.complaints__fact dd {
+		margin: 0;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
+	}
+
+	/* Entrada al cargar: el texto sube y las líneas se dibujan una tras otra */
+	@media (prefers-reduced-motion: no-preference) {
+		.complaints__hero-inner > * {
+			animation: complaints-rise 0.9s var(--ease-out) both;
+		}
+
+		.complaints__hero-inner > :nth-child(2) {
+			animation-delay: 0.08s;
+		}
+
+		.complaints__hero-inner > :nth-child(3) {
+			animation-delay: 0.16s;
+		}
+
+		.complaints__hero-inner > :nth-child(4) {
+			animation-delay: 0.24s;
+		}
+
+		.complaints__tube {
+			animation:
+				complaints-tube 1.6s var(--ease-out) both,
+				complaints-float 9s ease-in-out 1.6s infinite;
+		}
+
+		.complaints__lines :global(.brand-line) {
+			animation: complaints-draw 1.8s 0.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+		}
+
+		.complaints__lines :global(.brand-line:nth-of-type(2)) {
+			animation-delay: 0.45s;
+		}
+
+		.complaints__lines :global(.brand-line:nth-of-type(3)) {
+			animation-delay: 0.6s;
+		}
+
+		.complaints__star {
+			animation: complaints-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.complaints__star--sky {
+			animation-delay: -1.6s;
+		}
+	}
+
+	@keyframes complaints-rise {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+		}
+	}
+
+	@keyframes complaints-tube {
+		from {
+			opacity: 0;
+			scale: 0.9;
+			translate: 6% 4%;
+		}
+	}
+
+	@keyframes complaints-float {
+		50% {
+			translate: 0 -0.75rem;
+		}
+	}
+
+	@keyframes complaints-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes complaints-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	/* ==========================================================================
+	   Cuerpo: formulario + columna de información
+	   ========================================================================== */
+	.complaints__body {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
+		align-items: start;
+		gap: var(--space-8) clamp(var(--space-7), 4vw, var(--space-9));
+		padding-block: clamp(var(--space-8), 5vw, var(--space-10)) var(--space-10);
+	}
+
+	.complaints__main {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+		min-width: 0;
+	}
+
+	/* ----- Avisos (versión estática / sin JavaScript) ----- */
+	.complaints__notice {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-5);
+		border: 1px solid rgb(0 122 252 / 0.24);
+		border-left: 4px solid var(--color-blue);
+		border-radius: var(--radius-md);
+		background-color: var(--surface-white);
+		box-shadow: var(--complaints-card-shadow);
 		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: var(--complaints-text);
+	}
+
+	.complaints__notice-icon {
+		flex-shrink: 0;
+		margin-top: 0.0625rem;
 		color: var(--color-blue);
+	}
+
+	.complaints__notice-text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.complaints__notice strong {
+		color: var(--text-on-light);
+	}
+
+	.complaints__notice a {
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-blue-title);
+		text-decoration: underline;
 	}
 
 	/* ----- Formulario ----- */
@@ -565,6 +948,10 @@ const L = complaintLimits;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4); /* 16px entre tarjetas */
+	}
+
+	.complaints__form[hidden] {
+		display: none;
 	}
 
 	.complaints__trap {
@@ -575,6 +962,35 @@ const L = complaintLimits;
 		overflow: hidden;
 	}
 
+	/* Hoja de reclamación y su código */
+	.complaints__sheet {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: var(--space-1) var(--space-4);
+		padding-inline: var(--space-2);
+	}
+
+	.complaints__sheet-title {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-blue-title);
+	}
+
+	.complaints__code {
+		font-size: var(--font-size-xs);
+		line-height: 1rem;
+		color: var(--complaints-text);
+		overflow-wrap: anywhere;
+	}
+
+	.complaints__code span {
+		font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+	}
+
 	/* Tarjeta blanca (Figma: radio 40, padding 40/32) */
 	.complaints__card {
 		display: flex;
@@ -582,19 +998,20 @@ const L = complaintLimits;
 		gap: var(--space-5); /* 24px */
 		min-width: 0;
 		margin: 0;
-		padding: var(--space-7) var(--space-6); /* 40px 32px */
+		padding: var(--space-7); /* 40px */
 		border: 0;
 		border-radius: var(--radius-2xl);
 		background-color: var(--surface-white);
+		box-shadow: var(--complaints-card-shadow);
 	}
 
 	.complaints__card-heading {
 		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
+		align-items: flex-start;
+		gap: var(--space-4);
 		float: left; /* hace que <legend> se comporte como un bloque normal dentro del fieldset */
 		width: 100%;
-		margin-bottom: var(--space-5);
+		margin-bottom: var(--space-2);
 		padding: 0;
 	}
 
@@ -602,18 +1019,40 @@ const L = complaintLimits;
 		clear: both;
 	}
 
+	/* Número de la sección: círculo con el degradé azul de la marca */
+	.complaints__card-number {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue));
+		box-shadow: 0 0.5rem 1rem -0.5rem rgb(0 122 252 / 0.8);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
+	}
+
+	.complaints__card-titles {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		padding-top: 0.125rem;
+	}
+
 	/* Figma: Poppins Bold 24/24, azul */
 	.complaints__card-title {
 		font-size: var(--font-size-h4);
 		font-weight: var(--font-weight-bold);
-		line-height: 1.5rem;
+		line-height: 1.75rem;
 		color: var(--color-blue-title);
 	}
 
 	/* Figma: Poppins Regular 14/18 */
 	.complaints__card-text {
 		font-size: var(--font-size-sm);
-		line-height: 1.125rem;
+		line-height: 1.25rem;
 		color: var(--complaints-text);
 	}
 
@@ -623,79 +1062,37 @@ const L = complaintLimits;
 		gap: var(--space-4);
 	}
 
+	/* Dos campos por fila (una sola columna en móvil) */
 	.complaints__row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--space-3);
-	}
-
-	/* Campos de media columna: menos margen interno para que la etiqueta quepa entera */
-	.complaints__row :global(.form-field__input) {
-		padding-inline: var(--space-4) var(--space-4);
-		font-size: var(--font-size-sm);
-	}
-
-	.complaints__row :global(select.form-field__input) {
-		padding-inline-end: 2.5rem;
-	}
-
-	.complaints__row :global(.form-field__label) {
-		left: var(--space-4);
-		right: var(--space-4);
-		font-size: var(--font-size-sm);
-	}
-
-	.complaints__row :global(.form-field--select .form-field__label) {
-		right: 2.25rem;
-	}
-
-	.complaints__row :global(.form-field__chevron) {
-		right: var(--space-4);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+		gap: var(--space-4);
 	}
 
 	.complaints__guardian[hidden] {
 		display: none;
 	}
 
-	/* ----- Pie: consentimiento, botón e información ----- */
-	.complaints__footer {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-6); /* 32px */
-		margin-top: var(--space-2);
-		padding-inline: var(--space-3);
+	/* ----- Consentimiento y envío ----- */
+	.complaints__card--submit {
+		gap: var(--space-5);
 	}
 
 	.complaints__consent-text {
 		font-size: var(--font-size-sm);
-		line-height: 1.25rem;
+		line-height: 1.375rem;
+		color: var(--complaints-text);
 	}
 
 	.complaints__consent-text a {
+		color: var(--color-blue-title);
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
 
 	.complaints__consent-text a:hover {
-		color: var(--color-blue-title);
-	}
-
-	/* Aviso de la versión estática (sin servidor) */
-	.complaints__notice {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
-		padding: var(--space-4) var(--space-5);
-		border-radius: var(--radius-md);
-		background-color: var(--surface-white);
-		font-size: var(--font-size-sm);
-		line-height: 1.25rem;
-		color: var(--complaints-text);
-	}
-
-	.complaints__notice a {
-		font-weight: var(--font-weight-semibold);
-		text-decoration: underline;
+		color: var(--color-blue);
 	}
 
 	.complaints__status {
@@ -716,8 +1113,17 @@ const L = complaintLimits;
 	.complaints :global(.complaints__submit) {
 		min-height: 3.75rem;
 		border-radius: var(--radius-md);
+		box-shadow: 0 1rem 2rem -1.25rem rgb(251 189 29 / 0.95);
 		font-size: var(--font-size-md);
 		color: #002546;
+	}
+
+	.complaints :global(.complaints__submit .btn__icon) {
+		transition: translate var(--duration-base) var(--ease-out);
+	}
+
+	.complaints :global(.complaints__submit:hover .btn__icon) {
+		translate: 0.25rem 0;
 	}
 
 	.complaints :global(.complaints__submit[aria-disabled]) {
@@ -726,31 +1132,154 @@ const L = complaintLimits;
 		pointer-events: none;
 	}
 
-	/* "¿Qué sucede después…?" (Figma: borde 1px, radio 28, padding 24) */
-	.complaints__next {
+	.complaints__legal-note {
+		font-size: var(--font-size-xs);
+		line-height: 1.125rem;
+		color: var(--complaints-text);
+		text-align: center;
+	}
+
+	/* ==========================================================================
+	   Columna de información
+	   ========================================================================== */
+	.complaints__aside {
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-5));
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
-		padding: var(--space-5);
-		border: 1px solid rgb(44 48 48 / 0.56);
-		border-radius: 1.75rem;
 	}
 
-	.complaints__next-title {
+	.complaints__info {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		padding: var(--space-6);
+		border-radius: 1.75rem;
+		background-color: var(--surface-white);
+		box-shadow: var(--complaints-card-shadow);
+	}
+
+	.complaints__info-title {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-2);
 		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
 		line-height: 1.5rem;
+		color: var(--text-on-light);
 		text-wrap: wrap;
 	}
 
-	.complaints__next-list {
+	.complaints__info-icon {
+		flex-shrink: 0;
+		margin-top: 0.125rem;
+		color: var(--color-blue);
+	}
+
+	/* ¿Reclamo o queja? */
+	.complaints__types {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
 		margin: 0;
-		padding: 0;
+	}
+
+	.complaints__type {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background-color: #eef6fa;
+	}
+
+	.complaints__type dt {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-blue-title);
+	}
+
+	.complaints__type dd {
+		margin: 0;
 		font-size: var(--font-size-sm);
 		line-height: 1.25rem;
 		color: var(--complaints-text);
 	}
 
-	/* ----- Constancia ----- */
+	/* ¿Qué sucede después? — línea de tiempo numerada */
+	.complaints__next-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		margin: 0;
+		padding: 0;
+	}
+
+	.complaints__next-item {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1.75rem minmax(0, 1fr);
+		gap: var(--space-3);
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: var(--complaints-text);
+	}
+
+	/* Línea que une los números */
+	.complaints__next-item:not(:last-child)::before {
+		content: '';
+		position: absolute;
+		top: 2rem;
+		bottom: calc(-1 * var(--space-4) + 0.25rem);
+		left: calc(0.875rem - 1px);
+		width: 2px;
+		border-radius: 1px;
+		background-color: rgb(0 122 252 / 0.2);
+	}
+
+	.complaints__next-number {
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border: 2px solid var(--color-blue);
+		border-radius: var(--radius-pill);
+		background-color: var(--surface-white);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-blue);
+	}
+
+	.complaints__contact {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-5);
+		border: 1px dashed rgb(18 91 168 / 0.35);
+		border-radius: var(--radius-lg);
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: var(--complaints-text);
+	}
+
+	.complaints__contact-icon {
+		flex-shrink: 0;
+		margin-top: 0.0625rem;
+		color: var(--color-blue);
+	}
+
+	.complaints__contact a {
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-blue-title);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		overflow-wrap: anywhere;
+	}
+
+	/* ==========================================================================
+	   Constancia
+	   ========================================================================== */
 	.complaints__success {
 		display: flex;
 		flex-direction: column;
@@ -759,6 +1288,7 @@ const L = complaintLimits;
 		padding: var(--space-8) var(--space-6);
 		border-radius: var(--radius-2xl);
 		background-color: var(--surface-white);
+		box-shadow: var(--complaints-card-shadow);
 		text-align: center;
 	}
 
@@ -823,26 +1353,140 @@ const L = complaintLimits;
 		gap: var(--space-3);
 	}
 
-	/* ----- Móvil ----- */
+	/* ===== Tablet: una columna (la información va después del formulario) ===== */
+	@media (max-width: 1100px) {
+		/* Sin espacio libre a la derecha: taparía el texto */
+		.complaints__tube {
+			display: none;
+		}
+
+		.complaints__body {
+			grid-template-columns: minmax(0, 1fr);
+			max-width: 50rem;
+		}
+
+		.complaints__aside {
+			position: static;
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			align-items: start;
+		}
+
+		.complaints__contact {
+			grid-column: 1 / -1;
+		}
+	}
+
+	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
+		.complaints__hero {
+			padding-block: calc(var(--header-height) + var(--space-7)) var(--space-10);
+		}
+
+		.complaints__star--sky {
+			display: none;
+		}
+
+		.complaints__star--yellow {
+			top: calc(var(--header-height) + 1.5rem);
+			width: 1.5rem;
+		}
+
+		.complaints__title {
+			font-size: var(--font-size-display-mobile);
+		}
+
+		.complaints__lead {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.complaints__facts {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			width: 100%;
+		}
+
+		.complaints__fact {
+			padding: var(--space-3) var(--space-4);
+		}
+
+		.complaints__fact:first-child {
+			grid-column: 1 / -1;
+		}
+
+		.complaints__body {
+			padding-block: var(--space-7) var(--space-9);
+		}
+
 		.complaints__card {
 			padding: var(--space-6) var(--space-5);
 			border-radius: var(--radius-xl);
 		}
 
-		.complaints__row {
-			grid-template-columns: 1fr;
+		.complaints__card-heading {
+			gap: var(--space-3);
 		}
 
-		.complaints__footer {
-			padding-inline: 0;
+		.complaints__card-number {
+			width: 2.25rem;
+			height: 2.25rem;
+		}
+
+		.complaints__card-title {
+			font-size: var(--font-size-card-title-mobile);
+			line-height: 1.5rem;
+		}
+
+		.complaints__row {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.complaints__aside {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.complaints__info {
+			padding: var(--space-5);
+			border-radius: var(--radius-xl);
 		}
 	}
 
-	/* ----- Impresión: solo la constancia ----- */
+	/* ----- Impresión: solo la constancia (con los datos del proveedor) ----- */
 	@media print {
+		.complaints__hero {
+			margin: 0;
+			padding: 0 0 var(--space-5);
+			background: none;
+			color: var(--text-on-light);
+		}
+
+		.complaints__decor,
+		.complaints__eyebrow,
+		.complaints__lead,
+		.complaints__aside,
+		.complaints__notice,
 		.complaints__success-actions {
 			display: none;
+		}
+
+		.complaints__title,
+		.complaints__fact dd {
+			color: var(--text-on-light);
+		}
+
+		.complaints__fact {
+			border-color: #ccc;
+			background: none;
+		}
+
+		.complaints__fact dt {
+			color: var(--complaints-text);
+		}
+
+		.complaints__body {
+			display: block;
+			padding: 0;
 		}
 	}
 </style>

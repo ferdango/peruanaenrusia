@@ -10,7 +10,7 @@
  *
  * La página de la historia completa muestra solo las secciones con datos:
  * los campos de "Historia completa" (headline, portrait, video, highlight,
- * story, gallery, closing) son opcionales.
+ * story, closing) son opcionales.
  *
  * ⚠️ CONTENIDO DE EJEMPLO: por ahora la lista repite el caso de ejemplo del
  * diseño ("Alexis Rojas"), con sus fotos y textos de relleno (lorem ipsum).
@@ -18,8 +18,10 @@
  * de publicar el sitio.
  */
 import type { ImageSource } from '@lib/content/images';
+import { tiktokIdFromUrl, youtubeIdFromUrl } from '@utils/url';
 
 import type { CountryCode } from '@data/countries';
+import { tiktokPostUrl } from '@data/social';
 
 import avatarExample from '@assets/images/testimonials/avatar-alexis-rojas.png';
 import avatarExampleHighlighted from '@assets/images/testimonials/avatar-student-2.png';
@@ -29,21 +31,13 @@ import stepCouple from '@assets/images/testimonials/case-step-couple-campus.jpg'
 import stepGirlPhone from '@assets/images/testimonials/case-step-girl-phone.jpg';
 import stepPortrait from '@assets/images/testimonials/case-step-portrait-red-sweater.jpg';
 import stepStudentPhone from '@assets/images/testimonials/case-step-student-phone.jpg';
-import galleryEconomicForum from '@assets/images/testimonials/case-gallery-economic-forum.jpg';
-import galleryRedSquare from '@assets/images/testimonials/case-gallery-red-square.jpg';
+import successCaseCover from '@assets/images/videos/caso-de-exito-becado-en-rusia.jpg';
+import studentTruthCover from '@assets/images/social/tiktok-7635277713447767317.jpg';
 
 /** Foto con su texto alternativo (describe lo que se ve en la imagen) */
 export interface TestimonialPhoto {
 	src: ImageSource;
 	alt: string;
-}
-
-/** Foto de la tira de publicaciones (estilo Instagram) */
-export interface TestimonialGalleryItem extends TestimonialPhoto {
-	/** Enlace a la publicación (si no hay, se enlaza el perfil de Instagram de la marca) */
-	href?: string;
-	/** true = publicación con varias fotos (muestra el ícono de "varias fotos") */
-	album?: boolean;
 }
 
 /** Casilla del mosaico "Cómo lo logré": un texto o una foto */
@@ -77,7 +71,11 @@ export interface Testimonial {
 	headline?: string;
 	/** Foto grande de la portada */
 	portrait?: TestimonialPhoto;
-	/** Video "Conoce mi historia": miniatura + enlace (YouTube). Sin `url`, el botón ▶ abre el canal de YouTube */
+	/**
+	 * Video "Conoce mi historia" y del cierre: miniatura + enlace de YouTube o
+	 * TikTok (se ve en el modal del sitio). Sin `url` se muestran las historias
+	 * en video del Home (ver testimonialVideo)
+	 */
 	video?: {
 		poster: TestimonialPhoto;
 		url?: string;
@@ -86,8 +84,6 @@ export interface Testimonial {
 	highlight?: string;
 	/** Mosaico "Cómo lo logré: el paso a paso" */
 	story?: TestimonialStoryBlock[];
-	/** Tira de fotos (publicaciones de Instagram) */
-	gallery?: TestimonialGalleryItem[];
 	/** Cierre junto al segundo video: cita (sin comillas) + párrafo */
 	closing?: {
 		quote: string;
@@ -102,14 +98,6 @@ const photos = {
 	girlPhone: { src: stepGirlPhone, alt: 'Estudiante con su celular en una plaza de una ciudad rusa' },
 	portrait: { src: stepPortrait, alt: 'Estudiante sonriendo en una sala iluminada con una lámpara' },
 	studentPhone: { src: stepStudentPhone, alt: 'Estudiante con mochila revisando su celular en el campus' },
-	redSquare: {
-		src: galleryRedSquare,
-		alt: 'Estudiante posando en las escaleras frente a la Plaza Roja de Moscú',
-	},
-	economicForum: {
-		src: galleryEconomicForum,
-		alt: 'Estudiante apoyada en el muro del Foro Económico Internacional de San Petersburgo',
-	},
 } satisfies Record<string, TestimonialPhoto>;
 
 /** Texto de relleno del diseño para las casillas "Mi historia" */
@@ -144,15 +132,66 @@ const exampleCase: Omit<Testimonial, 'slug'> = {
 			tiles: [storyStep, { photo: photos.girlPhone }, storyStep, storyStep],
 		},
 	],
-	gallery: [
-		{ ...photos.redSquare, album: true },
-		{ ...photos.economicForum },
-		{ ...photos.redSquare, album: true },
-		{ ...photos.economicForum, album: true },
-	],
 	closing: {
 		quote: 'Es increíble el cambio en mi vida, no me esperaba poder llegar hasta aquí',
 		text: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur g elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur.',
+	},
+};
+
+/** Video de un caso de éxito listo para el modal del sitio (VideoModal) */
+export interface TestimonialVideoSource {
+	/** Enlace del video (sin JavaScript se abre en una pestaña nueva) */
+	href: string;
+	/** Código de YouTube o número de TikTok: con uno de ellos se ve en el modal */
+	youtubeId?: string;
+	tiktokId?: string;
+	/** Título del video del Home que se muestra cuando el caso no tiene video propio */
+	title?: string;
+}
+
+/**
+ * Video de un caso de éxito ("Conoce mi historia" y el cierre), para verlo en
+ * el modal del sitio como en el Home:
+ *   - Con `video.url` de YouTube o TikTok: ese video (de otra plataforma, el
+ *     enlace se abre en una pestaña nueva).
+ *   - Sin `video.url`: una de las historias en video del Home
+ *     (successVideos): el caso de éxito de YouTube (`fallback: 'youtube'`) o
+ *     el testimonio de TikTok (`fallback: 'tiktok'`).
+ */
+export function testimonialVideo(
+	testimonial: Testimonial,
+	fallback: 'youtube' | 'tiktok' = 'youtube',
+): TestimonialVideoSource {
+	const url = testimonial.video?.url;
+	if (url) return { href: url, youtubeId: youtubeIdFromUrl(url), tiktokId: tiktokIdFromUrl(url) };
+
+	if (fallback === 'tiktok') {
+		const { tiktokId, title } = successVideos.tiktok;
+		return { href: tiktokPostUrl(tiktokId), tiktokId, title };
+	}
+	const { youtubeId, title } = successVideos.youtube;
+	return { href: `https://www.youtube.com/watch?v=${youtubeId}`, youtubeId, title };
+}
+
+/**
+ * Historias en video (reales) de "Nuestros casos de éxito" en el Home:
+ * el caso de éxito del canal de YouTube y el testimonio de un alumno en
+ * TikTok. Se reproducen en el modal del sitio.
+ */
+export const successVideos = {
+	youtube: {
+		youtubeId: 'A_tz23sIFXk',
+		title: 'Caso de éxito: becado en Rusia gracias a Peruana en Rusia',
+		kicker: 'Caso de éxito',
+		duration: '1:21',
+		cover: successCaseCover,
+	},
+	tiktok: {
+		tiktokId: '7635277713447767317',
+		title: '¿Es seguro estudiar en Rusia? Un alumno cuenta su experiencia',
+		kicker: 'Testimonio',
+		views: '93,4 mil',
+		cover: studentTruthCover,
 	},
 };
 

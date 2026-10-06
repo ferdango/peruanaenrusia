@@ -2,191 +2,357 @@
 /**
  * HomeCommunityGrid — "Mira cómo estamos revolucionando vidas"
  * --------------------------------------------------------------------------
- * Figma: Home › "Frame 628458" (4045:120)
- *   · Título (3832:120).
- *   · Grilla (4045:119): columnas de 2 fotos (una de 400px y otra que ocupa el
- *     resto de los 660px), alternando alta/baja, en un carrusel (4045:121).
- *   · Tarjeta roja "Únete a Peruana en Rusia:" (4045:144) flotando sobre la
- *     esquina inferior derecha de la grilla.
+ * Figma: Home › "Frame 628458" (4045:120): título + grilla de fotos con la
+ * tarjeta roja "Únete a Peruana en Rusia:" (4045:144), mejorado:
  *
- * Móvil: el diseño móvil no incluye esta grilla (pasa directo a "Una comunidad
- * que cambia vidas", que trae su propia tarjeta roja), así que se oculta.
- *
- * Las fotos vienen de src/data/community.ts (`communityGridPhotos`).
+ *   - Mosaico de momentos reales de la comunidad (src/data/community.ts ›
+ *     communityMoments): la llegada de los becados, visitas a universidades,
+ *     charlas… Cada foto muestra qué pasó y, si es un video del canal, se
+ *     reproduce en el modal del sitio (sin JavaScript abre YouTube).
+ *   - La tarjeta roja "Únete" es una casilla más del mosaico (en móvil, al
+ *     final, a todo el ancho).
+ *   - Las fotos aparecen con un recorte al hacer scroll y se acercan al pasar
+ *     el cursor (src/scripts/motion.ts).
  *
  * Uso: <HomeCommunityGrid /> (página de inicio).
  */
 import { Image } from 'astro:assets';
 
-import Carousel from '@components/ui/Carousel.astro';
+import Icon from '@components/ui/Icon.astro';
 import CommunityJoinCard from './CommunityJoinCard.astro';
-import { communityGridPhotos, type CommunityPhoto } from '@data/community';
+import { communityMoments } from '@data/community';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Nuestra comunidad',
 	title: 'Mira cómo estamos revolucionando vidas',
-	carouselLabel: 'Fotos de la comunidad de Peruana en Rusia',
+	text: 'Llegadas, visitas a universidades y charlas: así se vive el camino de nuestros estudiantes en Rusia.',
+	watch: 'Ver video',
+	listLabel: 'Momentos de la comunidad de Peruana en Rusia',
 };
-
-/** Agrupa las fotos de 2 en 2: cada par es una columna de la grilla */
-const columns: CommunityPhoto[][] = [];
-for (let index = 0; index < communityGridPhotos.length; index += 2) {
-	columns.push(communityGridPhotos.slice(index, index + 2));
-}
 ---
 
 <section class="home-community section" id="comunidad" aria-labelledby="home-community-title">
-	<div class="container">
+	<header class="home-community__header container">
+		<p class="home-community__eyebrow">
+			<Star class="home-community__eyebrow-star" aria-hidden="true" />
+			{content.eyebrow}
+		</p>
 		<h2 id="home-community-title" class="home-community__title">
 			{content.title}
 		</h2>
-	</div>
+		<p class="home-community__text">{content.text}</p>
+	</header>
 
-	<div class="home-community__stage">
-		<Carousel label={content.carouselLabel} tone="blue" gap={16} class="home-community__carousel">
-			{columns.map((column, columnIndex) => (
-				<ul
-					class:list={['community-column', { 'community-column--reverse': columnIndex % 2 === 1 }]}
-					role="list"
-				>
-					{column.map((photo) => (
-						<li class="community-column__item">
-							{photo.href ? (
-								<a
-									href={photo.href}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="community-photo"
-								>
-									<Image
-										src={photo.image}
-										alt={photo.alt}
-										widths={[326, 652]}
-										sizes="(max-width: 1100px) 45vw, 326px"
-										class="community-photo__image"
-									/>
-								</a>
-							) : (
-								<div class="community-photo">
-									<Image
-										src={photo.image}
-										alt={photo.alt}
-										widths={[326, 652]}
-										sizes="(max-width: 1100px) 45vw, 326px"
-										class="community-photo__image"
-									/>
-								</div>
-							)}
-						</li>
-					))}
-				</ul>
+	<div class="home-community__mosaic container">
+		<ul class="moments" role="list" aria-label={content.listLabel}>
+			{communityMoments.map((moment) => (
+				<li class:list={['moment', `moment--${moment.area}`]}>
+					{moment.youtubeId ? (
+						<a
+							class="moment__card"
+							href={`https://www.youtube.com/watch?v=${moment.youtubeId}`}
+							target="_blank"
+							rel="noopener"
+							data-video-open
+							data-video-youtube={moment.youtubeId}
+							data-video-title={moment.caption}
+						>
+							<Image
+								src={moment.image}
+								alt=""
+								widths={[400, 800, 1200]}
+								sizes="(max-width: 640px) 92vw, (max-width: 1100px) 46vw, 40vw"
+								class="moment__image"
+							/>
+							<span class="moment__shade" aria-hidden="true" />
+							<span class="moment__play" aria-hidden="true">
+								<Icon name="play" size={18} />
+							</span>
+							<span class="moment__caption">
+								<span class="visually-hidden">{content.watch}: </span>
+								{moment.caption}
+							</span>
+							<span class="visually-hidden">. {moment.alt}</span>
+						</a>
+					) : (
+						<figure class="moment__card">
+							<Image
+								src={moment.image}
+								alt={moment.alt}
+								widths={[400, 800, 1200]}
+								sizes="(max-width: 640px) 92vw, (max-width: 1100px) 92vw, 50vw"
+								class="moment__image"
+							/>
+							<span class="moment__shade" aria-hidden="true" />
+							<figcaption class="moment__caption">{moment.caption}</figcaption>
+						</figure>
+					)}
+				</li>
 			))}
-		</Carousel>
-
-		<CommunityJoinCard class="home-community__join" />
+			<li class="moment moment--join">
+				<CommunityJoinCard class="home-community__join" />
+			</li>
+		</ul>
 	</div>
 </section>
 
 <style>
 	.home-community {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-7); /* 40px */
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+		overflow: clip;
 		background-color: var(--surface-light);
 		color: var(--text-on-light);
-		--carousel-controls-gap: var(--space-7);
 	}
 
-	/* Figma: Poppins Bold 48/56, 540px */
+	/* ===== Encabezado ===== */
+	.home-community__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-4);
+	}
+
+	.home-community__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.home-community__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-red);
+	}
+
 	.home-community__title {
-		max-width: 33.75rem;
+		max-width: 40rem;
 		font-size: var(--font-size-h1);
-		line-height: 1.1667;
+		line-height: 1.1;
 		color: var(--text-heading-light);
-		text-wrap: wrap;
+		text-wrap: balance;
 	}
 
-	/* ----- Escenario: carrusel + tarjeta roja flotante ----- */
-	.home-community__stage {
-		position: relative;
-		container-type: inline-size;
+	.home-community__text {
+		max-width: 38rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: #363636;
 	}
 
-	/* ----- Columna de 2 fotos (660px de alto) ----- */
-	.community-column {
+	/* ===== Mosaico (desktop: 4 columnas × 3 filas) ===== */
+	.moments {
 		display: grid;
-		grid-template-rows: 25rem minmax(0, 1fr); /* 400px + resto */
-		gap: var(--space-4); /* 16px */
-		/* 4 columnas visibles en el contenido de 1352px */
-		width: calc((min(100cqw - 2 * var(--gutter), var(--container-max)) - 3 * 16px) / 4);
-		height: 41.25rem; /* 660px */
-		margin: 0;
-		padding: 0;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		/* La última fila crece si la tarjeta "Únete" lo necesita */
+		grid-template-rows:
+			repeat(2, clamp(11rem, 15vw, 14.5rem))
+			minmax(clamp(11rem, 15vw, 14.5rem), auto);
+		grid-template-areas:
+			'hero hero a tall'
+			'hero hero b tall'
+			'c join join d';
+		gap: clamp(var(--space-3), 1.2vw, var(--space-4));
 	}
 
-	.community-column--reverse {
-		grid-template-rows: minmax(0, 1fr) 25rem;
+	.moment--hero {
+		grid-area: hero;
 	}
 
-	.community-column__item {
-		min-height: 0;
+	.moment--tall {
+		grid-area: tall;
 	}
 
-	.community-photo {
+	.moment--a {
+		grid-area: a;
+	}
+
+	.moment--b {
+		grid-area: b;
+	}
+
+	.moment--c {
+		grid-area: c;
+	}
+
+	.moment--d {
+		grid-area: d;
+	}
+
+	.moment--join {
+		grid-area: join;
+		display: flex;
+	}
+
+	.moment__card {
+		position: relative;
+		isolation: isolate;
 		display: block;
 		height: 100%;
+		margin: 0;
 		overflow: clip;
-		border-radius: 1.75rem; /* 28px */
+		border-radius: var(--radius-xl);
+		background-color: #dfe6ee;
+		color: var(--color-pure-white);
 	}
 
-	.community-photo__image {
+	.moment__image {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform var(--duration-slow) var(--ease-out);
+		transition: scale 1s var(--ease-out);
 	}
 
-	a.community-photo:hover .community-photo__image {
-		transform: scale(1.04);
+	.moment__card:hover .moment__image {
+		scale: 1.06;
 	}
 
-	/* ----- Tarjeta roja: esquina inferior derecha (Figma: left 1000 · top 770) ----- */
-	.home-community :global(.home-community__join) {
+	.moment__shade {
 		position: absolute;
-		top: 33.625rem; /* 538px desde el inicio de la grilla */
-		right: max(0.875rem, (100cqw - 1512px) / 2 + 0.875rem); /* 14px del borde del lienzo */
-		z-index: 1;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(to top, rgb(6 10 20 / 0.72) 0%, rgb(6 10 20 / 0.12) 45%, transparent 70%);
 	}
 
-	/* ===== Tablet: 2 columnas y media; la tarjeta roja va debajo ===== */
+	.moment__caption {
+		position: absolute;
+		inset: auto var(--space-4) var(--space-4);
+		display: block;
+		width: fit-content;
+		max-width: calc(100% - 2 * var(--space-4));
+		padding: 0.375rem 0.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 0 0 / 0.45);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.25rem;
+	}
+
+	.moment--hero .moment__caption {
+		inset: auto var(--space-6) var(--space-6);
+		font-size: var(--font-size-md);
+	}
+
+	.moment__play {
+		position: absolute;
+		top: var(--space-4);
+		right: var(--space-4);
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.92);
+		color: var(--color-blue);
+		transition:
+			scale var(--duration-slow) var(--ease-out),
+			background-color var(--duration-base) var(--ease-out);
+	}
+
+	.moment__play :global(svg) {
+		margin-left: 0.125rem;
+	}
+
+	.moment__card:hover .moment__play {
+		scale: 1.1;
+		background-color: var(--color-pure-white);
+	}
+
+	a.moment__card:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 3px;
+	}
+
+	/* La tarjeta roja "Únete" ocupa su casilla completa */
+	.home-community :global(.home-community__join) {
+		flex: 1;
+		width: auto;
+		max-width: none;
+		min-height: 100%;
+		margin: 0;
+		border-radius: var(--radius-xl);
+	}
+
+	/* ===== Tablet: 2 columnas ===== */
 	@media (max-width: 1100px) {
-		.community-column {
-			width: calc((100cqw - var(--gutter) - 2 * 16px) / 2.4);
-			height: 32rem;
-			grid-template-rows: 19rem minmax(0, 1fr);
-		}
-
-		.community-column--reverse {
-			grid-template-rows: minmax(0, 1fr) 19rem;
-		}
-
-		.home-community :global(.home-community__join) {
-			position: relative;
-			top: auto;
-			right: auto;
-			margin: var(--space-7) var(--gutter) 0 auto;
+		.moments {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			/* La última fila (tarjeta "Únete") crece con su contenido */
+			grid-template-rows: repeat(5, clamp(11rem, 26vw, 15rem)) auto;
+			grid-template-areas:
+				'hero hero'
+				'hero hero'
+				'a tall'
+				'b tall'
+				'c d'
+				'join join';
 		}
 	}
 
-	/* ===== Móvil: la grilla no forma parte del diseño móvil ===== */
+	/* ===== Móvil: mosaico compacto y la tarjeta "Únete" al final ===== */
 	@media (max-width: 640px) {
+		.home-community {
+			gap: var(--space-6);
+			padding-block: var(--space-9);
+		}
+
+		.home-community__header {
+			align-items: center;
+			text-align: center;
+		}
+
 		.home-community__title {
 			font-size: var(--font-size-title-mobile);
 			line-height: var(--line-height-title-mobile);
 		}
 
-		.home-community {
-			display: none;
+		.home-community__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.moments {
+			grid-template-rows: repeat(5, 9.5rem) auto;
+			gap: var(--space-2);
+		}
+
+		.home-community :global(.home-community__join) {
+			border-radius: var(--radius-lg);
+		}
+
+		.moment__card {
+			border-radius: var(--radius-lg);
+		}
+
+		.moment__caption,
+		.moment--hero .moment__caption {
+			inset: auto var(--space-2) var(--space-2);
+			max-width: calc(100% - 2 * var(--space-2));
+			padding: 0.25rem 0.5rem;
+			font-size: 0.6875rem;
+			line-height: 1rem;
+		}
+
+		.moment__play {
+			top: var(--space-2);
+			right: var(--space-2);
+			width: 2rem;
+			height: 2rem;
 		}
 	}
 </style>

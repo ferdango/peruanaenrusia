@@ -25,3 +25,23 @@ export function withoutBase(pathname: string): string {
 	if (pathname === BASE_PATH) return '/';
 	return pathname.startsWith(`${BASE_PATH}/`) ? pathname.slice(BASE_PATH.length) : pathname;
 }
+
+/**
+ * Código de un video de YouTube a partir de su URL (watch?v=, youtu.be/,
+ * shorts/, embed/ o live/). Si la URL no es de un video de YouTube, undefined.
+ *   'https://www.youtube.com/watch?v=A_tz23sIFXk' → 'A_tz23sIFXk'
+ */
+export function youtubeIdFromUrl(url: string | undefined): string | undefined {
+	return url?.match(
+		/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/,
+	)?.[1];
+}
+
+/**
+ * Número de un video de TikTok a partir de su URL (…/video/NÚMERO o
+ * …/embed/v2/NÚMERO). Si la URL no es de un video de TikTok, undefined.
+ *   'https://www.tiktok.com/@peruanaenrusia/video/7635277713447767317' → '7635277713447767317'
+ */
+export function tiktokIdFromUrl(url: string | undefined): string | undefined {
+	return url?.match(/tiktok\.com\/(?:@[\w.-]+\/video|embed(?:\/v2)?)\/(\d+)/)?.[1];
+}

@@ -2,18 +2,16 @@
 /**
  * FeaturedPostCard
  * --------------------------------------------------------------------------
- * Tarjeta horizontal (480 × 320 px) de una publicación del blog: foto con
- * degradado, título y fecha. Si la publicación es un video, muestra además
- * el botón ▶ en el centro y el ícono de YouTube a la derecha (Figma: Blog ›
- * "Novedades", 1711:406 › 1711:372; sin video: 1711:377).
+ * Tarjeta de una publicación del blog para "Novedades": miniatura 16:9 (con
+ * ▶ y duración si es un video), categoría, fecha, título y resumen.
+ * Toda la tarjeta es clicable.
  *
- * Toda la tarjeta es clicable y lleva a /blog/{slug}/.
- *
- * Tamaño: define --featured-card-width desde la sección que la usa (el alto
- * se calcula con la proporción 3:2 del diseño).
+ * Con `modal`, los videos se reproducen en el modal del sitio
+ * (src/components/overlays/VideoModal.astro, que debe estar en la página);
+ * sin JavaScript, y en los artículos, lleva a /blog/{slug}/.
  *
  * Uso:
- *   <FeaturedPostCard post={post} />
+ *   <FeaturedPostCard post={post} modal />
  */
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
@@ -24,158 +22,220 @@ import { formatDate } from '@utils/format';
 interface Props {
 	post: BlogPost;
 	headingLevel?: 'h2' | 'h3';
+	/** true = los videos se reproducen en el modal del sitio */
+	modal?: boolean;
 	class?: string;
 }
 
-const { post, headingLevel: Heading = 'h3', class: className } = Astro.props;
-const isVideo = post.type === 'video';
+const { post, headingLevel: Heading = 'h3', modal = false, class: className } = Astro.props;
+
+const video = post.type === 'video' ? post.video : undefined;
+const summary = post.type === 'video' ? post.video.description : post.article.excerpt;
+const category = video ? 'Videoblog' : post.category;
+const modalAttributes =
+	modal && video?.youtubeId
+		? { 'data-video-open': '', 'data-video-youtube': video.youtubeId, 'data-video-title': video.title }
+		: {};
 ---
 
-<article class:list={['featured-card', { 'featured-card--video': isVideo }, className]}>
-	<div class="featured-card__media">
+<article class:list={['post-tile', { 'post-tile--video': video }, className]}>
+	<div class="post-tile__media">
 		<MediaImage
 			image={post.image}
 			alt=""
-			widths={[480, 960]}
-			sizes="480px"
-			class="featured-card__image"
+			widths={[400, 800]}
+			sizes="(max-width: 640px) 92vw, (max-width: 1100px) 46vw, 432px"
+			class="post-tile__image"
 		/>
-		{isVideo && (
-			<span class="featured-card__play" aria-hidden="true">
-				<Icon name="play" size={24} />
+		{video && (
+			<span class="post-tile__play" aria-hidden="true">
+				<Icon name="play" size={20} />
+			</span>
+		)}
+		{video?.duration && (
+			<span class="post-tile__duration" aria-hidden="true">
+				{video.duration}
 			</span>
 		)}
 	</div>
 
-	<div class="featured-card__body">
-		<div class="featured-card__text">
-			<Heading class="featured-card__title">
-				<a href={detailRoutes.blogPost(post.slug)} class="featured-card__link">
-					{isVideo && <span class="visually-hidden">Video: </span>}
-					{post.title}
-				</a>
-			</Heading>
-			<p class="featured-card__date">
-				<time datetime={post.date}>{formatDate(post.date)}</time>
-			</p>
-		</div>
-		{isVideo && <Icon name="youtube-play" size={32} class="featured-card__platform" />}
+	<div class="post-tile__body">
+		<p class="post-tile__meta">
+			<span class="post-tile__category">
+				{video && <Icon name="youtube-play" size={14} class="post-tile__category-icon" />}
+				{category}
+			</span>
+			<time datetime={post.date}>{formatDate(post.date)}</time>
+		</p>
+		<Heading class="post-tile__title">
+			<a href={detailRoutes.blogPost(post.slug)} class="post-tile__link" {...modalAttributes}>
+				{video && <span class="visually-hidden">Video: </span>}
+				{post.title}
+			</a>
+		</Heading>
+		{summary && <p class="post-tile__text">{summary}</p>}
 	</div>
 </article>
 
 <style>
-	.featured-card {
+	.post-tile {
 		position: relative;
-		isolation: isolate;
 		display: flex;
 		flex-direction: column;
-		justify-content: flex-end;
-		width: var(--featured-card-width, 30rem); /* 480px */
-		aspect-ratio: 3 / 2; /* 480 × 320 */
-		border-radius: var(--radius-xl);
+		height: 100%;
 		overflow: clip;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
 		color: var(--text-on-dark);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow 0.6s var(--ease-out);
 	}
 
-	/* ----- Foto + degradado + botón ▶ ----- */
-	.featured-card__media {
-		position: absolute;
-		inset: 0;
-		z-index: -1;
+	.post-tile:hover {
+		border-color: rgb(255 255 255 / 0.18);
+		box-shadow: 0 2rem 4rem -2rem rgb(0 0 0 / 0.8);
 	}
 
-	.featured-card__image {
+	.post-tile__media {
+		position: relative;
+		overflow: clip;
+		aspect-ratio: 16 / 9;
+	}
+
+	.post-tile__image {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform var(--duration-slow) var(--ease-out);
+		transition: scale 0.8s var(--ease-out);
 	}
 
-	/* Degradado: los 240px inferiores se funden con el fondo oscuro */
-	.featured-card__media::after {
-		content: '';
-		position: absolute;
-		inset: 25% 0 0;
-		background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
+	.post-tile:hover .post-tile__image {
+		scale: 1.05;
 	}
 
-	.featured-card__play {
+	.post-tile__play {
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		z-index: 1;
 		display: grid;
 		place-items: center;
-		width: 3rem; /* 48px */
-		height: 3rem;
+		width: 3.25rem;
+		height: 3.25rem;
 		border-radius: var(--radius-pill);
 		background-color: var(--color-pure-white);
-		/* Anillo translúcido de 12px alrededor del botón */
-		box-shadow: 0 0 0 12px rgb(244 244 244 / 0.32);
+		box-shadow:
+			0 0 0 0.5rem rgb(255 255 255 / 0.25),
+			0 1rem 2rem -0.75rem rgb(0 0 0 / 0.6);
 		color: var(--color-blue);
-		transform: translate(-50%, -50%);
-		transition: transform var(--duration-base) var(--ease-out);
+		translate: -50% -50%;
+		transition: scale var(--duration-slow) var(--ease-out);
 	}
 
-	.featured-card:hover .featured-card__image {
-		transform: scale(1.04);
+	.post-tile__play :global(svg) {
+		margin-left: 0.1875rem;
 	}
 
-	.featured-card:hover .featured-card__play {
-		transform: translate(-50%, -50%) scale(1.1);
+	.post-tile:hover .post-tile__play {
+		scale: 1.1;
 	}
 
-	/* ----- Texto + ícono de YouTube ----- */
-	.featured-card__body {
+	.post-tile__duration {
+		position: absolute;
+		right: var(--space-3);
+		bottom: var(--space-3);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.5rem;
+		background-color: rgb(0 0 0 / 0.72);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		font-variant-numeric: tabular-nums;
+		line-height: 1rem;
+		color: var(--color-pure-white);
+	}
+
+	.post-tile__body {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-4);
-		padding: var(--space-4) var(--space-5) var(--space-5);
-	}
-
-	.featured-card__text {
-		display: flex;
+		flex: 1;
 		flex-direction: column;
-		min-width: 0;
+		gap: var(--space-3);
+		padding: var(--space-5) var(--space-5) var(--space-6);
 	}
 
-	/* Títulos reales largos: tamaño contenido y hasta 2 líneas (no tapan el ▶) */
-	.featured-card__title {
+	.post-tile__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2) var(--space-3);
+		font-size: 0.8125rem;
+		color: rgb(244 244 244 / 0.7);
+	}
+
+	.post-tile__category {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.1875rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.16);
+		border-radius: var(--radius-pill);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-pure-white);
+	}
+
+	.post-tile__category :global(.post-tile__category-icon) {
+		color: var(--color-red);
+	}
+
+	.post-tile__title {
+		font-size: clamp(1.125rem, 1rem + 0.35vw, 1.3125rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.3;
+		text-wrap: balance;
+	}
+
+	.post-tile__text {
 		display: -webkit-box;
 		overflow: hidden;
-		font-size: clamp(1.125rem, 0.95rem + 0.7vw, 1.625rem);
-		font-weight: var(--font-weight-semibold);
-		line-height: 1.25;
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: rgb(244 244 244 / 0.75);
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 	}
 
-	.featured-card__date {
-		font-size: var(--font-size-sm);
-		line-height: 1.25rem;
-		color: rgb(244 244 244 / 0.75);
-	}
-
-	.featured-card :global(.featured-card__platform) {
-		flex-shrink: 0;
-	}
-
-	/* Toda la tarjeta es clicable (el enlace se "estira" sobre ella) */
-	.featured-card__link::after {
+	/* Toda la tarjeta es clicable */
+	.post-tile__link::after {
 		content: '';
 		position: absolute;
 		inset: 0;
-		z-index: 2;
+		z-index: 3;
+		border-radius: inherit;
 	}
 
-	.featured-card__link:focus-visible {
-		box-shadow: none;
+	.post-tile__link:focus-visible {
+		outline: none;
 	}
 
-	.featured-card:focus-within {
+	.post-tile:has(.post-tile__link:focus-visible) {
 		outline: 3px solid var(--color-skyblue);
-		outline-offset: -3px;
+		outline-offset: 3px;
+	}
+
+	@media (max-width: 640px) {
+		.post-tile {
+			border-radius: var(--radius-lg);
+		}
+
+		.post-tile__body {
+			padding: var(--space-4) var(--space-4) var(--space-5);
+		}
+
+		.post-tile__title {
+			font-size: var(--font-size-card-title-mobile);
+		}
 	}
 </style>

@@ -3,9 +3,12 @@
  * /portal/mi-proceso/ — resumen del proceso del estudiante
  * --------------------------------------------------------------------------
  * Figma: UI Desktop › "MacBook Pro 14' - 12" (2113:43).
- * Lista de los 5 pasos con su estado (Terminado / Más adelante…).
+ * Lista de los 5 pasos con su estado (Terminado / Más adelante…) y, al lado
+ * (arriba en móvil), el avance del proceso y la ayuda por WhatsApp o correo.
  */
 import PortalLayout from '@layouts/PortalLayout.astro';
+import PortalHelp from '@components/portal/PortalHelp.astro';
+import ProcessOverview from '@components/portal/ProcessOverview.astro';
 import ProcessSummary from '@components/portal/ProcessSummary.astro';
 
 // Página bajo demanda: el middleware verifica la sesión antes de mostrarla
@@ -15,8 +18,65 @@ export const prerender = false;
 <PortalLayout
 	title="Mi proceso"
 	description="Revisa el avance de tu proceso para estudiar en Rusia."
+	heading="Mi proceso"
+	lead="Aquí ves el avance de cada paso de tu proceso para estudiar en Rusia."
 	currentStep="process"
 >
-	<h1 class="visually-hidden">Mi proceso</h1>
-	<ProcessSummary />
+	<div class="process-page">
+		<div class="process-page__side">
+			<ProcessOverview />
+			<PortalHelp />
+		</div>
+		<ProcessSummary />
+	</div>
 </PortalLayout>
+
+<style>
+	/* Pasos a la izquierda; avance y ayuda en una columna fija a la derecha */
+	.process-page {
+		display: grid;
+		grid-template-columns: minmax(0, 40rem) minmax(0, 21rem);
+		align-items: start;
+		justify-content: center;
+		gap: var(--space-5);
+	}
+
+	.process-page :global(.process-summary) {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.process-page__side {
+		position: sticky;
+		top: var(--space-5);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	/* Una columna: avance arriba, pasos y la ayuda al final */
+	@media (max-width: 1024px) {
+		.process-page {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
+			max-width: 40rem;
+			margin-inline: auto;
+		}
+
+		.process-page__side {
+			display: contents;
+		}
+
+		.process-page :global(.process-summary) {
+			order: 1;
+		}
+
+		.process-page :global(.portal-help) {
+			order: 2;
+		}
+	}
+</style>

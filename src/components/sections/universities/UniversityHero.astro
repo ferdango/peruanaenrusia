@@ -1,0 +1,568 @@
+---
+/**
+ * UniversityHero — Portada de la ficha de universidad
+ * --------------------------------------------------------------------------
+ * Figma: UI Desktop › "Universidad Single" (3333:276) › cabecera (3333:275:
+ * ilustración, nombre y "Ir al sitio web") y foto de portada (3312:96).
+ *
+ * En Figma la ficha es un panel con ✕; aquí es la portada de una página como
+ * las demás: el header es transparente encima (body.hero-overlay), la foto de
+ * la universidad va a sangre con un degradé azul de la marca y encima:
+ * "← Universidades", la ciudad, el nombre (h1), el resumen y los botones
+ * "Descargar brochure" e "Ir al sitio web". Abajo, los datos clave en
+ * tarjetas (ciudad, año de fundación, tipo y sitio web, los que existan).
+ * Las líneas de la marca se dibujan al cargar.
+ *
+ * Uso: <UniversityHero university={university} brochure={brochure} />
+ */
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { routes } from '@data/navigation';
+import type { University } from '@data/universities';
+import type { BrochureLink } from '@lib/brochures';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+interface Props {
+	university: University;
+	brochure: BrochureLink;
+}
+
+const { university, brochure } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	back: 'Universidades',
+	country: 'Rusia',
+	brochure: 'Descargar brochure',
+	brochureHint: brochure.pdf ? ' (PDF)' : ' (se abre la versión para imprimir)',
+	website: 'Ir al sitio web',
+	newTab: '(se abre en una pestaña nueva)',
+	factsLabel: `Datos clave de la ${university.name}`,
+};
+
+const cover = university.cover ?? { src: university.image, alt: '' };
+
+/** Dominio del sitio web, sin "https://www." (ej. msu.ru) */
+const websiteHost = university.website
+	? new URL(university.website).hostname.replace(/^www\./, '')
+	: undefined;
+
+/** Datos clave: solo los que existen */
+const facts: { icon: string; label: string; value: string; href?: string }[] = [
+	{ icon: 'map-pin', label: 'Ciudad', value: `${university.city}, ${content.country}` },
+	...(university.founded
+		? [{ icon: 'calendar', label: 'Fundada en', value: String(university.founded) }]
+		: []),
+	...(university.kind
+		? [{ icon: 'landmark', label: 'Tipo', value: `Universidad ${university.kind.toLowerCase()}` }]
+		: []),
+	...(websiteHost
+		? [{ icon: 'globe', label: 'Sitio web', value: websiteHost, href: university.website }]
+		: []),
+];
+---
+
+<section class="university-hero" aria-labelledby="university-hero-title">
+	<MediaImage
+		image={cover.src}
+		alt={cover.alt}
+		widths={[800, 1400, 2000]}
+		sizes="100vw"
+		loading="eager"
+		fetchpriority="high"
+		class="university-hero__photo"
+	/>
+	<span class="university-hero__shade" aria-hidden="true"></span>
+
+	<!-- Líneas planas y estrellas de la marca (decorativas) -->
+	<div class="university-hero__decor" aria-hidden="true">
+		<BrandLines class="university-hero__lines" />
+		<Star class="university-hero__star university-hero__star--yellow" />
+		<Star class="university-hero__star university-hero__star--sky" />
+	</div>
+
+	<div class="university-hero__inner container">
+		<a href={routes.universities} class="university-hero__back">
+			<Icon name="arrow-left" size={16} />
+			{content.back}
+		</a>
+
+		<p class="university-hero__eyebrow">
+			<Icon name="map-pin" size={16} />
+			{university.city}, {content.country}
+		</p>
+
+		<h1 id="university-hero-title" class="university-hero__title">
+			{university.name}
+		</h1>
+
+		{university.summary && <p class="university-hero__summary">{university.summary}</p>}
+
+		<div class="university-hero__actions">
+			<Button
+				href={brochure.href}
+				icon="download"
+				class="university-hero__brochure"
+				download={brochure.pdf ? (brochure.fileName ?? '') : undefined}
+				target={brochure.pdf ? undefined : '_blank'}
+				rel={brochure.pdf ? undefined : 'noopener'}
+			>
+				{content.brochure}
+				<span class="visually-hidden">{content.brochureHint}</span>
+			</Button>
+
+			{university.website && (
+				<a href={university.website} class="university-hero__website" target="_blank" rel="noopener">
+					{content.website}
+					<Icon name="external-link" size={16} />
+					<span class="visually-hidden">{content.newTab}</span>
+				</a>
+			)}
+		</div>
+	</div>
+
+	<div class="university-hero__facts-wrap container">
+		<dl class="university-facts" aria-label={content.factsLabel}>
+			{facts.map((fact) => (
+				<div class="university-facts__item">
+					<span class="university-facts__icon" aria-hidden="true">
+						<Icon name={fact.icon} size={22} />
+					</span>
+					<div class="university-facts__text">
+						<dt>{fact.label}</dt>
+						<dd>
+							{fact.href ? (
+								<a href={fact.href} target="_blank" rel="noopener">
+									{fact.value}
+									<span class="visually-hidden"> {content.newTab}</span>
+								</a>
+							) : (
+								fact.value
+							)}
+						</dd>
+					</div>
+				</div>
+			))}
+		</dl>
+	</div>
+</section>
+
+<style>
+	.university-hero {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: clamp(var(--space-7), 4vw, var(--space-9));
+		min-height: min(52rem, 92svh);
+		/* Sube bajo el header (transparente sobre la portada, como en el Home) */
+		margin-top: calc(-1 * var(--header-height));
+		padding-block: calc(var(--header-height) + var(--space-9)) clamp(var(--space-7), 4vw, var(--space-9));
+		overflow: hidden; /* respaldo de "clip" en navegadores antiguos */
+		overflow: clip;
+		background-color: #0a2a5c;
+		color: var(--color-pure-white);
+	}
+
+	.university-hero__photo {
+		position: absolute;
+		inset: 0;
+		z-index: -3;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Degradé azul de la marca: el texto se lee sobre cualquier foto */
+	.university-hero__shade {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+		background:
+			linear-gradient(90deg, rgb(0 38 102 / 0.92) 0%, rgb(0 52 130 / 0.7) 42%, rgb(0 60 150 / 0.2) 78%),
+			linear-gradient(to top, rgb(4 20 52 / 0.85) 0%, transparent 45%),
+			linear-gradient(to bottom, rgb(4 20 52 / 0.55) 0%, transparent 25%);
+	}
+
+	/* ===== Decorados ===== */
+	.university-hero__decor {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Al pie de la portada, detrás de las tarjetas de datos (de vidrio) */
+	.university-hero__lines {
+		position: absolute;
+		bottom: -1.5rem;
+		left: 0;
+		width: 100%;
+		height: clamp(5rem, 8vw, 8rem);
+		opacity: 0.9;
+	}
+
+	.university-hero__lines :global(.brand-line) {
+		stroke-dasharray: 100 100;
+	}
+
+	.university-hero__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.university-hero__star--yellow {
+		top: calc(var(--header-height) + 3rem);
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2 + 2rem));
+		width: 2.25rem;
+		color: var(--color-yellow);
+	}
+
+	.university-hero__star--sky {
+		top: 44%;
+		right: max(calc(var(--gutter) + 8rem), calc((100% - var(--container-max)) / 2 + 14rem));
+		width: 1.25rem;
+		color: var(--color-skyblue);
+	}
+
+	/* ===== Contenido ===== */
+	.university-hero__inner {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-4);
+	}
+
+	.university-hero__back {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin-bottom: var(--space-2);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: rgb(255 255 255 / 0.85);
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	.university-hero__back :global(svg) {
+		transition: translate var(--duration-base) var(--ease-out);
+	}
+
+	.university-hero__back:hover {
+		color: var(--color-pure-white);
+	}
+
+	.university-hero__back:hover :global(svg) {
+		translate: -3px 0;
+	}
+
+	.university-hero__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.24);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.1);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.university-hero__eyebrow :global(svg) {
+		color: var(--color-yellow);
+	}
+
+	.university-hero__title {
+		max-width: 16ch;
+		font-size: clamp(2.5rem, 1.3rem + 4.2vw, 5rem);
+		line-height: 1.02;
+		letter-spacing: -0.01em;
+		color: var(--color-pure-white);
+		text-wrap: balance;
+	}
+
+	.university-hero__summary {
+		max-width: 44rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	.university-hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+		margin-top: var(--space-3);
+	}
+
+	.university-hero__website {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: 3rem;
+		padding-inline: var(--space-2);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-pure-white);
+		text-decoration: underline;
+		text-decoration-color: rgb(255 255 255 / 0.4);
+		text-underline-offset: 4px;
+		transition: text-decoration-color var(--duration-base) var(--ease-out);
+	}
+
+	.university-hero__website:hover {
+		text-decoration-color: var(--color-yellow);
+	}
+
+	/* ===== Datos clave ===== */
+	.university-facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+		gap: var(--space-3);
+		margin: 0;
+	}
+
+	.university-facts__item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-5);
+		border: 1px solid rgb(255 255 255 / 0.2);
+		border-radius: var(--radius-lg);
+		background-color: rgb(4 20 52 / 0.45);
+		backdrop-filter: blur(12px);
+	}
+
+	.university-facts__icon {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+	}
+
+	.university-facts__text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.university-facts dt {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: rgb(255 255 255 / 0.7);
+	}
+
+	.university-facts dd {
+		margin: 0;
+		overflow: hidden;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-bold);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.university-facts dd a {
+		text-decoration: underline;
+		text-decoration-color: rgb(255 255 255 / 0.4);
+		text-underline-offset: 3px;
+	}
+
+	.university-facts dd a:hover {
+		text-decoration-color: var(--color-yellow);
+	}
+
+	.university-hero a:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ===== Entrada al cargar ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.university-hero__photo {
+			animation: university-hero-zoom 1.6s var(--ease-out) both;
+		}
+
+		.university-hero__inner > * {
+			animation: university-hero-rise 0.9s var(--ease-out) both;
+		}
+
+		.university-hero__inner > :nth-child(2) {
+			animation-delay: 0.06s;
+		}
+
+		.university-hero__inner > :nth-child(3) {
+			animation-delay: 0.12s;
+		}
+
+		.university-hero__inner > :nth-child(4) {
+			animation-delay: 0.2s;
+		}
+
+		.university-hero__inner > :nth-child(5) {
+			animation-delay: 0.28s;
+		}
+
+		.university-facts__item {
+			animation: university-hero-rise 0.9s var(--ease-out) 0.35s both;
+		}
+
+		.university-facts__item:nth-child(2) {
+			animation-delay: 0.43s;
+		}
+
+		.university-facts__item:nth-child(3) {
+			animation-delay: 0.51s;
+		}
+
+		.university-facts__item:nth-child(4) {
+			animation-delay: 0.59s;
+		}
+
+		.university-hero__lines :global(.brand-line) {
+			animation: university-hero-draw 1.8s 0.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+		}
+
+		.university-hero__lines :global(.brand-line:nth-of-type(2)) {
+			animation-delay: 0.45s;
+		}
+
+		.university-hero__lines :global(.brand-line:nth-of-type(3)) {
+			animation-delay: 0.6s;
+		}
+
+		.university-hero__star {
+			animation: university-hero-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.university-hero__star--sky {
+			animation-delay: -1.6s;
+		}
+	}
+
+	@keyframes university-hero-zoom {
+		from {
+			scale: 1.08;
+		}
+	}
+
+	@keyframes university-hero-rise {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+		}
+	}
+
+	@keyframes university-hero-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes university-hero-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	/* ===== Tablet: datos clave en 2 columnas (el texto puede ocupar dos líneas) ===== */
+	@media (max-width: 1100px) {
+		.university-facts {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.university-facts dd {
+			white-space: normal;
+		}
+	}
+
+	/* ===== Móvil ===== */
+	@media (max-width: 640px) {
+		/* Aire bajo los datos clave: se ven las líneas de la marca detrás */
+		.university-hero {
+			min-height: 0;
+			padding-block: calc(var(--header-height) + var(--space-7)) 5.5rem;
+		}
+
+		.university-hero__shade {
+			background:
+				linear-gradient(
+					to top,
+					rgb(4 20 52 / 0.95) 0%,
+					rgb(0 38 102 / 0.75) 55%,
+					rgb(0 38 102 / 0.45) 100%
+				),
+				linear-gradient(to bottom, rgb(4 20 52 / 0.55) 0%, transparent 25%);
+		}
+
+		.university-hero__title {
+			max-width: none;
+			font-size: var(--font-size-display-mobile);
+			line-height: 1.05;
+		}
+
+		.university-hero__summary {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.university-hero__actions {
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
+		}
+
+		.university-hero__website {
+			justify-content: center;
+		}
+
+		.university-facts {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: var(--space-2);
+		}
+
+		.university-facts__item {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-2);
+			padding: var(--space-3) var(--space-4);
+		}
+
+		.university-facts__icon {
+			width: 2.25rem;
+			height: 2.25rem;
+		}
+
+		.university-facts dd {
+			font-size: var(--font-size-sm);
+			white-space: normal;
+		}
+
+		.university-hero__lines {
+			bottom: 0.25rem;
+			height: 4.5rem;
+		}
+
+		.university-hero__star--sky {
+			display: none;
+		}
+	}
+</style>

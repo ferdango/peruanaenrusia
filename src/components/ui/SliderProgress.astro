@@ -1,0 +1,146 @@
+---
+/**
+ * SliderProgress — avance de un slider que se mueve con el scroll
+ * --------------------------------------------------------------------------
+ * Contador ("02 / 05"), barra de avance y la pista "Sigue bajando". Solo se
+ * ve mientras el slider está activo (clase .is-scroll-slider que pone
+ * src/scripts/motion.ts en el elemento con data-scroll-slider); sin
+ * JavaScript, con "reducir movimiento" o si las tarjetas caben, no aparece.
+ *
+ * El script escribe el número actual en [data-slider-current] y el avance
+ * (0 → 1) en --slider-progress de [data-slider-bar].
+ *
+ * Uso (dentro del elemento con data-scroll-slider):
+ *   <SliderProgress total={benefits.length} tone="dark" />
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+	/** Cantidad de tarjetas */
+	total: number;
+	/** "dark": texto oscuro (fondos claros) · "light": texto claro (fondos oscuros) */
+	tone?: 'dark' | 'light';
+	class?: string;
+}
+
+const { total, tone = 'dark', class: className } = Astro.props;
+
+// ----- Textos -----
+const content = {
+	hint: 'Sigue bajando',
+};
+
+/** 5 → "05" */
+const pad = (value: number) => String(value).padStart(2, '0');
+---
+
+<div class:list={['slider-progress', `slider-progress--${tone}`, className]} aria-hidden="true">
+	<span class="slider-progress__count">
+		<span data-slider-current>01</span>
+		<span class="slider-progress__total">/ {pad(total)}</span>
+	</span>
+	<span class="slider-progress__bar">
+		<span class="slider-progress__fill" data-slider-bar></span>
+	</span>
+	<span class="slider-progress__hint">
+		{content.hint}
+		<Icon name="arrow-right" size={14} class="slider-progress__hint-icon" />
+	</span>
+</div>
+
+<style>
+	.slider-progress {
+		--progress-text: var(--text-heading-light);
+		--progress-muted: rgb(18 91 168 / 0.55);
+		--progress-track: rgb(18 91 168 / 0.14);
+		--progress-fill: var(--color-blue);
+
+		display: none;
+		align-items: center;
+		gap: var(--space-4);
+	}
+
+	.slider-progress--light {
+		--progress-text: var(--color-pure-white);
+		--progress-muted: rgb(255 255 255 / 0.6);
+		--progress-track: rgb(255 255 255 / 0.16);
+		--progress-fill: var(--color-skyblue);
+	}
+
+	/* Solo con el slider activo */
+	:global(.is-scroll-slider) .slider-progress {
+		display: flex;
+	}
+
+	.slider-progress__count {
+		display: inline-flex;
+		flex-shrink: 0;
+		gap: 0.375rem;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		font-variant-numeric: tabular-nums;
+		color: var(--progress-text);
+	}
+
+	.slider-progress__total {
+		font-weight: var(--font-weight-medium);
+		color: var(--progress-muted);
+	}
+
+	.slider-progress__bar {
+		flex: 1;
+		max-width: 22rem;
+		height: 4px;
+		overflow: hidden;
+		border-radius: var(--radius-pill);
+		background-color: var(--progress-track);
+	}
+
+	.slider-progress__fill {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background-color: var(--progress-fill);
+		transform: scaleX(var(--slider-progress, 0));
+		transform-origin: left center;
+	}
+
+	/* "Sigue bajando ↓": invita a seguir con el scroll */
+	.slider-progress__hint {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		gap: var(--space-1);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--progress-muted);
+	}
+
+	.slider-progress__hint :global(.slider-progress__hint-icon) {
+		rotate: 90deg;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.slider-progress__hint :global(.slider-progress__hint-icon) {
+			animation: slider-progress-nudge 1.6s ease-in-out infinite;
+		}
+	}
+
+	@keyframes slider-progress-nudge {
+		50% {
+			translate: 0 3px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.slider-progress {
+			gap: var(--space-3);
+		}
+
+		.slider-progress__count {
+			font-size: var(--font-size-md);
+		}
+	}
+</style>

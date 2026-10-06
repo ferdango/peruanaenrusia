@@ -13,13 +13,18 @@
  * Las fotos están recortadas a la zona visible del diseño (448 × 351 / 337).
  * Las decoraciones se posicionan en % del recuadro para escalar con él.
  *
+ * A la derecha (debajo en pantallas angostas) van "¿Qué sigue?"
+ * (PaymentNextSteps) y la ayuda por WhatsApp o correo (PortalHelp).
+ *
  * Uso:
  *   <PaymentStatusCard variant="sent" title="Solicitud de pago enviada"
  *       status="En validación de fondos" detail="28 sep 2025 - 01:23 am"
  *       action={{ label: 'Descargar mi constancia', href: '#', download: true }} />
  */
 import { Image } from 'astro:assets';
+import PaymentNextSteps from './PaymentNextSteps.astro';
 import PortalButton from './PortalButton.astro';
+import PortalHelp from './PortalHelp.astro';
 import photoSent from '@assets/images/portal/payment-sent.jpg';
 import photoRejected from '@assets/images/portal/payment-rejected.jpg';
 import waveYellow from '@assets/graphics/illustrations/portal-wave-yellow.svg';
@@ -41,6 +46,12 @@ interface Props {
 const { variant, title, status, detail, action } = Astro.props;
 
 const photo = variant === 'sent' ? photoSent : photoRejected;
+
+/** Bajada de la tarjeta de ayuda según el resultado */
+const helpText =
+	variant === 'sent'
+		? '¿Tienes dudas sobre tu pago? Escríbenos y te ayudamos.'
+		: 'Escríbenos y revisamos contigo tu transferencia.';
 const imageProps = {
 	src: photo,
 	alt: '',
@@ -50,55 +61,91 @@ const imageProps = {
 };
 ---
 
-<article class:list={['payment-status', `payment-status--${variant}`]} aria-labelledby="payment-status-title">
-	<div
-		class="payment-status__media"
-		aria-hidden="true"
-		style={variant === 'rejected' ? `--occluder-mask: url('${rejectedPhotoMask.src}')` : undefined}
+<div class="payment-result">
+	<article
+		class:list={['payment-status', `payment-status--${variant}`]}
+		aria-labelledby="payment-status-title"
 	>
-		<Image {...imageProps} class="payment-status__photo" />
-
-		{variant === 'sent' ? (
-			<>
-				<img
-					class="payment-status__star payment-status__star--skyblue"
-					src={starSkyblue.src}
-					alt=""
-				/>
-				<img class="payment-status__star payment-status__star--yellow" src={starYellow.src} alt="" />
-				<img class="payment-status__wave" src={waveYellow.src} alt="" />
-			</>
-		) : (
-			<>
-				<img class="payment-status__wave" src={waveRed.src} alt="" />
-				<!-- Copia de la foto recortada con la silueta: la onda pasa "por detrás" -->
-				<Image {...imageProps} class="payment-status__photo payment-status__photo--front" />
-			</>
-		)}
-
-		<span class="payment-status__shade"></span>
-	</div>
-
-	<div class="payment-status__body">
-		<h1 id="payment-status-title" class="payment-status__title">
-			{title}
-		</h1>
-		<p class="payment-status__state">
-			Estado: <strong class="payment-status__state-value">{status}</strong>
-		</p>
-		{detail && <p class="payment-status__detail">{detail}</p>}
-		<PortalButton
-			href={action.href}
-			width={240}
-			download={action.download}
-			class="payment-status__action"
+		<div
+			class="payment-status__media"
+			aria-hidden="true"
+			style={variant === 'rejected' ? `--occluder-mask: url('${rejectedPhotoMask.src}')` : undefined}
 		>
-			{action.label}
-		</PortalButton>
+			<Image {...imageProps} class="payment-status__photo" />
+
+			{variant === 'sent' ? (
+				<>
+					<img
+						class="payment-status__star payment-status__star--skyblue"
+						src={starSkyblue.src}
+						alt=""
+					/>
+					<img
+						class="payment-status__star payment-status__star--yellow"
+						src={starYellow.src}
+						alt=""
+					/>
+					<img class="payment-status__wave" src={waveYellow.src} alt="" />
+				</>
+			) : (
+				<>
+					<img class="payment-status__wave" src={waveRed.src} alt="" />
+					<!-- Copia de la foto recortada con la silueta: la onda pasa "por detrás" -->
+					<Image {...imageProps} class="payment-status__photo payment-status__photo--front" />
+				</>
+			)}
+
+			<span class="payment-status__shade"></span>
+		</div>
+
+		<div class="payment-status__body">
+			<h2 id="payment-status-title" class="payment-status__title">
+				{title}
+			</h2>
+			<p class="payment-status__state">
+				Estado: <strong class="payment-status__state-value">{status}</strong>
+			</p>
+			{detail && <p class="payment-status__detail">{detail}</p>}
+			<PortalButton
+				href={action.href}
+				width={240}
+				download={action.download}
+				class="payment-status__action"
+			>
+				{action.label}
+			</PortalButton>
+		</div>
+	</article>
+
+	<div class="payment-result__side">
+		<PaymentNextSteps variant={variant} />
+		<PortalHelp text={helpText} />
 	</div>
-</article>
+</div>
 
 <style>
+	/* ----- Resultado + columna "¿Qué sigue?" ----- */
+	.payment-result {
+		display: grid;
+		grid-template-columns: minmax(0, 28rem) minmax(0, 25rem);
+		align-items: start;
+		justify-content: center;
+		gap: var(--space-5);
+		width: 100%;
+	}
+
+	.payment-result__side {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+	}
+
+	@media (max-width: 960px) {
+		.payment-result {
+			grid-template-columns: minmax(0, 28rem);
+		}
+	}
+
 	.payment-status {
 		/* Medidas de Figma (enviado) */
 		--media-ratio: 448 / 351;
@@ -111,10 +158,11 @@ const imageProps = {
 
 		width: 100%;
 		max-width: 28rem; /* 448px */
-		margin: 2.75rem auto 0; /* 44px bajo el stepper */
 		overflow: clip;
-		border-radius: var(--radius-lg);
+		border: var(--portal-card-border);
+		border-radius: var(--portal-radius-card);
 		background-color: var(--portal-surface);
+		box-shadow: var(--portal-card-shadow);
 	}
 
 	.payment-status--rejected {
@@ -248,10 +296,6 @@ const imageProps = {
 	}
 
 	@media (max-width: 640px) {
-		.payment-status {
-			margin-top: var(--space-6);
-		}
-
 		.payment-status__body {
 			padding-inline: var(--space-4);
 		}

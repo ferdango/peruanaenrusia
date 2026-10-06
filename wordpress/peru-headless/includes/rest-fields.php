@@ -62,6 +62,9 @@ function peru_rest_university( $post ) {
 		'featured'     => (bool) peru_field( 'featured', $id ),
 		'website'      => peru_text( peru_field( 'website', $id ) ),
 		'summary'      => peru_text( peru_field( 'summary', $id ) ),
+		'founded'      => peru_text( peru_field( 'founded', $id ) ),
+		'kind'         => peru_text( peru_field( 'kind', $id ) ),
+		'brochure'     => peru_text( peru_field( 'brochure', $id ) ),
 		'logo'         => peru_image( peru_field( 'logo', $id ) ),
 		'cover'        => peru_image( peru_field( 'cover', $id ) ),
 		'gallery'      => array_values(
@@ -116,21 +119,6 @@ function peru_rest_testimonial( $post ) {
 		}
 	}
 
-	$gallery = array();
-	foreach ( array( 1, 2, 3, 4 ) as $n ) {
-		$item  = peru_field( "gallery_{$n}", $id );
-		$image = is_array( $item ) ? peru_image( $item['image'] ?? null ) : null;
-		if ( $image ) {
-			$gallery[] = array_merge(
-				$image,
-				array(
-					'href'  => peru_text( $item['url'] ?? '' ),
-					'album' => ! empty( $item['album'] ),
-				)
-			);
-		}
-	}
-
 	$poster = peru_image( peru_field( 'video_poster', $id ) );
 
 	return array(
@@ -146,7 +134,6 @@ function peru_rest_testimonial( $post ) {
 		) : null,
 		'highlight' => peru_text( peru_field( 'highlight', $id ) ),
 		'story'     => $story,
-		'gallery'   => $gallery,
 		'closing'   => array(
 			'quote' => peru_text( peru_field( 'closing_quote', $id ) ),
 			'text'  => peru_text( peru_field( 'closing_text', $id ) ),

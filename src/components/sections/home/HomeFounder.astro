@@ -8,13 +8,22 @@
  * Móvil: Figma UI Mobile › 1399:1242 (fondo), 1399:1229/1232/1235 (fotos)
  * y 1399:1238 (texto).
  *
- * Capas (de atrás hacia adelante, como en Figma):
- *   foto de atrás → foto del medio → onda amarilla → foto de adelante → texto
+ * Movimiento (src/scripts/motion.ts › "Soy Grecia Kristal"):
+ *   - Cada foto es una tarjeta que sube desde abajo, gira hasta su lugar y se
+ *     apila sobre la anterior (las de atrás se oscurecen un poco). Al posarse,
+ *     muestra dónde se tomó.
+ *   - Desktop: la sección queda fija mientras se apilan las tres fotos y se
+ *     dibuja la onda amarilla; después aparece el texto, palabra por palabra.
+ *   - Tablet y móvil: sin fijar; las fotos se apilan mientras cruzan la
+ *     pantalla y el texto aparece al llegar.
+ *   El script escribe --in (0 → 1) en cada foto y --founder-p (avance) en la
+ *   sección. Sin JavaScript o con "reducir movimiento" todo se ve completo.
  *
  * Uso: <HomeFounder /> (página de inicio).
  */
 import { Image } from 'astro:assets';
 
+import { tiktokProfile } from '@data/social';
 import photoBack from '@assets/images/home/founder-photo-red-square.jpg';
 import photoMiddle from '@assets/images/home/founder-photo-forum.jpg';
 import photoFront from '@assets/images/home/founder-photo-podium.jpg';
@@ -23,67 +32,89 @@ import Star from '@assets/graphics/stars/star-4-point.svg';
 
 // ----- Contenido de la sección -----
 const content = {
+	eyebrow: 'Fundadora de Peruana en Rusia',
 	title: 'Soy Grecia Kristal, la peruana más conocida en Rusia.',
 	paragraphs: [
-		'Como tú, también soñé con estudiar fuera del país, y lo logré',
+		'Como tú, también soñé con estudiar fuera del país, y lo logré.',
 		'Hoy acompaño a cientos de peruanos en su camino académico, ayudándolos a postular a becas reales, sin falsas promesas, sin agencias que te abandonan.',
 	],
-	photoAlt: 'Grecia Kristal durante una conferencia Rusia – América Latina',
+	facts: [
+		{ value: '+100', label: 'estudiantes acompañados' },
+		{ value: tiktokProfile.followers, label: 'seguidores en TikTok' },
+		{ value: 'Graduada', label: 'en una universidad rusa' },
+	],
 };
 
-/**
- * Fotos apiladas (de atrás hacia adelante). Las dos de atrás son decorativas:
- * quedan casi ocultas detrás de la principal.
- */
+/** Fotos (de atrás hacia adelante): cada una con el lugar donde se tomó */
 const photos = [
-	{ key: 'back', src: photoBack, alt: '', widths: [600, 1200], sizes: '(max-width: 640px) 380px, 572px' },
+	{
+		key: 'back',
+		src: photoBack,
+		alt: 'Grecia Kristal frente al Museo Estatal de Historia, junto a la Plaza Roja de Moscú',
+		caption: 'Plaza Roja · Moscú',
+		widths: [400, 800],
+	},
 	{
 		key: 'middle',
 		src: photoMiddle,
-		alt: '',
-		widths: [600, 1080],
-		sizes: '(max-width: 640px) 380px, 571px',
+		alt: 'Grecia Kristal en el Foro Económico Internacional de San Petersburgo 2024',
+		caption: 'Foro Económico de San Petersburgo',
+		widths: [400, 800],
 	},
 	{
 		key: 'front',
 		src: photoFront,
-		alt: content.photoAlt,
-		widths: [480, 720, 1080],
-		sizes: '(max-width: 640px) 470px, 711px',
+		alt: 'Grecia Kristal durante una conferencia Rusia – América Latina',
+		caption: 'Conferencia Rusia – América Latina',
+		widths: [400, 800, 1080],
 	},
 ];
 ---
 
-<section class="home-founder" id="sobre-nosotros" aria-labelledby="home-founder-title">
-	<!-- Onda plana amarilla (decorativa), en un lienzo de 1512px centrado -->
-	<div class="home-founder__decor" aria-hidden="true">
-		<WaveYellow class="home-founder__wave" />
-	</div>
-
-	<div class="home-founder__inner container">
-		<div class="home-founder__photos">
-			{photos.map((photo) => (
-				<div class:list={['founder-photo', `founder-photo--${photo.key}`]}>
-					<Image
-						src={photo.src}
-						alt={photo.alt}
-						widths={photo.widths}
-						sizes={photo.sizes}
-						class="founder-photo__image"
-					/>
-				</div>
-			))}
+<section class="home-founder" id="sobre-nosotros" aria-labelledby="home-founder-title" data-founder-stack>
+	<div class="home-founder__stage">
+		<!-- Onda plana amarilla (decorativa): se dibuja mientras se apilan las fotos -->
+		<div class="home-founder__decor" aria-hidden="true">
+			<WaveYellow class="home-founder__wave" />
 		</div>
 
-		<div class="home-founder__content">
-			<Star class="home-founder__star" aria-hidden="true" />
-			<h2 id="home-founder-title" class="home-founder__title">
-				{content.title}
-			</h2>
-			<div class="home-founder__text">
-				{content.paragraphs.map((paragraph) => (
-					<p>{paragraph}</p>
+		<div class="home-founder__inner container">
+			<div class="home-founder__photos" data-founder-photos>
+				{photos.map((photo) => (
+					<figure class:list={['founder-photo', `founder-photo--${photo.key}`]} data-founder-card>
+						<Image
+							src={photo.src}
+							alt={photo.alt}
+							widths={photo.widths}
+							sizes="(max-width: 640px) 250px, 360px"
+							class="founder-photo__image"
+						/>
+						<figcaption class="founder-photo__caption">{photo.caption}</figcaption>
+					</figure>
 				))}
+			</div>
+
+			<div class="home-founder__content">
+				<p class="home-founder__eyebrow">
+					<Star class="home-founder__star" aria-hidden="true" />
+					{content.eyebrow}
+				</p>
+				<h2 id="home-founder-title" class="home-founder__title">
+					{content.title}
+				</h2>
+				<div class="home-founder__text">
+					{content.paragraphs.map((paragraph) => (
+						<p>{paragraph}</p>
+					))}
+				</div>
+				<ul class="home-founder__facts" role="list">
+					{content.facts.map((fact, index) => (
+						<li class="home-founder__fact" style={`--d: ${index}`}>
+							<strong class="home-founder__fact-value">{fact.value}</strong>
+							<span class="home-founder__fact-label">{fact.label}</span>
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	</div>
@@ -93,11 +124,15 @@ const photos = [
 	.home-founder {
 		position: relative;
 		isolation: isolate;
-		min-height: 52.5rem; /* 840px */
-		padding-block: 5.5625rem var(--space-9); /* 89px arriba (texto), 64px abajo */
 		overflow: clip;
 		background-color: var(--color-green);
 		color: var(--text-on-dark);
+	}
+
+	.home-founder__stage {
+		position: relative;
+		isolation: isolate;
+		padding-block: clamp(4.5rem, 2rem + 5vw, 7rem);
 	}
 
 	/* ----- Onda: lienzo de 1512px centrado (ancho de Figma) ----- */
@@ -114,219 +149,322 @@ const photos = [
 
 	.home-founder__wave {
 		position: absolute;
-		top: 265.17px;
+		top: 50%;
 		left: 0;
 		max-width: none;
+		translate: 0 -40%;
 	}
 
-	/* ----- Desktop: fotos (488.8px) + espacio (107.2px) + texto (483px) ----- */
+	/* La onda se dibuja siguiendo su trazo con el avance de la sección */
+	.home-founder__wave :global(.brand-line) {
+		stroke-dasharray: 100 100;
+		stroke-dashoffset: calc(100 - 100 * clamp(0, (var(--founder-p, 1) - 0.16) / 0.46, 1));
+	}
+
+	/* ----- Desktop: fotos (izquierda) + texto (derecha) ----- */
 	.home-founder__inner {
 		display: grid;
-		/*
-		 * Las columnas laterales reparten el sobrante como en Figma (158 : 115).
-		 * En pantallas algo menores a 1200px el espacio y el texto se encogen.
-		 */
-		grid-template-columns:
-			minmax(0, 158fr) 30.55rem minmax(var(--space-6), 6.7rem) minmax(0, 30.1875rem)
-			minmax(0, 115fr);
-		align-items: start;
+		grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
+		align-items: center;
+		gap: clamp(var(--space-8), 6vw, 7.5rem);
 	}
 
+	/* ===== Fotos: tarjetas apiladas ===== */
 	.home-founder__photos {
 		position: relative;
-		grid-column: 2;
-		width: 30.55rem; /* 488.8px */
-		height: 32.6388rem; /* 522.22px */
-		margin-top: 4.5625rem; /* 73px: las fotos empiezan 73px más abajo que el texto */
+		width: min(100%, 32rem);
+		aspect-ratio: 32 / 33;
 	}
 
-	.home-founder__content {
-		position: relative;
-		z-index: 2; /* el texto queda sobre la onda */
-		grid-column: 4;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-6); /* 32px */
-	}
-
-	/* ----- Fotos apiladas (tarjetas de 425.4 × 481.22 px, radio 40px) ----- */
 	.founder-photo {
-		position: absolute;
-		width: 26.5874rem; /* 425.399px */
-		aspect-ratio: 425.399 / 481.22;
-		border-radius: var(--radius-2xl);
-		overflow: clip;
-	}
+		/* Giro final, giro extra al subir y desde cuánto más abajo sube */
+		--card-rotate: 0deg;
+		--card-spin: 0deg;
+		--card-rise: 30vh;
 
-	.founder-photo__image {
 		position: absolute;
-		max-width: none;
-		height: auto;
+		width: 70%;
+		aspect-ratio: 4 / 5;
+		margin: 0;
+		overflow: clip;
+		border: 0.375rem solid var(--color-white);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-dark-raised);
+		box-shadow: 0 2rem 3.5rem -1.5rem rgb(0 0 0 / 0.55);
+		/* --in (0 → 1) lo escribe el script: la tarjeta sube, gira y crece hasta su lugar */
+		translate: 0 calc((1 - var(--in, 1)) * var(--card-rise));
+		rotate: calc(var(--card-rotate) + (1 - var(--in, 1)) * var(--card-spin));
+		scale: calc(0.88 + 0.12 * var(--in, 1));
+		opacity: clamp(0, var(--in, 1) * 3, 1);
+		/* Las de atrás se oscurecen cuando llega la siguiente (--covered) */
+		filter: brightness(calc(1 - 0.22 * var(--covered, 0)));
 	}
 
 	.founder-photo--back {
-		top: 0;
-		left: 3.9625rem; /* 63.4px */
-	}
+		--card-rotate: -8deg;
+		--card-spin: -14deg;
 
-	.founder-photo--back .founder-photo__image {
-		left: -11.312%;
-		top: -29.867%;
-		width: 134.48%;
+		top: 6%;
+		left: 0;
 	}
 
 	.founder-photo--middle {
-		top: 1.0625rem; /* 17px */
-		left: 2rem; /* 32px */
-	}
+		--card-rotate: 7deg;
+		--card-spin: 16deg;
 
-	.founder-photo--middle .founder-photo__image {
-		left: -5.407%;
-		top: -48.096%;
-		width: 134.23%;
+		top: 0;
+		right: 0;
 	}
 
 	.founder-photo--front {
+		--card-rotate: -2deg;
+		--card-spin: -10deg;
+
 		z-index: 2; /* sobre la onda */
-		top: 2.5625rem; /* 41px */
-		left: 0;
+		top: 14%;
+		left: 14%;
 	}
 
-	.founder-photo--front .founder-photo__image {
-		left: 0;
-		top: -51.733%;
-		width: 167.06%;
+	.founder-photo__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
-	/* ----- Texto ----- */
+	/* Lugar de la foto (arriba: no lo tapa la tarjeta siguiente); aparece cuando la tarjeta se posa */
+	.founder-photo__caption {
+		position: absolute;
+		inset: var(--space-3) auto auto var(--space-3);
+		width: fit-content;
+		max-width: calc(100% - 2 * var(--space-3));
+		padding: 0.375rem 0.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(10 14 20 / 0.62);
+		backdrop-filter: blur(8px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1rem;
+		color: var(--color-pure-white);
+		opacity: clamp(0, (var(--in, 1) - 0.82) * 6, 1);
+	}
+
+	/* ===== Texto ===== */
+	.home-founder__content {
+		position: relative;
+		z-index: 2; /* el texto queda sobre la onda */
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+		max-width: 34rem;
+	}
+
+	.home-founder__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.2);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.08);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
 	.home-founder__star {
 		flex-shrink: 0;
-		width: 2.3125rem; /* 37px */
-		height: 2.3125rem;
+		width: 1.125rem;
+		height: 1.125rem;
 		color: var(--color-skyblue);
 	}
 
 	.home-founder__title {
 		font-size: var(--font-size-h1);
-		line-height: 1.1667; /* 56px */
+		line-height: 1.1;
+		letter-spacing: -0.01em;
+		text-wrap: balance;
 	}
 
 	.home-founder__text {
 		font-size: var(--font-size-lg);
-		line-height: 1.75rem; /* 28px */
+		line-height: 1.75rem;
 		color: var(--text-on-dark-soft);
 	}
 
-	/* Una línea en blanco entre párrafos, como en el diseño */
 	.home-founder__text p + p {
-		margin-top: 1.75rem;
+		margin-top: var(--space-4);
 	}
 
-	/* ===== Tablet y móvil: fotos arriba, texto debajo (Figma móvil) ===== */
-	@media (max-width: 1100px) {
-		.home-founder {
-			min-height: 0;
-			padding-block: var(--section-padding-y);
-		}
+	/* Datos: valor grande + etiqueta (fondo opaco: la onda pasa por detrás) */
+	.home-founder__facts {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-3);
+		width: 100%;
+		margin-top: var(--space-2);
+	}
 
+	.home-founder__fact {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		padding: var(--space-3) var(--space-4);
+		border: 1px solid rgb(255 255 255 / 0.16);
+		border-radius: var(--radius-lg);
+		background-color: #05625a;
+		box-shadow: 0 1rem 2rem -1.5rem rgb(0 0 0 / 0.6);
+	}
+
+	.home-founder__fact-value {
+		font-size: 1.375rem;
+		font-weight: var(--font-weight-bold);
+		line-height: 1.75rem;
+		color: var(--color-yellow);
+	}
+
+	.home-founder__fact-label {
+		font-size: var(--font-size-sm);
+		line-height: 1.25rem;
+		color: rgb(244 244 244 / 0.82);
+	}
+
+	/* =====================================================================
+	   Desktop con la sección fija (clase .is-pinned, la agrega el script):
+	   mide lo que dura el recorrido y el escenario queda bajo el header
+	   ===================================================================== */
+	.home-founder:global(.is-pinned) {
+		height: calc(100svh - var(--header-height) + var(--founder-length, 0px));
+	}
+
+	.home-founder:global(.is-pinned) .home-founder__stage {
+		position: sticky;
+		top: var(--header-height);
+		display: grid;
+		align-items: center;
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
+	}
+
+	.home-founder:global(.is-pinned) .founder-photo {
+		--card-rise: 70vh;
+	}
+
+	/* El texto espera a que se apilen las fotos (.is-text-in) */
+	.home-founder:global(.is-pinned) .home-founder__eyebrow,
+	.home-founder:global(.is-pinned) .home-founder__text,
+	.home-founder:global(.is-pinned) .home-founder__fact {
+		opacity: 0;
+		translate: 0 1.5rem;
+		transition:
+			opacity 0.6s var(--ease-out),
+			translate 0.9s var(--ease-out);
+	}
+
+	.home-founder:global(.is-pinned) .home-founder__title :global(.reveal-word__inner) {
+		display: inline-block;
+		translate: 0 115%;
+		transition: translate 0.8s var(--ease-out) calc(80ms + var(--w, 0) * 45ms);
+	}
+
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__eyebrow,
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__text,
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__fact {
+		opacity: 1;
+		translate: 0 0;
+	}
+
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__title :global(.reveal-word__inner) {
+		translate: 0 0;
+	}
+
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__text {
+		transition-delay: 0.45s;
+	}
+
+	.home-founder:global(.is-pinned.is-text-in) .home-founder__fact {
+		transition-delay: calc(0.65s + var(--d, 0) * 0.12s);
+	}
+
+	/* ===== Tablet y móvil: fotos arriba, texto debajo ===== */
+	@media (max-width: 1100px) {
 		.home-founder__decor {
 			display: none;
 		}
 
 		.home-founder__inner {
-			grid-template-columns: 100%;
+			grid-template-columns: minmax(0, 1fr);
 			justify-items: center;
-			row-gap: var(--space-9);
-		}
-
-		.home-founder__photos,
-		.home-founder__content {
-			grid-column: 1;
+			gap: var(--space-9);
 		}
 
 		.home-founder__photos {
-			margin-top: 0;
+			width: min(100%, 26rem);
 		}
 
 		.home-founder__content {
-			width: min(100%, 30.1875rem);
+			width: min(100%, 36rem);
 		}
 	}
 
-	/* ===== Móvil (Figma 1399:1229/1232/1235 y 1399:1238) ===== */
+	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
-		.home-founder {
-			padding-block: 5.6875rem 3.3125rem; /* 91px · 53px */
+		.home-founder__stage {
+			padding-block: var(--space-9) var(--space-8);
 		}
 
 		.home-founder__inner {
-			justify-items: start;
-			row-gap: 4.3125rem; /* 69px entre las fotos y el texto */
+			gap: var(--space-8);
 		}
 
-		/* Lienzo de 360px (ancho de Figma móvil), centrado */
 		.home-founder__photos {
-			justify-self: center;
-			width: 22.5rem; /* 360px */
-			height: 22.1875rem; /* 355px */
+			width: min(100%, 21rem);
 		}
 
 		.founder-photo {
-			width: 17.2619rem; /* 276.19px */
-			aspect-ratio: 276.19 / 330.1;
+			border-width: 0.25rem;
+			border-radius: var(--radius-lg);
 		}
 
-		.founder-photo--back {
-			left: 4.4456rem; /* 71.13px */
-		}
-
-		.founder-photo--back .founder-photo__image {
-			left: -13.187%;
-			top: -27.852%;
-			width: 138.23%;
-		}
-
-		.founder-photo--middle {
-			top: 0.4906rem; /* 7.85px */
-			left: 3.4556rem; /* 55.29px */
-		}
-
-		.founder-photo--middle .founder-photo__image {
-			left: -7.278%;
-			top: -46.086%;
-			width: 137.9%;
-		}
-
-		/* La foto principal está girada 4.59° (antihorario) en el diseño */
-		.founder-photo--front {
-			top: 1.6156rem; /* 25.85px */
-			left: 0.25rem; /* 4px */
-			width: 17.2675rem; /* 276.28px */
-			aspect-ratio: 276.28 / 330;
-			transform: rotate(-4.59deg);
-			transform-origin: top left;
-		}
-
-		.founder-photo--front .founder-photo__image {
-			left: -2.74%;
-			top: -49.564%;
-			width: 171.67%;
-			transform: rotate(0.24deg);
-			transform-origin: top left;
+		.founder-photo__caption {
+			inset: var(--space-2) auto auto var(--space-2);
+			max-width: calc(100% - 2 * var(--space-2));
+			overflow: hidden;
+			font-size: 0.6875rem;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		.home-founder__content {
-			width: 100%;
-			gap: var(--space-5); /* 24px */
+			gap: var(--space-4);
 		}
 
 		.home-founder__title {
-			line-height: var(--line-height-title-mobile);
 			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
 		}
 
 		.home-founder__text {
 			font-size: var(--font-size-md);
+			line-height: 1.625rem;
+		}
+
+		.home-founder__facts {
+			gap: var(--space-2);
+		}
+
+		.home-founder__fact {
+			padding: var(--space-3);
+		}
+
+		.home-founder__fact-value {
+			font-size: 1.0625rem;
+			line-height: 1.375rem;
+		}
+
+		.home-founder__fact-label {
+			font-size: 0.75rem;
+			line-height: 1rem;
 		}
 	}
 </style>

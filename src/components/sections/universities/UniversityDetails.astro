@@ -7,16 +7,18 @@
  * rankings") y "Frame 628439" (3333:263, "Vida estudiantil e
  * internacionalización").
  *
- * Áreas de estudio: acordeón nativo (<details>). Al pasar el cursor o al
- * abrir una facultad, el texto se vuelve azul, se desplaza a la derecha y
- * aparece la estrella de la marca (estado del primer ítem en Figma).
+ * Desktop: las áreas de estudio a la izquierda (acordeón nativo <details>:
+ * al abrir una facultad, el nombre se vuelve azul y aparece la estrella de la
+ * marca, como el primer ítem de Figma) y a la derecha las tarjetas de
+ * rankings y de vida estudiantil. Tablet y móvil: una columna.
  * Solo se dibujan los bloques con datos.
  *
  * Uso: <UniversityDetails id="detalles" university={university} />
  */
+import Icon from '@components/ui/Icon.astro';
 import UniversityStarList from './UniversityStarList.astro';
-import Star from '@assets/graphics/stars/star-4-point.svg';
 import type { University } from '@data/universities';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 interface Props {
 	/** id del ancla (lo usa la píldora de navegación) */
@@ -29,112 +31,185 @@ const { faculties = [], rankings, studentLife = [] } = university;
 
 // ----- Contenido de la sección -----
 const content = {
-	label: 'Detalles',
+	eyebrow: 'Detalles',
+	title: 'Carreras, prestigio y vida estudiantil',
+	facultiesTitle: 'Áreas de estudio',
 	facultiesLead: 'Las áreas de estudio incluyen:',
 	rankingsTitle: 'Reputación y rankings',
 	studentLifeTitle: 'Vida estudiantil e internacionalización',
 };
+
+const hasAside = Boolean(rankings) || studentLife.length > 0;
 ---
 
-<section id={id} class="university-details" aria-label={content.label}>
-	{faculties.length > 0 && (
-		<div class="university-details__block university-details__block--faculties">
-			<p class="university-details__lead">{content.facultiesLead}</p>
+<section id={id} class="university-details section" aria-labelledby={`${id}-title`}>
+	<div class="container">
+		<header class="university-details__header">
+			<p class="university-details__eyebrow">
+				<Star class="university-details__eyebrow-star" aria-hidden="true" />
+				{content.eyebrow}
+			</p>
+			<h2 id={`${id}-title`} class="university-details__title">
+				{content.title}
+			</h2>
+		</header>
 
-			<div class="faculty-list">
-				{faculties.map((faculty) =>
-					faculty.description ? (
-						<details class="faculty" name="university-faculties">
-							<summary class="faculty__summary">
-								<span class="faculty__name">{faculty.name}</span>
-								<Star class="faculty__star" aria-hidden="true" />
-							</summary>
-							<p class="faculty__description">{faculty.description}</p>
-						</details>
-					) : (
-						<div class="faculty">
-							<p class="faculty__summary">
-								<span class="faculty__name">{faculty.name}</span>
-							</p>
+		<div class:list={['university-details__grid', { 'is-single': !faculties.length || !hasAside }]}>
+			{faculties.length > 0 && (
+				<div class="university-details__block">
+					<h3 class="university-details__block-title">{content.facultiesTitle}</h3>
+					<p class="university-details__text">{content.facultiesLead}</p>
+
+					<div class="faculty-list">
+						{faculties.map((faculty, index) =>
+							faculty.description ? (
+								<details class="faculty" name="university-faculties" open={index === 0}>
+									<summary class="faculty__summary">
+										<span class="faculty__name">{faculty.name}</span>
+										<span class="faculty__toggle" aria-hidden="true">
+											<Star class="faculty__star" />
+										</span>
+									</summary>
+									<p class="faculty__description">{faculty.description}</p>
+								</details>
+							) : (
+								<div class="faculty">
+									<p class="faculty__summary">
+										<span class="faculty__name">{faculty.name}</span>
+									</p>
+								</div>
+							),
+						)}
+					</div>
+				</div>
+			)}
+
+			{hasAside && (
+				<div class="university-details__aside">
+					{rankings && (
+						<div class="university-details__card">
+							<span class="university-details__card-icon" aria-hidden="true">
+								<Icon name="landmark" size={24} />
+							</span>
+							<h3 class="university-details__block-title">{content.rankingsTitle}</h3>
+							{rankings.intro && <p class="university-details__text">{rankings.intro}</p>}
+							<UniversityStarList items={rankings.items} />
 						</div>
-					),
-				)}
-			</div>
-		</div>
-	)}
+					)}
 
-	{rankings && (
-		<div class="university-details__block">
-			<h2 class="university-details__title">{content.rankingsTitle}</h2>
-			<div class="university-details__content">
-				{rankings.intro && <p class="university-details__text">{rankings.intro}</p>}
-				<UniversityStarList items={rankings.items} />
-			</div>
+					{studentLife.length > 0 && (
+						<div class="university-details__card university-details__card--life">
+							<span class="university-details__card-icon" aria-hidden="true">
+								<Icon name="user" size={24} />
+							</span>
+							<h3 class="university-details__block-title">{content.studentLifeTitle}</h3>
+							{studentLife.map((paragraph) => (
+								<p class="university-details__text">{paragraph}</p>
+							))}
+						</div>
+					)}
+				</div>
+			)}
 		</div>
-	)}
-
-	{studentLife.length > 0 && (
-		<div class="university-details__block">
-			<h2 class="university-details__title">{content.studentLifeTitle}</h2>
-			<div class="university-details__content">
-				{studentLife.map((paragraph) => (
-					<p class="university-details__text">{paragraph}</p>
-				))}
-			</div>
-		</div>
-	)}
+	</div>
 </section>
 
 <style>
 	.university-details {
-		scroll-margin-top: calc(4.75rem + var(--space-4));
-		color: var(--color-black);
+		position: relative;
+		overflow: clip;
+		background: radial-gradient(50rem 28rem at 100% 0%, rgb(0 192 252 / 0.14), transparent 70%), #f1f7fb;
+		color: var(--text-on-light);
+		scroll-margin-top: calc(var(--header-height) + 5.5rem);
 	}
 
-	/* Cada bloque: 32px 40px de padding (Figma) */
-	.university-details__block {
+	/* ===== Encabezado ===== */
+	.university-details__header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-7); /* 40px entre título y contenido */
-		padding: var(--space-6) var(--space-7);
+		align-items: flex-start;
+		gap: var(--space-3);
+		margin-bottom: clamp(var(--space-7), 4vw, var(--space-9));
 	}
 
-	.university-details__block--faculties {
-		gap: var(--space-4); /* 16px */
-	}
-
-	.university-details__title {
-		font-size: clamp(1.625rem, 1.2rem + 1.5vw, 2.25rem); /* 36px */
-		line-height: 1.11; /* 40px */
+	.university-details__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--surface-white);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
 		color: var(--color-blue-title);
 	}
 
-	.university-details__content {
+	.university-details__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-red);
+	}
+
+	.university-details__title {
+		max-width: 22ch;
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--text-heading-light);
+		text-wrap: balance;
+	}
+
+	/* ===== Dos columnas: áreas de estudio · tarjetas ===== */
+	.university-details__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+		align-items: start;
+		gap: var(--space-6);
+	}
+
+	.university-details__grid.is-single {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.university-details__block,
+	.university-details__aside {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
 	}
 
-	.university-details__lead {
-		font-size: var(--font-size-h4); /* 24px */
-		line-height: 1.33; /* 32px */
+	.university-details__block-title {
+		font-size: var(--font-size-h3);
+		line-height: 1.2;
+		color: var(--color-blue-title);
 	}
 
 	.university-details__text {
-		font-size: var(--font-size-h4); /* 24px */
-		line-height: 1.5; /* 36px */
+		font-size: var(--font-size-md);
+		line-height: 1.6rem;
+		color: #2c3030;
 	}
 
 	/* ----- Acordeón de facultades ----- */
 	.faculty-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.8125rem; /* 13px */
+		gap: var(--space-3);
 	}
 
 	.faculty {
-		border-radius: 1rem; /* 16px */
-		background-color: var(--color-white);
+		border: 1px solid rgb(18 91 168 / 0.1);
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-white);
+		box-shadow: 0 1rem 2rem -1.75rem rgb(18 91 168 / 0.6);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out);
+	}
+
+	.faculty[open] {
+		border-color: rgb(0 122 252 / 0.4);
+		box-shadow: 0 1.5rem 2.5rem -1.75rem rgb(0 122 252 / 0.7);
 	}
 
 	.faculty__summary {
@@ -142,79 +217,167 @@ const content = {
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--space-4);
-		padding: var(--space-5) var(--space-6); /* 24px 32px */
-		font-size: clamp(1.25rem, 0.9rem + 1.5vw, 2rem); /* 32px */
-		line-height: 1.125; /* 36px */
+		min-height: 4.25rem;
+		padding: var(--space-4) var(--space-5);
+		border-radius: inherit;
 		list-style: none;
-		transition:
-			padding var(--duration-base) var(--ease-out),
-			color var(--duration-base) var(--ease-out);
+		cursor: pointer;
 	}
 
-	details.faculty .faculty__summary {
-		cursor: pointer;
+	div.faculty .faculty__summary {
+		cursor: default;
 	}
 
 	.faculty__summary::-webkit-details-marker {
 		display: none;
 	}
 
-	.faculty__star {
-		flex: none;
-		color: var(--color-blue);
-		opacity: 0;
-		transform: scale(0.4) rotate(-45deg);
+	.faculty__summary:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 2px;
+	}
+
+	.faculty__name {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+		color: var(--text-on-light);
 		transition:
-			opacity var(--duration-base) var(--ease-out),
-			transform var(--duration-slow) var(--ease-out);
+			color var(--duration-base) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
 	}
 
-	/* Estado activo (cursor o facultad abierta): como el primer ítem de Figma */
-	details.faculty:hover .faculty__summary,
-	details.faculty[open] .faculty__summary,
-	.faculty__summary:focus-visible {
-		padding-left: 3.5rem; /* 56px */
+	.faculty[open] .faculty__name,
+	.faculty__summary:hover .faculty__name {
 		color: var(--color-blue-title);
+		translate: 0.25rem 0;
 	}
 
-	details.faculty:hover .faculty__star,
-	details.faculty[open] .faculty__star,
-	.faculty__summary:focus-visible .faculty__star {
-		opacity: 1;
-		transform: none;
+	/* Estrella de la marca: gris al cerrar, azul y girada al abrir */
+	.faculty__toggle {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-pill);
+		background-color: #eef4f9;
+		color: rgb(18 91 168 / 0.45);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			rotate var(--duration-slow) var(--ease-out);
 	}
 
-	.faculty__summary:focus-visible {
-		border-radius: 1rem;
+	.faculty__star {
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	.faculty[open] .faculty__toggle {
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+		rotate: 45deg;
 	}
 
 	.faculty__description {
-		padding: 0 var(--space-6) var(--space-5) 3.5rem;
-		font-size: var(--font-size-lg);
-		line-height: 1.75rem;
-		color: rgb(23 26 26 / 0.8);
+		padding: 0 var(--space-5) var(--space-5);
+		font-size: var(--font-size-md);
+		line-height: 1.6rem;
+		color: #2c3030;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.faculty {
+			interpolate-size: allow-keywords;
+		}
+
+		.faculty::details-content {
+			block-size: 0;
+			overflow-y: clip;
+			transition:
+				block-size 0.4s var(--ease-out),
+				content-visibility 0.4s allow-discrete;
+		}
+
+		.faculty[open]::details-content {
+			block-size: auto;
+		}
+	}
+
+	/* ----- Tarjetas: rankings y vida estudiantil ----- */
+	.university-details__card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-4);
+		padding: var(--space-6);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-white);
+		box-shadow: 0 1.5rem 3rem -2.25rem rgb(18 91 168 / 0.55);
+	}
+
+	.university-details__card--life {
+		background:
+			radial-gradient(22rem 12rem at 100% 0%, rgb(251 189 29 / 0.18), transparent 70%),
+			var(--surface-white);
+	}
+
+	.university-details__card-icon {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue));
+		color: var(--color-pure-white);
+	}
+
+	.university-details__card--life .university-details__card-icon {
+		background: var(--color-yellow);
+		color: #002546;
+	}
+
+	.university-details__card :global(.star-list) {
+		padding-left: 0;
+	}
+
+	.university-details__card :global(.star-list__item) {
+		align-items: flex-start;
+		font-size: var(--font-size-md);
+		line-height: 1.6rem;
+	}
+
+	.university-details__card :global(.star-list__icon) {
+		width: 1.25rem;
+		height: auto;
+		margin-top: 0.2em;
+	}
+
+	/* ===== Tablet y móvil: una columna ===== */
+	@media (max-width: 1100px) {
+		.university-details__grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 
 	@media (max-width: 640px) {
-		.university-details__block {
-			gap: var(--space-5);
-			padding: var(--space-5) var(--space-4);
+		.university-details__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
 		}
 
-		.faculty__summary {
-			padding: var(--space-4) var(--space-5);
+		.university-details__block-title {
+			font-size: var(--font-size-card-title-mobile);
 		}
 
-		details.faculty:hover .faculty__summary,
-		details.faculty[open] .faculty__summary,
-		.faculty__summary:focus-visible {
-			padding-left: var(--space-6);
-		}
-
-		.faculty__description {
-			padding: 0 var(--space-5) var(--space-4) var(--space-6);
+		.faculty__name {
 			font-size: var(--font-size-md);
-			line-height: 1.5rem;
+		}
+
+		.university-details__card {
+			padding: var(--space-5);
+			border-radius: var(--radius-lg);
 		}
 	}
 </style>

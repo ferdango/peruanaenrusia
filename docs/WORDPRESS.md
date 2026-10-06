@@ -85,7 +85,7 @@ Las cuentas de estudiantes y las reclamaciones se guardan en WordPress si ademá
 
 ### Universidades
 
-Título = nombre · Extracto = resumen · Imagen destacada = foto principal · Campos: ciudad, destacada en el Home, sitio web, logo, foto de cabecera, 2 fotos de la ficha, descripción (párrafos separados por una línea en blanco), "La universidad cuenta con" (uno por línea), áreas de estudio (una por línea: `Facultad | Descripción`), rankings, vida estudiantil y consejos.
+Título = nombre · Extracto = resumen · Imagen destacada = foto principal · Campos: ciudad, destacada en el Home, sitio web, año de fundación, tipo (ej. Pública), brochure (PDF oficial; si se deja vacío, el sitio ofrece el que genera con la ficha), logo, foto de cabecera, 2 fotos de la ficha, descripción (párrafos separados por una línea en blanco), "La universidad cuenta con" (uno por línea), áreas de estudio (una por línea: `Facultad | Descripción`), rankings, vida estudiantil y consejos.
 
 ### Casos de éxito
 

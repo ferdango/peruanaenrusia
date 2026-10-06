@@ -62,6 +62,9 @@ function peru_rest_university( $post ) {
 		'featured'     => (bool) peru_field( 'featured', $id ),
 		'website'      => peru_text( peru_field( 'website', $id ) ),
 		'summary'      => peru_text( peru_field( 'summary', $id ) ),
+		'founded'      => peru_text( peru_field( 'founded', $id ) ),
+		'kind'         => peru_text( peru_field( 'kind', $id ) ),
+		'brochure'     => peru_text( peru_field( 'brochure', $id ) ),
 		'logo'         => peru_image( peru_field( 'logo', $id ) ),
 		'cover'        => peru_image( peru_field( 'cover', $id ) ),
 		'gallery'      => array_values(

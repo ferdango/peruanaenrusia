@@ -2,38 +2,78 @@
 /**
  * SideMenu
  * --------------------------------------------------------------------------
- * Menú lateral que se abre con el botón ☰ del header (Figma: "Menu").
- * Fondo degradado azul, enlaces, datos de contacto y botón de WhatsApp.
+ * Menú lateral que se abre con el botón ☰ del header (Figma: "Menu"), con el
+ * lenguaje de la marca:
+ *
+ *   [Logo]                                   (✕)
+ *   MENÚ
+ *   01  Acerca de                              →
+ *   02  Casos de éxito                         →   (la página actual, resaltada)
+ *   …
+ *   (👤 Inicia sesión)          → "Mi proceso" si hay sesión
+ *   ┌ ¿Hablamos? ─ teléfono · correo · [Escríbenos por WhatsApp] ┐
+ *   (redes sociales)
+ *   ～～ ondas de la marca ～～
  *
  * Es un <dialog>: se abre con cualquier elemento que tenga
  * data-dialog-open="side-menu" (ver src/scripts/dialog.ts).
  *
- * Animación: el panel entra de derecha a izquierda (y los enlaces lo siguen
+ * Animación: el panel entra de derecha a izquierda (y su contenido lo sigue
  * en cascada); al cerrar sale hacia la derecha en los navegadores que pueden
  * animar la salida de un <dialog> (en los demás se cierra al instante).
+ * Enlaces, contacto y redes: src/data/navigation.ts y src/data/site.ts.
  */
 import { Image } from 'astro:assets';
 
+import Logo from '@components/brand/Logo.astro';
 import Button from '@components/ui/Button.astro';
 import Icon from '@components/ui/Icon.astro';
-import { sideNav, isActiveLink } from '@data/navigation';
+import { sideNav, isActiveLink, routes } from '@data/navigation';
 import { site, whatsappUrl } from '@data/site';
 import flagPe from '@assets/images/flags/pe.png';
 import menuWaves from '@assets/images/menu/menu-waves.png';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 const currentPath = Astro.url.pathname;
+
+// ----- Textos -----
+const content = {
+	label: 'Menú',
+	close: 'Cerrar menú',
+	home: `${site.name}: inicio`,
+	account: 'Inicia sesión',
+	accountWithSession: 'Mi proceso',
+	contactTitle: '¿Hablamos?',
+	contactText: 'Resolvemos tus dudas sobre becas, carreras y viaje.',
+	whatsapp: 'Escríbenos por WhatsApp',
+	newTab: '(se abre en una pestaña nueva)',
+	socialsLabel: 'Redes sociales',
+};
+
+/** 0 → "01" */
+const linkNumber = (index: number) => String(index + 1).padStart(2, '0');
 ---
 
-<dialog id="side-menu" class="side-menu" aria-label="Menú">
+<dialog id="side-menu" class="side-menu" aria-label={content.label}>
 	<div class="side-menu__panel">
+		<!-- Ondas y estrella de la marca (decorativas) -->
+		<Image src={menuWaves} alt="" width={729} class="side-menu__waves" aria-hidden="true" />
+		<Star class="side-menu__star" aria-hidden="true" />
+
 		<div class="side-menu__top">
+			<a href={routes.home} class="side-menu__brand" aria-label={content.home} data-dialog-close-on-nav>
+				<Logo variant="horizontal" color="mono" width={128} />
+			</a>
 			<button type="button" class="side-menu__close" data-dialog-close>
-				<Icon name="close" size={18} title="Cerrar menú" />
+				<Icon name="close" size={16} title={content.close} />
 			</button>
 		</div>
 
 		<div class="side-menu__body">
-			<nav aria-label="Menú del sitio">
+			<nav class="side-menu__nav" aria-label="Menú del sitio">
+				<p class="side-menu__label" aria-hidden="true">
+					{content.label}
+				</p>
 				<ul role="list" class="side-menu__list">
 					{sideNav.map((link, index) => {
 						const active = isActiveLink(link, currentPath);
@@ -45,43 +85,79 @@ const currentPath = Astro.url.pathname;
 									aria-current={active ? 'page' : undefined}
 									data-dialog-close-on-nav
 								>
-									{link.label}
+									<span class="side-menu__index" aria-hidden="true">
+										{linkNumber(index)}
+									</span>
+									<span class="side-menu__text">{link.label}</span>
+									<span class="side-menu__arrow" aria-hidden="true">
+										<Icon name="arrow-right" size={18} />
+									</span>
 								</a>
 							</li>
 						);
 					})}
-					<li style={`--i: ${sideNav.length}`}>
-						<button
-							type="button"
-							class="side-menu__link"
-							data-dialog-open="auth-modal"
-							data-session-text="Mi proceso"
-						>
-							Inicia sesión
-						</button>
-					</li>
 				</ul>
+
+				<button
+					type="button"
+					class="side-menu__account"
+					data-dialog-open="auth-modal"
+					style={`--i: ${sideNav.length}`}
+				>
+					<span class="side-menu__account-icon" aria-hidden="true">
+						<Icon name="user" size={18} />
+					</span>
+					<span data-session-text={content.accountWithSession}>{content.account}</span>
+				</button>
 			</nav>
 
-			<div class="side-menu__contact">
-				<div>
-					<a class="side-menu__phone" href={`tel:+${site.contact.phoneRaw}`}>
-						<Image src={flagPe} alt="" width={24} height={24} class="side-menu__flag" />
-						{site.contact.phone}
-					</a>
-					<a class="side-menu__email" href={`mailto:${site.contact.email}`}>
-						{site.contact.email}
-					</a>
-				</div>
-
-				<Button href={whatsappUrl} variant="light" size="md" block target="_blank" rel="noopener">
-					Contáctate ahora
+			<div class="side-menu__contact" style={`--i: ${sideNav.length + 1}`}>
+				<p class="side-menu__contact-title">{content.contactTitle}</p>
+				<p class="side-menu__contact-text">{content.contactText}</p>
+				<a class="side-menu__phone" href={`tel:+${site.contact.phoneRaw}`}>
+					<Image src={flagPe} alt="" width={22} height={22} class="side-menu__flag" />
+					{site.contact.phone}
+				</a>
+				<a class="side-menu__email" href={`mailto:${site.contact.email}`}>
+					<Icon name="mail" size={16} />
+					{site.contact.email}
+				</a>
+				<Button
+					href={whatsappUrl}
+					variant="light"
+					size="md"
+					icon="whatsapp"
+					block
+					target="_blank"
+					rel="noopener"
+					class="side-menu__whatsapp"
+				>
+					{content.whatsapp}
+					<span class="visually-hidden"> {content.newTab}</span>
 				</Button>
 			</div>
-		</div>
 
-		<!-- Ondas de marca (decorativas) -->
-		<Image src={menuWaves} alt="" width={729} class="side-menu__waves decoration" />
+			<ul
+				class="side-menu__socials"
+				role="list"
+				aria-label={content.socialsLabel}
+				style={`--i: ${sideNav.length + 2}`}
+			>
+				{site.socials.map((social) => (
+					<li>
+						<a
+							href={social.href}
+							class="side-menu__social"
+							target="_blank"
+							rel="noopener"
+							aria-label={social.label}
+						>
+							<Icon name={social.icon} size={20} />
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
 	</div>
 </dialog>
 
@@ -107,7 +183,7 @@ const currentPath = Astro.url.pathname;
 		inset: 0 0 0 auto;
 		/* Por encima del header mientras sale (fuera de la capa superior) */
 		z-index: var(--z-drawer);
-		width: min(22.5rem, 100vw); /* 360px */
+		width: min(26rem, 100vw); /* 416px */
 		max-width: none;
 		height: 100dvh;
 		max-height: none;
@@ -123,8 +199,8 @@ const currentPath = Astro.url.pathname;
 	}
 
 	.side-menu::backdrop {
-		background: rgb(0 0 0 / 0.55);
-		backdrop-filter: blur(2px);
+		background: rgb(4 12 28 / 0.6);
+		backdrop-filter: blur(4px);
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -137,11 +213,19 @@ const currentPath = Astro.url.pathname;
 			animation: side-menu-fade var(--side-menu-in) var(--ease-out) both;
 		}
 
-		/* Los enlaces llegan en cascada detrás del panel */
+		/* El contenido llega en cascada detrás del panel */
 		.side-menu[open] .side-menu__list > li,
-		.side-menu[open] .side-menu__contact {
+		.side-menu[open] .side-menu__account,
+		.side-menu[open] .side-menu__contact,
+		.side-menu[open] .side-menu__socials {
 			animation: side-menu-item 0.5s var(--ease-out) both;
-			animation-delay: calc(0.12s + var(--i, 8) * 0.04s);
+			animation-delay: calc(0.12s + var(--i, 8) * 0.045s);
+		}
+
+		.side-menu[open] .side-menu__star {
+			animation:
+				side-menu-pop 0.6s var(--ease-out) 0.3s both,
+				side-menu-twinkle 3.4s ease-in-out 0.9s infinite;
 		}
 
 		/* Salida (navegadores que animan el cierre de un <dialog>): hacia la derecha.
@@ -179,7 +263,7 @@ const currentPath = Astro.url.pathname;
 	/* (el fondo entra con su color y desenfoque; la salida usa opacity) */
 	@keyframes side-menu-fade {
 		from {
-			background-color: rgb(0 0 0 / 0);
+			background-color: rgb(4 12 28 / 0);
 			backdrop-filter: blur(0);
 		}
 	}
@@ -191,30 +275,98 @@ const currentPath = Astro.url.pathname;
 		}
 	}
 
+	@keyframes side-menu-pop {
+		from {
+			opacity: 0;
+			scale: 0.3;
+		}
+	}
+
+	@keyframes side-menu-twinkle {
+		50% {
+			rotate: 20deg;
+			scale: 0.75;
+		}
+	}
+
+	/* ----- Panel ----- */
 	.side-menu__panel {
 		position: relative;
+		isolation: isolate;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
+		gap: var(--space-5);
 		height: 100%;
-		padding-block: var(--space-4) var(--space-7);
+		padding-block: var(--space-5) var(--space-6);
 		overflow: clip;
-		background: linear-gradient(to bottom, var(--color-blue), #004996);
+		background:
+			radial-gradient(28rem 20rem at 100% 0%, rgb(0 192 252 / 0.35), transparent 65%),
+			radial-gradient(24rem 18rem at 0% 100%, rgb(255 26 48 / 0.2), transparent 70%),
+			linear-gradient(170deg, #0a66e0 0%, #0051b8 45%, #003f93 100%);
+		box-shadow: -2rem 0 4rem -2rem rgb(0 0 0 / 0.6);
+	}
+
+	/* Ondas de la marca al pie (decorativas) */
+	.side-menu__waves {
+		position: absolute;
+		left: -206px;
+		bottom: -210px;
+		z-index: -1;
+		width: 729px;
+		max-width: none;
+		height: auto;
+		opacity: 0.55;
+		pointer-events: none;
+	}
+
+	.side-menu__star {
+		position: absolute;
+		top: 6.25rem;
+		right: 1.75rem;
+		z-index: -1;
+		width: 1.5rem;
+		height: auto;
+		color: var(--color-yellow);
+		pointer-events: none;
 	}
 
 	.side-menu__top {
 		display: flex;
-		justify-content: flex-end;
-		padding: var(--space-3) var(--space-5);
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+		padding-inline: var(--space-6);
+	}
+
+	.side-menu__brand {
+		display: inline-flex;
+		color: var(--color-pure-white);
+	}
+
+	.side-menu__brand :global(svg) {
+		display: block;
+		height: auto;
 	}
 
 	.side-menu__close {
 		display: grid;
 		place-items: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		margin: -11px; /* área táctil amplia sin mover el ícono */
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid rgb(255 255 255 / 0.28);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.08);
 		color: var(--color-white);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			rotate var(--duration-slow) var(--ease-out);
+	}
+
+	.side-menu__close:hover {
+		background-color: var(--color-pure-white);
+		color: var(--color-blue-title);
+		rotate: 90deg;
 	}
 
 	.side-menu__body {
@@ -223,67 +375,280 @@ const currentPath = Astro.url.pathname;
 		display: flex;
 		flex: 1;
 		flex-direction: column;
-		justify-content: space-between;
 		gap: var(--space-6);
-		overflow-x: hidden; /* los enlaces entran desde la derecha sin barra horizontal */
+		overflow-x: hidden; /* el contenido entra desde la derecha sin barra horizontal */
 		overflow-y: auto;
+		padding-bottom: var(--space-2);
 	}
 
-	/* ----- Enlaces ----- */
-	.side-menu__link {
+	/* ----- Navegación ----- */
+	.side-menu__nav {
 		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+
+	.side-menu__label {
+		padding-inline: var(--space-6);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: rgb(255 255 255 / 0.6);
+	}
+
+	.side-menu__link {
+		position: relative;
+		display: grid;
+		grid-template-columns: 2rem minmax(0, 1fr) auto;
 		align-items: center;
+		gap: var(--space-3);
 		width: 100%;
-		padding: var(--space-4) var(--space-5);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-medium);
+		padding: 0.75rem var(--space-6);
+		font-size: 1.375rem;
+		font-weight: var(--font-weight-semibold);
 		line-height: 1.75rem;
 		text-align: left;
 		transition: background-color var(--duration-base) var(--ease-out);
 	}
 
-	.side-menu__link:hover,
-	.side-menu__link.is-active {
-		background-color: rgb(255 255 255 / 0.14);
+	/* Barra amarilla a la izquierda: la página actual */
+	.side-menu__link::before {
+		content: '';
+		position: absolute;
+		top: 0.5rem;
+		bottom: 0.5rem;
+		left: 0;
+		width: 4px;
+		border-radius: 0 4px 4px 0;
+		background-color: var(--color-yellow);
+		scale: 1 0;
+		transition: scale var(--duration-slow) var(--ease-out);
 	}
 
-	/* ----- Contacto ----- */
+	.side-menu__index {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.06em;
+		color: rgb(255 255 255 / 0.55);
+		transition: color var(--duration-base) var(--ease-out);
+	}
+
+	.side-menu__text {
+		transition: translate var(--duration-slow) var(--ease-out);
+	}
+
+	.side-menu__arrow {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		color: var(--color-blue);
+		opacity: 0;
+		translate: -0.5rem 0;
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
+	}
+
+	.side-menu__link:hover,
+	.side-menu__link:focus-visible {
+		background-color: rgb(255 255 255 / 0.08);
+	}
+
+	.side-menu__link:hover .side-menu__text,
+	.side-menu__link:focus-visible .side-menu__text {
+		translate: 0.375rem 0;
+	}
+
+	.side-menu__link:hover .side-menu__arrow,
+	.side-menu__link:focus-visible .side-menu__arrow {
+		opacity: 1;
+		translate: 0 0;
+	}
+
+	.side-menu__link.is-active {
+		background-color: rgb(255 255 255 / 0.12);
+	}
+
+	.side-menu__link.is-active::before {
+		scale: 1 1;
+	}
+
+	.side-menu__link.is-active .side-menu__index {
+		color: var(--color-yellow);
+	}
+
+	.side-menu__link:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: -4px;
+	}
+
+	/* "Inicia sesión" / "Mi proceso" */
+	.side-menu__account {
+		display: inline-flex;
+		align-items: center;
+		align-self: flex-start;
+		gap: var(--space-3);
+		margin: var(--space-2) var(--space-6) 0;
+		padding: 0.375rem 1.125rem 0.375rem 0.375rem;
+		border: 1px solid rgb(255 255 255 / 0.3);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.08);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-pure-white);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			border-color var(--duration-base) var(--ease-out);
+	}
+
+	.side-menu__account-icon {
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-yellow);
+		color: #002546;
+	}
+
+	.side-menu__account:hover {
+		border-color: var(--color-pure-white);
+		background-color: rgb(255 255 255 / 0.16);
+	}
+
+	.side-menu__account:focus-visible,
+	.side-menu__close:focus-visible,
+	.side-menu__brand:focus-visible,
+	.side-menu__social:focus-visible,
+	.side-menu__phone:focus-visible,
+	.side-menu__email:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ----- Tarjeta de contacto ----- */
 	.side-menu__contact {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
-		padding-inline: var(--space-5);
+		align-items: flex-start;
+		gap: var(--space-2);
+		margin: auto var(--space-5) 0;
+		padding: var(--space-5);
+		border: 1px solid rgb(255 255 255 / 0.2);
+		border-radius: var(--radius-xl);
+		background-color: rgb(255 255 255 / 0.08);
+		backdrop-filter: blur(12px);
+	}
+
+	.side-menu__contact-title {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.5rem;
+	}
+
+	.side-menu__contact-text {
+		margin-bottom: var(--space-2);
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: rgb(255 255 255 / 0.78);
 	}
 
 	.side-menu__phone {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-size: var(--font-size-h3);
-		font-weight: var(--font-weight-semibold);
-		color: rgb(247 247 255 / 0.85);
+		font-size: var(--font-size-h4);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
 		white-space: nowrap;
 	}
 
 	.side-menu__flag {
-		width: 24px;
-		height: 24px;
+		width: 22px;
+		height: 22px;
 		border-radius: var(--radius-pill);
 	}
 
 	.side-menu__email {
-		display: block;
-		margin-top: var(--space-1);
-		font-size: var(--font-size-lg);
-		color: rgb(247 247 255 / 0.65);
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin-bottom: var(--space-3);
+		font-size: var(--font-size-md);
+		color: rgb(255 255 255 / 0.78);
+		text-decoration: underline;
+		text-decoration-color: rgb(255 255 255 / 0.3);
+		text-underline-offset: 3px;
+		transition: color var(--duration-base) var(--ease-out);
 	}
 
-	/* ----- Ondas decorativas al pie del menú ----- */
-	.side-menu__waves {
-		left: -206px;
-		bottom: -180px;
-		width: 729px;
-		max-width: none;
-		height: auto;
+	.side-menu__email:hover {
+		color: var(--color-pure-white);
+	}
+
+	.side-menu__contact :global(.side-menu__whatsapp) {
+		color: var(--color-blue-title);
+	}
+
+	/* ----- Redes sociales ----- */
+	.side-menu__socials {
+		display: flex;
+		gap: var(--space-2);
+		padding-inline: var(--space-5);
+	}
+
+	.side-menu__social {
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid rgb(255 255 255 / 0.3);
+		border-radius: var(--radius-pill);
+		color: var(--color-pure-white);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out);
+	}
+
+	.side-menu__social:hover {
+		background-color: var(--color-pure-white);
+		color: var(--color-blue);
+	}
+
+	/* ----- Pantallas bajas: menos aire (todo a la vista sin desplazar) ----- */
+	@media (max-height: 900px) {
+		.side-menu__body {
+			gap: var(--space-5);
+		}
+
+		.side-menu__link {
+			padding-block: 0.625rem;
+			font-size: 1.25rem;
+		}
+
+		.side-menu__contact-text {
+			display: none;
+		}
+	}
+
+	/* Muy bajas: sin las redes (también están en el footer de cada página) */
+	@media (max-height: 760px) {
+		.side-menu__link {
+			padding-block: 0.5rem;
+			font-size: var(--font-size-lg);
+		}
+
+		.side-menu__contact {
+			padding: var(--space-4) var(--space-5);
+		}
+
+		.side-menu__socials {
+			display: none;
+		}
 	}
 </style>

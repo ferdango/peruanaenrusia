@@ -14,9 +14,16 @@
  * description, highlights, faculties, rankings, studentLife, tips) pueden
  * omitirse y la sección correspondiente no se dibuja.
  *
+ * Brochure: cada ficha ofrece "Descargar brochure". Si la universidad tiene
+ * `brochure` (URL de un PDF oficial) se descarga ese; si no, el PDF que genera
+ * el sitio con los datos de la ficha (public/brochures/{slug}.pdf, ver
+ * scripts/brochures.mjs y docs/GUIA-DESARROLLO.md).
+ *
  * ⚠️ CONTENIDO DE EJEMPLO: la lista, fotos y logos son de referencia (las
  * imágenes vienen del diseño). Confirma las universidades con las que trabaja
- * Peruana en Rusia y reemplaza las imágenes por las de cada una.
+ * Peruana en Rusia y reemplaza las imágenes por las de cada una. Los años de
+ * fundación y los resúmenes son datos generales públicos de cada universidad:
+ * revísalos con el equipo antes de publicar.
  */
 import type { ImageSource } from '@lib/content/images';
 
@@ -59,6 +66,12 @@ export interface University {
 	website?: string;
 	/** Resumen corto: primer párrafo de la ficha y descripción para buscadores */
 	summary?: string;
+	/** Año de fundación (dato de la portada de la ficha) */
+	founded?: number;
+	/** Tipo de universidad, ej. "Pública" */
+	kind?: string;
+	/** PDF oficial de la universidad (si no hay, se usa el brochure que genera el sitio) */
+	brochure?: string;
 
 	// ----- Contenido de la ficha (todo opcional) -----
 
@@ -92,6 +105,8 @@ export const universities: University[] = [
 		image: campusPhoto,
 		featured: true,
 		website: 'https://www.msu.ru/en/',
+		founded: 1755,
+		kind: 'Pública',
 		summary:
 			'Fue fundada oficialmente el 25 de enero de 1755 por el científico Mijaíl Vasílievich Lomonósov y la emperatriz Isabel de Rusia, marcando el inicio de la educación universitaria formal en el país.',
 
@@ -168,6 +183,10 @@ export const universities: University[] = [
 		logo: lomonosovLogo,
 		image: campusPhoto,
 		featured: true,
+		founded: 1960,
+		kind: 'Pública',
+		summary:
+			'La Universidad Rusa de la Amistad de los Pueblos nació en Moscú en 1960 para formar a estudiantes de todo el mundo. Hoy es una de las universidades más internacionales de Rusia.',
 	},
 	{
 		slug: 'universidad-estatal-de-san-petersburgo',
@@ -176,6 +195,10 @@ export const universities: University[] = [
 		logo: lomonosovLogo,
 		image: campusPhoto,
 		featured: true,
+		founded: 1724,
+		kind: 'Pública',
+		summary:
+			'Fundada en 1724 por decreto de Pedro el Grande, es una de las universidades más antiguas y prestigiosas de Rusia, en el corazón histórico de San Petersburgo.',
 	},
 	{
 		slug: 'universidad-federal-de-kazan',
@@ -184,6 +207,10 @@ export const universities: University[] = [
 		logo: lomonosovLogo,
 		image: campusPhoto,
 		featured: true,
+		founded: 1804,
+		kind: 'Pública',
+		summary:
+			'Fundada en 1804, es una de las universidades más antiguas de Rusia. El matemático Nikolái Lobachevski fue su rector y hoy recibe a estudiantes de decenas de países.',
 	},
 	{
 		slug: 'universidad-medica-sechenov',
@@ -191,6 +218,10 @@ export const universities: University[] = [
 		city: 'Moscú',
 		logo: lomonosovLogo,
 		image: campusPhoto,
+		founded: 1758,
+		kind: 'Pública',
+		summary:
+			'Sus orígenes se remontan a 1758, como Facultad de Medicina de la Universidad de Moscú. Es la universidad médica más antigua y reconocida de Rusia.',
 	},
 	{
 		slug: 'universidad-politecnica-de-tomsk',
@@ -198,6 +229,10 @@ export const universities: University[] = [
 		city: 'Tomsk',
 		logo: lomonosovLogo,
 		image: campusPhoto,
+		founded: 1896,
+		kind: 'Pública',
+		summary:
+			'Fundada en 1896, fue la primera universidad técnica de la Rusia asiática. Es referente en ingeniería, energía y ciencias aplicadas.',
 	},
 	{
 		slug: 'universidad-federal-de-los-urales',
@@ -206,6 +241,8 @@ export const universities: University[] = [
 		logo: lomonosovLogo,
 		image: urfuPhoto,
 		featured: true,
+		founded: 1920,
+		kind: 'Pública',
 		summary:
 			'Una de las universidades más grandes y reconocidas de Rusia. Kristal la recorrió completa en un video de nuestro canal.',
 	},
@@ -215,6 +252,10 @@ export const universities: University[] = [
 		city: 'Moscú',
 		logo: lomonosovLogo,
 		image: campusPhoto,
+		founded: 1992,
+		kind: 'Pública',
+		summary:
+			'Fundada en 1992, es una de las universidades de investigación más dinámicas de Rusia, especializada en economía, ciencias sociales, informática y humanidades.',
 	},
 	{
 		slug: 'universidad-federal-de-siberia',
@@ -222,5 +263,9 @@ export const universities: University[] = [
 		city: 'Krasnoyarsk',
 		logo: lomonosovLogo,
 		image: campusPhoto,
+		founded: 2006,
+		kind: 'Pública',
+		summary:
+			'Creada en 2006 en Krasnoyarsk a partir de la unión de varias universidades de la ciudad, es uno de los principales centros de estudio de Siberia.',
 	},
 ];

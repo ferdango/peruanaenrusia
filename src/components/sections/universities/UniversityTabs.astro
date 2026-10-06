@@ -5,11 +5,12 @@
  * Figma: UI Desktop › "Universidad Single" (3333:276) › "Frame 628417" (3314:111).
  *
  * Navegación por anclas dentro de la ficha de universidad. Como en Figma,
- * la píldora se superpone a la foto de portada y queda fija (sticky) bajo el
- * header mientras se recorre la hoja. El enlace de la sección visible se
- * resalta con un borde (scroll spy en el <script> de este componente).
+ * la píldora se superpone al borde de la portada y queda fija (sticky) bajo
+ * el header mientras se recorre la página. El enlace de la sección visible
+ * se resalta (scroll spy en el <script> de este componente).
  *
- * Debe ser hijo directo de la hoja (así se mantiene fija en todo su alto).
+ * Debe ser hijo directo del contenedor de las secciones (así se mantiene fija
+ * en todo su alto). En móvil, si no caben, los enlaces se deslizan.
  *
  * Uso:
  *   <UniversityTabs items={[{ id: 'de-un-vistazo', label: 'De un vistazo' }, …]} />
@@ -107,11 +108,11 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 	.university-tabs {
 		position: sticky;
 		top: calc(var(--header-height) + var(--space-4));
-		z-index: 2;
+		z-index: 5;
 		width: fit-content;
 		max-width: calc(100% - 2 * var(--space-4));
-		/* Se superpone 38.5px a la foto de portada (como en Figma) */
-		margin: -2.40625rem auto 0;
+		/* Se superpone al borde de la portada (como en Figma sobre la foto) */
+		margin: -2.25rem auto 0;
 	}
 
 	.university-tabs__pill {
@@ -119,8 +120,10 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		align-items: center;
 		gap: var(--space-2); /* 8px */
 		padding: var(--space-2);
+		border: 1px solid rgb(255 255 255 / 0.18);
 		border-radius: var(--radius-lg); /* 24px */
 		background-color: var(--color-blue);
+		box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 60 150 / 0.7);
 	}
 
 	/* Recuadro azul oscuro con el logo (60 × 60 px) */
@@ -139,6 +142,13 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.university-tabs__list::-webkit-scrollbar {
+		display: none;
 	}
 
 	.university-tabs__link {
@@ -165,10 +175,17 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 	/* Sección visible: borde claro (estado "De un vistazo" del diseño) */
 	.university-tabs__link.is-active {
 		border-color: var(--color-white);
+		background-color: rgb(244 244 244 / 0.12);
+	}
+
+	.university-tabs__link:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 2px;
 	}
 
 	@media (max-width: 640px) {
 		.university-tabs {
+			max-width: calc(100% - 2 * var(--space-3));
 			margin-top: -1.75rem;
 		}
 
@@ -182,13 +199,13 @@ const { items, label = 'Secciones de la ficha' } = Astro.props;
 		}
 
 		.university-tabs__list {
-			gap: var(--space-1);
+			gap: 0.125rem;
 		}
 
 		.university-tabs__link {
 			height: 2.5rem;
-			padding-inline: 0.625rem;
-			font-size: var(--font-size-sm);
+			padding-inline: 0.4375rem;
+			font-size: 0.8125rem;
 		}
 	}
 </style>

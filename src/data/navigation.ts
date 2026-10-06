@@ -36,6 +36,8 @@ export const routes = {
 /** URLs de las páginas de detalle (se construyen a partir del slug) */
 export const detailRoutes = {
 	university: (slug: string) => withBase(`/universidades/${slug}/`),
+	/** Versión para imprimir del brochure (con ella se generan los PDF, ver scripts/brochures.mjs) */
+	universityBrochure: (slug: string) => withBase(`/universidades/${slug}/brochure/`),
 	successCase: (slug: string) => withBase(`/casos-de-exito/${slug}/`),
 	blogPost: (slug: string) => withBase(`/blog/${slug}/`),
 };

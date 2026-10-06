@@ -1,0 +1,646 @@
+---
+/**
+ * Brochure de una universidad, versión para imprimir ( /universidades/{slug}/brochure/ )
+ * --------------------------------------------------------------------------
+ * Documento A4 con la marca de Peruana en Rusia y los datos de la ficha:
+ *   · Portada a sangre: logo, foto, nombre, datos clave, resumen y
+ *     "La universidad cuenta con".
+ *   · Páginas siguientes: descripción, áreas de estudio, rankings, vida
+ *     estudiantil, consejos, "Así te acompañamos" (los 5 pasos del proceso)
+ *     y los datos de contacto.
+ * Solo aparecen las secciones con datos.
+ *
+ * De esta página salen los PDF que descarga el botón "Descargar brochure"
+ * (public/brochures/{slug}.pdf): `npm run build && npm run brochures`
+ * (scripts/brochures.mjs). Si el PDF todavía no existe, el botón abre esta
+ * página, que también se puede guardar como PDF desde el navegador.
+ *
+ * No se indexa en buscadores (noindex y fuera del sitemap).
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+import BrochureClosing from '@components/sections/universities/BrochureClosing.astro';
+
+import Logo from '@components/brand/Logo.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { detailRoutes } from '@data/navigation';
+import { site } from '@data/site';
+import type { University } from '@data/universities';
+import { getUniversities } from '@lib/content';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+export async function getStaticPaths() {
+	const universities = await getUniversities();
+	return universities.map((university) => ({
+		params: { slug: university.slug },
+		props: { university },
+	}));
+}
+
+interface Props {
+	university: University;
+}
+
+const { university } = Astro.props;
+const {
+	description = [],
+	highlights = [],
+	faculties = [],
+	rankings,
+	studentLife = [],
+	tips = [],
+} = university;
+
+// ----- Textos -----
+const content = {
+	label: 'Brochure de universidad',
+	country: 'Rusia',
+	highlights: 'La universidad cuenta con',
+	about: 'Sobre la universidad',
+	faculties: 'Áreas de estudio',
+	rankings: 'Reputación y rankings',
+	studentLife: 'Vida estudiantil',
+	tips: 'Consejos para tu primer año',
+	print: 'Imprimir o guardar como PDF',
+};
+
+const cover = university.cover ?? { src: university.image, alt: '' };
+const websiteHost = university.website
+	? new URL(university.website).hostname.replace(/^www\./, '')
+	: undefined;
+const onlineUrl = new URL(detailRoutes.university(university.slug), Astro.site);
+const onlineLabel = `${onlineUrl.hostname.replace(/^www\./, '')}${onlineUrl.pathname}`;
+
+/** Datos clave: solo los que existen */
+const facts: { label: string; value: string }[] = [
+	{ label: 'Ciudad', value: `${university.city}, ${content.country}` },
+	...(university.founded ? [{ label: 'Fundada en', value: String(university.founded) }] : []),
+	...(university.kind ? [{ label: 'Tipo', value: `Universidad ${university.kind.toLowerCase()}` }] : []),
+	...(websiteHost ? [{ label: 'Sitio web', value: websiteHost }] : []),
+];
+
+const hasMore =
+	description.length > 0 ||
+	faculties.length > 0 ||
+	Boolean(rankings) ||
+	studentLife.length > 0 ||
+	tips.length > 0;
+
+/** Ficha corta: todo cabe en una página (los pasos y el contacto van en la portada) */
+const compact = !hasMore && highlights.length === 0;
+---
+
+<BaseLayout
+	title={`Brochure: ${university.name}`}
+	description={`Brochure de la ${university.name} (${university.city}, Rusia) de Peruana en Rusia.`}
+	noindex
+	bodyClass="brochure-doc"
+>
+	<main id="contenido" class="brochure">
+		<!-- ===== Página 1: portada ===== -->
+		<section class:list={['sheet', 'sheet--cover', { 'is-compact': compact }]}>
+			<header class="cover-band">
+				<Logo variant="horizontal" color="mono" width={150} class="cover-band__logo" />
+				<span class="cover-band__label">{content.label}</span>
+			</header>
+
+			<div class="cover-photo">
+				<MediaImage
+					image={cover.src}
+					alt={cover.alt}
+					widths={[1200]}
+					sizes="210mm"
+					format="jpeg"
+					quality={78}
+					loading="eager"
+					class="cover-photo__image"
+				/>
+				<span class="cover-photo__shade"></span>
+				<BrandLines class="cover-photo__lines" aria-hidden="true" />
+			</div>
+
+			<div class="cover-body">
+				<p class="cover-body__eyebrow">
+					<Icon name="map-pin" size={14} />
+					{university.city}, {content.country}
+				</p>
+				<h1 class="cover-body__title">{university.name}</h1>
+
+				<dl class="facts">
+					{facts.map((fact) => (
+						<div class="facts__item">
+							<dt>{fact.label}</dt>
+							<dd>{fact.value}</dd>
+						</div>
+					))}
+				</dl>
+
+				{university.summary && <p class="lead">{university.summary}</p>}
+
+				{highlights.length > 0 && (
+					<div class="box">
+						<h2 class="box__title">{content.highlights}</h2>
+						<ul class="stars">
+							{highlights.map((item) => (
+								<li>
+									<Star class="stars__icon" aria-hidden="true" />
+									<span>{item}</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
+
+				{compact && <BrochureClosing onlineLabel={onlineLabel} compact />}
+			</div>
+
+			<footer class="cover-foot">
+				<span>
+					{site.name} · {site.tagline}
+				</span>
+				<span>
+					{site.contact.phone} · {site.contact.email}
+				</span>
+			</footer>
+		</section>
+
+		<!-- ===== Páginas siguientes: la ficha y cómo te acompañamos ===== -->
+		{!compact && (
+			<section class="sheet sheet--flow">
+				{hasMore && (
+					<div class="flow">
+						{description.length > 0 && (
+							<div class="block">
+								<h2 class="block__title">{content.about}</h2>
+								{description.map((paragraph) => (
+									<p class="text">{paragraph}</p>
+								))}
+							</div>
+						)}
+
+						{faculties.length > 0 && (
+							<div class="block">
+								<h2 class="block__title">{content.faculties}</h2>
+								<ul class="faculties">
+									{faculties.map((faculty) => (
+										<li class="faculties__item">
+											<strong>{faculty.name}</strong>
+											{faculty.description && <span>{faculty.description}</span>}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
+
+						{(rankings || studentLife.length > 0) && (
+							<div class="columns">
+								{rankings && (
+									<div class="block block--card">
+										<h2 class="block__title">{content.rankings}</h2>
+										{rankings.intro && <p class="text">{rankings.intro}</p>}
+										<ul class="stars">
+											{rankings.items.map((item) => (
+												<li>
+													<Star class="stars__icon" aria-hidden="true" />
+													<span>{item}</span>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+								{studentLife.length > 0 && (
+									<div class="block block--card block--warm">
+										<h2 class="block__title">{content.studentLife}</h2>
+										{studentLife.map((paragraph) => (
+											<p class="text">{paragraph}</p>
+										))}
+									</div>
+								)}
+							</div>
+						)}
+
+						{tips.length > 0 && (
+							<div class="block">
+								<h2 class="block__title">{content.tips}</h2>
+								<ul class="tips">
+									{tips.map((tip) => (
+										<li class="tips__item">
+											<Star class="tips__star" aria-hidden="true" />
+											<p>{tip}</p>
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
+					</div>
+				)}
+
+				<BrochureClosing onlineLabel={onlineLabel} />
+			</section>
+		)}
+
+		<button type="button" class="print-button" data-print>
+			<Icon name="file-pdf" size={18} />
+			{content.print}
+		</button>
+	</main>
+</BaseLayout>
+
+<script>
+	document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
+</script>
+
+<style>
+	/* ===== Página: A4 (portada a sangre; el resto con márgenes de 16 mm) ===== */
+	@page {
+		size: A4;
+		margin: 16mm 16mm 18mm;
+	}
+
+	@page :first {
+		margin: 0;
+	}
+
+	:global(body.brochure-doc) {
+		background-color: #e9eef3;
+		color: var(--text-on-light);
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.brochure {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10mm;
+		padding: 10mm 0 24mm;
+	}
+
+	.sheet {
+		position: relative;
+		width: 210mm;
+		background-color: var(--surface-white);
+		box-shadow: 0 1rem 3rem -1rem rgb(16 40 80 / 0.35);
+	}
+
+	/* ===== Portada ===== */
+	.sheet--cover {
+		display: flex;
+		flex-direction: column;
+		height: 297mm;
+		overflow: hidden;
+	}
+
+	.cover-band {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 9mm 14mm;
+		background: linear-gradient(120deg, #0046ad 0%, #005ad1 50%, #0a72ec 100%);
+		color: var(--color-pure-white);
+	}
+
+	.cover-band :global(.cover-band__logo) {
+		display: block;
+		height: auto;
+	}
+
+	.cover-band__label {
+		padding: 1.5mm 4mm;
+		border: 0.3mm solid rgb(255 255 255 / 0.5);
+		border-radius: 999px;
+		font-size: 8pt;
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.cover-photo {
+		position: relative;
+		height: 92mm;
+		overflow: hidden;
+	}
+
+	.is-compact .cover-photo {
+		height: 66mm;
+	}
+
+	.is-compact .cover-body {
+		gap: 4mm;
+		padding-top: 7mm;
+	}
+
+	.cover-photo__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.cover-photo__shade {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to top, rgb(0 38 102 / 0.45), transparent 50%);
+	}
+
+	.cover-photo :global(.cover-photo__lines) {
+		position: absolute;
+		left: 0;
+		bottom: -6mm;
+		width: 100%;
+		height: 26mm;
+	}
+
+	.cover-body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 5mm;
+		padding: 9mm 14mm 0;
+	}
+
+	.cover-body__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 2mm;
+		font-size: 9pt;
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.04em;
+		color: var(--color-red);
+	}
+
+	.cover-body__title {
+		font-size: 28pt;
+		line-height: 1.05;
+		color: var(--color-blue-title);
+		text-wrap: balance;
+	}
+
+	/* Datos clave en fila */
+	.facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(38mm, 1fr));
+		gap: 2.5mm;
+		margin: 0;
+	}
+
+	.facts__item {
+		padding: 3mm 4mm;
+		border-radius: 3mm;
+		background-color: #eef5fb;
+	}
+
+	.facts dt {
+		font-size: 7pt;
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #4a5a6a;
+	}
+
+	.facts dd {
+		margin: 0;
+		font-size: 10pt;
+		font-weight: var(--font-weight-bold);
+		color: var(--text-on-light);
+	}
+
+	.lead {
+		font-size: 11pt;
+		line-height: 1.55;
+		color: #2c3030;
+	}
+
+	.box {
+		padding: 5mm 6mm;
+		border-radius: 4mm;
+		background-color: #f3f8fc;
+	}
+
+	.box__title {
+		margin-bottom: 3mm;
+		font-size: 11pt;
+		color: var(--color-blue-title);
+	}
+
+	.stars {
+		display: flex;
+		flex-direction: column;
+		gap: 2mm;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.stars li {
+		display: flex;
+		align-items: flex-start;
+		gap: 2.5mm;
+		font-size: 9.5pt;
+		line-height: 1.45;
+		color: #2c3030;
+	}
+
+	.stars :global(.stars__icon) {
+		flex-shrink: 0;
+		width: 3.4mm;
+		height: 3.4mm;
+		margin-top: 0.8mm;
+		color: var(--color-blue);
+	}
+
+	.cover-foot {
+		display: flex;
+		justify-content: space-between;
+		gap: 6mm;
+		margin-top: auto;
+		padding: 6mm 14mm;
+		border-top: 0.3mm solid #e2e8ee;
+		font-size: 8pt;
+		color: #5a6672;
+	}
+
+	/* ===== Páginas siguientes ===== */
+	.sheet--flow {
+		display: flex;
+		flex-direction: column;
+		gap: 7mm;
+		padding: 16mm;
+	}
+
+	.flow {
+		display: flex;
+		flex-direction: column;
+		gap: 7mm;
+	}
+
+	.block {
+		display: flex;
+		flex-direction: column;
+		gap: 3mm;
+		break-inside: avoid;
+	}
+
+	.block__title {
+		font-size: 14pt;
+		line-height: 1.2;
+		color: var(--color-blue-title);
+	}
+
+	.text {
+		font-size: 10pt;
+		line-height: 1.55;
+		color: #2c3030;
+	}
+
+	.faculties {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 3mm;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.faculties__item {
+		display: flex;
+		flex-direction: column;
+		gap: 1mm;
+		padding: 4mm;
+		border-left: 1mm solid var(--color-blue);
+		border-radius: 2mm;
+		background-color: #f3f8fc;
+		font-size: 9pt;
+		line-height: 1.45;
+		color: #2c3030;
+		break-inside: avoid;
+	}
+
+	.faculties__item strong {
+		font-size: 10pt;
+		color: var(--color-blue-title);
+	}
+
+	.columns {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 4mm;
+	}
+
+	.block--card {
+		padding: 5mm;
+		border-radius: 4mm;
+		background-color: #f3f8fc;
+	}
+
+	.block--warm {
+		background-color: #fff7e2;
+	}
+
+	.block--card .block__title {
+		font-size: 12pt;
+	}
+
+	.tips {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 3mm;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tips__item {
+		display: flex;
+		align-items: flex-start;
+		gap: 3mm;
+		padding: 4mm;
+		border-radius: 3mm;
+		background-color: #e9f7fd;
+		font-size: 9.5pt;
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.45;
+		color: var(--color-blue-title);
+		break-inside: avoid;
+	}
+
+	.tips :global(.tips__star) {
+		flex-shrink: 0;
+		width: 4mm;
+		height: 4mm;
+		margin-top: 0.5mm;
+		color: var(--color-red);
+	}
+
+	/* Botón para imprimir (solo en pantalla) */
+	.print-button {
+		position: fixed;
+		right: 1.5rem;
+		bottom: 1.5rem;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.875rem 1.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-blue);
+		box-shadow: 0 1rem 2rem -1rem rgb(0 60 150 / 0.8);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-pure-white);
+	}
+
+	.print-button:focus-visible {
+		outline: 3px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ===== Impresión / PDF ===== */
+	@media print {
+		:global(body.brochure-doc) {
+			background: none;
+		}
+
+		.brochure {
+			display: block;
+			padding: 0;
+		}
+
+		.sheet {
+			width: auto;
+			box-shadow: none;
+		}
+
+		.sheet--cover {
+			width: 210mm;
+			break-after: page;
+		}
+
+		.sheet--flow {
+			padding: 0;
+		}
+
+		.print-button {
+			display: none;
+		}
+	}
+
+	/* En pantallas angostas la hoja se ajusta al ancho */
+	@media screen and (max-width: 840px) {
+		.sheet {
+			width: calc(100% - 1.5rem);
+		}
+
+		.sheet--cover {
+			height: auto;
+			min-height: 297mm;
+		}
+
+		.steps,
+		.faculties,
+		.tips,
+		.columns {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

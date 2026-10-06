@@ -322,6 +322,9 @@ interface WpUniversityFields {
 	featured?: boolean;
 	website?: string;
 	summary?: string;
+	founded?: number | string;
+	kind?: string;
+	brochure?: string;
 	logo?: WpImage;
 	cover?: WpImage;
 	gallery?: WpImage[];
@@ -356,6 +359,7 @@ export async function fetchUniversities(): Promise<University[]> {
 			.map((photo) => toPhoto(photo))
 			.filter((photo): photo is UniversityPhoto => Boolean(photo));
 		const rankingItems = lines(fields.rankings?.items);
+		const founded = Number.parseInt(String(fields.founded ?? ''), 10);
 
 		return [
 			{
@@ -367,6 +371,9 @@ export async function fetchUniversities(): Promise<University[]> {
 				featured: Boolean(fields.featured),
 				website: text(fields.website),
 				summary: text(fields.summary) ?? (toPlainText(entry.excerpt?.rendered) || undefined),
+				founded: Number.isFinite(founded) ? founded : undefined,
+				kind: text(fields.kind),
+				brochure: text(fields.brochure),
 				cover,
 				gallery: gallery.length ? gallery : undefined,
 				description: lines(fields.description).length ? lines(fields.description) : undefined,

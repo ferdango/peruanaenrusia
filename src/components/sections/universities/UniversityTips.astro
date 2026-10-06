@@ -6,11 +6,13 @@
  *
  * Tarjetas grises con la forma celeste de "reloj de arena" de la marca, el
  * consejo en azul (ExtraBold) y dos estrellas pequeñas (roja y amarilla).
- * 2 columnas en desktop/tablet y 1 en móvil.
+ * 2 columnas en desktop/tablet y 1 en móvil. Encabezado con etiqueta, título
+ * y bajada; las tarjetas aparecen en cascada al hacer scroll.
  *
  * Uso: <UniversityTips id="consejos" tips={university.tips} />
  */
 import Hourglass from '@assets/graphics/shapes/shape-hourglass-tip.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 import StarRed from '@assets/graphics/stars/star-red-small.svg';
 import StarYellow from '@assets/graphics/stars/star-yellow-small.svg';
 
@@ -24,16 +26,25 @@ const { id, tips } = Astro.props;
 
 // ----- Contenido de la sección -----
 const content = {
-	title: 'Consejos',
+	eyebrow: 'Consejos',
+	title: 'Antes de llegar, ten en cuenta',
+	text: 'Consejos prácticos para que tu primer año en Rusia sea más fácil.',
 };
 ---
 
-<section id={id} class="university-tips" aria-labelledby={`${id}-title`}>
-	<h2 id={`${id}-title`} class="university-tips__title">
-		{content.title}
-	</h2>
+<section id={id} class="university-tips section" aria-labelledby={`${id}-title`}>
+	<header class="university-tips__header container">
+		<p class="university-tips__eyebrow">
+			<Star class="university-tips__eyebrow-star" aria-hidden="true" />
+			{content.eyebrow}
+		</p>
+		<h2 id={`${id}-title`} class="university-tips__title">
+			{content.title}
+		</h2>
+		<p class="university-tips__text">{content.text}</p>
+	</header>
 
-	<ul class="university-tips__grid" role="list">
+	<ul class="university-tips__grid container" role="list">
 		{tips.map((tip) => (
 			<li class="tip-card">
 				<Hourglass class="tip-card__shape" aria-hidden="true" />
@@ -53,21 +64,58 @@ const content = {
 	.university-tips {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-7); /* 40px */
-		padding: var(--space-6) var(--space-7); /* 32px 40px */
-		scroll-margin-top: calc(4.75rem + var(--space-4));
+		gap: clamp(var(--space-7), 4vw, var(--space-9));
+		background-color: var(--surface-white);
+		color: var(--text-on-light);
+		scroll-margin-top: calc(var(--header-height) + 5.5rem);
+	}
+
+	.university-tips__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+	}
+
+	.university-tips__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.university-tips__eyebrow-star {
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-red);
 	}
 
 	.university-tips__title {
-		font-size: clamp(1.625rem, 1.2rem + 1.5vw, 2.25rem); /* 36px */
-		line-height: 1.11; /* 40px */
-		color: var(--color-blue-title);
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--text-heading-light);
+		text-wrap: balance;
+	}
+
+	.university-tips__text {
+		max-width: 38rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: #363636;
 	}
 
 	.university-tips__grid {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: var(--space-5) var(--space-4); /* 24px filas · 16px columnas */
+		/* El reinicio de listas (ul[role='list'] { padding: 0 }) le quita el margen de .container */
+		padding-inline: var(--gutter);
 	}
 
 	/* ----- Tarjeta (585 × 430 px en Figma) ----- */
@@ -150,8 +198,17 @@ const content = {
 
 	@media (max-width: 640px) {
 		.university-tips {
-			gap: var(--space-5);
-			padding: var(--space-5) var(--space-4);
+			gap: var(--space-6);
+		}
+
+		.university-tips__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.university-tips__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
 		}
 
 		.university-tips__grid {

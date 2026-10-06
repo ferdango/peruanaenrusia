@@ -1,0 +1,413 @@
+---
+/**
+ * UniversityBrochure — "Descarga el brochure"
+ * --------------------------------------------------------------------------
+ * Bloque azul de la marca con el texto, el botón "Descargar brochure (PDF)",
+ * el de WhatsApp y una maqueta del brochure (portada con la foto y el nombre
+ * de la universidad) que se inclina al pasar el cursor.
+ *
+ * El enlace lo resuelve src/lib/brochures.ts: el PDF oficial de la
+ * universidad, el que genera el sitio (public/brochures/{slug}.pdf) o, si
+ * todavía no existe, la versión para imprimir.
+ *
+ * Uso: <UniversityBrochure id="brochure" university={university} brochure={brochure} />
+ */
+import Logo from '@components/brand/Logo.astro';
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { whatsappUrl } from '@data/site';
+import type { University } from '@data/universities';
+import type { BrochureLink } from '@lib/brochures';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+interface Props {
+	/** id del ancla (lo usa la píldora de navegación) */
+	id: string;
+	university: University;
+	brochure: BrochureLink;
+}
+
+const { id, university, brochure } = Astro.props;
+
+// ----- Contenido de la sección -----
+const content = {
+	eyebrow: 'Brochure',
+	title: 'Lleva la ficha contigo',
+	text: `Descarga el brochure de la ${university.name}: datos clave, carreras, consejos y cómo te acompañamos para postular. Compártelo con tu familia.`,
+	download: 'Descargar brochure',
+	downloadHint: brochure.pdf ? ' (PDF)' : ' (se abre la versión para imprimir)',
+	format: brochure.pdf
+		? 'PDF · listo para imprimir o compartir'
+		: 'Versión para imprimir o guardar como PDF',
+	whatsapp: 'Pregúntanos por WhatsApp',
+	newTab: '(se abre en una pestaña nueva)',
+	mockLabel: 'Brochure de universidad',
+};
+
+const cover = university.cover ?? { src: university.image, alt: '' };
+---
+
+<section id={id} class="university-brochure section" aria-labelledby={`${id}-title`}>
+	<div class="university-brochure__inner container">
+		<div class="university-brochure__panel">
+			<div class="university-brochure__decor" aria-hidden="true">
+				<BrandLines class="university-brochure__lines" />
+				<Star class="university-brochure__star" />
+			</div>
+
+			<div class="university-brochure__text">
+				<p class="university-brochure__eyebrow">
+					<Icon name="file-pdf" size={16} />
+					{content.eyebrow}
+				</p>
+				<h2 id={`${id}-title`} class="university-brochure__title">
+					{content.title}
+				</h2>
+				<p class="university-brochure__lead">{content.text}</p>
+
+				<div class="university-brochure__actions">
+					<Button
+						href={brochure.href}
+						icon="download"
+						download={brochure.pdf ? (brochure.fileName ?? '') : undefined}
+						target={brochure.pdf ? undefined : '_blank'}
+						rel={brochure.pdf ? undefined : 'noopener'}
+					>
+						{content.download}
+						<span class="visually-hidden">{content.downloadHint}</span>
+					</Button>
+					<a
+						href={whatsappUrl}
+						class="university-brochure__whatsapp"
+						target="_blank"
+						rel="noopener"
+					>
+						<Icon name="whatsapp" size={18} />
+						{content.whatsapp}
+						<span class="visually-hidden"> {content.newTab}</span>
+					</a>
+				</div>
+				<p class="university-brochure__format">{content.format}</p>
+			</div>
+
+			<!-- Maqueta del brochure (decorativa) -->
+			<div class="university-brochure__mock" aria-hidden="true">
+				<div class="brochure-mock brochure-mock--back"></div>
+				<div class="brochure-mock">
+					<div class="brochure-mock__band">
+						<Logo variant="horizontal" color="mono" width={92} />
+					</div>
+					<div class="brochure-mock__photo">
+						<MediaImage
+							image={cover.src}
+							alt=""
+							widths={[320, 640]}
+							sizes="16rem"
+							class="brochure-mock__image"
+						/>
+					</div>
+					<div class="brochure-mock__body">
+						<span class="brochure-mock__label">{content.mockLabel}</span>
+						<span class="brochure-mock__name">{university.name}</span>
+						<span class="brochure-mock__line"></span>
+						<span class="brochure-mock__line brochure-mock__line--short"></span>
+						<span class="brochure-mock__line"></span>
+					</div>
+				</div>
+				<span class="university-brochure__pdf">PDF</span>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.university-brochure {
+		background-color: var(--surface-white);
+		scroll-margin-top: calc(var(--header-height) + 5.5rem);
+	}
+
+	/* ===== Panel azul de la marca ===== */
+	.university-brochure__panel {
+		position: relative;
+		isolation: isolate;
+		display: grid;
+		grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+		align-items: center;
+		gap: var(--space-8);
+		padding: clamp(var(--space-7), 5vw, var(--space-10));
+		overflow: clip;
+		border-radius: var(--radius-2xl);
+		background:
+			radial-gradient(40rem 24rem at 100% 0%, rgb(0 192 252 / 0.35), transparent 65%),
+			radial-gradient(30rem 20rem at 0% 100%, rgb(255 26 48 / 0.22), transparent 70%),
+			linear-gradient(120deg, #0046ad 0%, #005ad1 50%, #0a72ec 100%);
+		color: var(--color-pure-white);
+	}
+
+	.university-brochure__decor {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	.university-brochure__lines {
+		position: absolute;
+		bottom: -1.5rem;
+		left: 0;
+		width: 100%;
+		height: clamp(5rem, 8vw, 7rem);
+		opacity: 0.8;
+	}
+
+	.university-brochure__star {
+		position: absolute;
+		top: 2.5rem;
+		right: 2.5rem;
+		width: 1.75rem;
+		height: auto;
+		color: var(--color-yellow);
+	}
+
+	/* ===== Texto ===== */
+	.university-brochure__text {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-4);
+	}
+
+	.university-brochure__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border: 1px solid rgb(255 255 255 / 0.24);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.university-brochure__eyebrow :global(svg) {
+		color: var(--color-yellow);
+	}
+
+	.university-brochure__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		color: var(--color-pure-white);
+		text-wrap: balance;
+	}
+
+	.university-brochure__lead {
+		max-width: 34rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	.university-brochure__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+		margin-top: var(--space-2);
+	}
+
+	.university-brochure__whatsapp {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: 3rem;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		text-decoration: underline;
+		text-decoration-color: rgb(255 255 255 / 0.4);
+		text-underline-offset: 4px;
+		transition: text-decoration-color var(--duration-base) var(--ease-out);
+	}
+
+	.university-brochure__whatsapp :global(svg) {
+		color: #5fe08a;
+	}
+
+	.university-brochure__whatsapp:hover {
+		text-decoration-color: var(--color-yellow);
+	}
+
+	.university-brochure__format {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.04em;
+		color: rgb(255 255 255 / 0.7);
+	}
+
+	.university-brochure a:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ===== Maqueta del brochure ===== */
+	.university-brochure__mock {
+		position: relative;
+		justify-self: center;
+		width: min(100%, 17rem);
+		aspect-ratio: 210 / 297; /* A4 */
+		perspective: 60rem;
+	}
+
+	.brochure-mock {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		overflow: clip;
+		border-radius: 0.75rem;
+		background-color: var(--surface-white);
+		box-shadow: 0 2.5rem 4rem -1.5rem rgb(0 20 60 / 0.65);
+		color: var(--text-on-light);
+		rotate: 4deg;
+		transition:
+			rotate 0.7s var(--ease-out),
+			translate 0.7s var(--ease-out);
+	}
+
+	/* Hoja de atrás, asomando */
+	.brochure-mock--back {
+		background-color: rgb(255 255 255 / 0.55);
+		box-shadow: none;
+		rotate: -6deg;
+		translate: -0.75rem 0.5rem;
+	}
+
+	.university-brochure__panel:hover .brochure-mock:not(.brochure-mock--back) {
+		rotate: 0deg;
+		translate: 0 -0.5rem;
+	}
+
+	.university-brochure__panel:hover .brochure-mock--back {
+		rotate: -9deg;
+		translate: -1.5rem 0.75rem;
+	}
+
+	.brochure-mock__band {
+		display: flex;
+		align-items: center;
+		padding: 0.75rem 0.875rem;
+		background: linear-gradient(120deg, #0046ad, #0a72ec);
+		color: var(--color-pure-white);
+	}
+
+	.brochure-mock__band :global(svg) {
+		height: auto;
+	}
+
+	.brochure-mock__photo {
+		height: 44%;
+		overflow: clip;
+	}
+
+	.brochure-mock__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.brochure-mock__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.875rem;
+	}
+
+	.brochure-mock__label {
+		font-size: 0.625rem;
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-red);
+	}
+
+	.brochure-mock__name {
+		font-size: 1.0625rem;
+		font-weight: var(--font-weight-bold);
+		line-height: 1.2;
+		color: var(--color-blue-title);
+	}
+
+	.brochure-mock__line {
+		display: block;
+		height: 0.4375rem;
+		border-radius: var(--radius-pill);
+		background-color: #e6edf4;
+	}
+
+	.brochure-mock__line--short {
+		width: 70%;
+	}
+
+	/* Etiqueta "PDF" */
+	.university-brochure__pdf {
+		position: absolute;
+		right: -1rem;
+		bottom: 12%;
+		padding: 0.375rem 0.75rem;
+		border-radius: var(--radius-md);
+		background-color: var(--color-red);
+		box-shadow: 0 0.75rem 1.5rem -0.75rem rgb(0 0 0 / 0.5);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-extrabold);
+		letter-spacing: 0.06em;
+		color: var(--color-pure-white);
+		rotate: 6deg;
+	}
+
+	/* ===== Tablet y móvil: una columna ===== */
+	@media (max-width: 1100px) {
+		.university-brochure__panel {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 14rem);
+			gap: var(--space-7);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.university-brochure__inner {
+			padding-inline: var(--space-3);
+		}
+
+		.university-brochure__panel {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-8);
+			padding: var(--space-7) var(--space-5) var(--space-9);
+			border-radius: var(--radius-xl);
+		}
+
+		.university-brochure__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.university-brochure__lead {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.university-brochure__actions {
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
+		}
+
+		.university-brochure__whatsapp {
+			justify-content: center;
+		}
+
+		.university-brochure__mock {
+			width: min(70%, 14rem);
+		}
+	}
+</style>

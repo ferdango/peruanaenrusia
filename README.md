@@ -40,22 +40,23 @@ Abre <http://localhost:4321> en el navegador.
 
 <!-- ROUTES:START -->
 
-| Ruta                          | Página (Figma)                                       | Tipo              |
-| ----------------------------- | ---------------------------------------------------- | ----------------- |
-| `/`                           | Home                                                 | Estática          |
-| `/universidades/`             | Casas de estudio                                     | Estática          |
-| `/universidades/{slug}/`      | Universidad Single (ficha de universidad)            | Estática          |
-| `/casos-de-exito/{slug}/`     | My testimony (historia completa de un caso de éxito) | Estática          |
-| `/blog/`                      | Nuestro Blog                                         | Estática          |
-| `/blog/{slug}/`               | Single Article Text / Single Article Video           | Estática          |
-| `/legales/`                   | Legales                                              | Estática          |
-| `/libro-de-reclamaciones/`    | Libro de reclamaciones                               | Estática + API    |
-| `/404`                        | 404                                                  | Estática          |
-| `/portal/pago/`               | Portal · Pago                                        | Servidor (sesión) |
-| `/portal/pago/enviado/`       | Portal · Solicitud de pago enviada                   | Servidor (sesión) |
-| `/portal/pago/rechazado/`     | Portal · Transacción rechazada                       | Servidor (sesión) |
-| `/portal/mi-proceso/`         | Portal · Mi proceso (resumen)                        | Servidor (sesión) |
-| `/portal/mi-proceso/detalle/` | Portal · Mi proceso (todos los estados de cada paso) | Servidor (sesión) |
+| Ruta                              | Página (Figma)                                       | Tipo              |
+| --------------------------------- | ---------------------------------------------------- | ----------------- |
+| `/`                               | Home                                                 | Estática          |
+| `/universidades/`                 | Casas de estudio (universidades asociadas)           | Estática          |
+| `/universidades/{slug}/`          | Universidad Single (ficha de universidad)            | Estática          |
+| `/universidades/{slug}/brochure/` | Brochure de la universidad (versión para imprimir)   | Estática          |
+| `/casos-de-exito/{slug}/`         | My testimony (historia completa de un caso de éxito) | Estática          |
+| `/blog/`                          | Nuestro Blog                                         | Estática          |
+| `/blog/{slug}/`                   | Single Article Text / Single Article Video           | Estática          |
+| `/legales/`                       | Legales                                              | Estática          |
+| `/libro-de-reclamaciones/`        | Libro de reclamaciones                               | Estática + API    |
+| `/404`                            | 404                                                  | Estática          |
+| `/portal/pago/`                   | Portal · Pago                                        | Servidor (sesión) |
+| `/portal/pago/enviado/`           | Portal · Solicitud de pago enviada                   | Servidor (sesión) |
+| `/portal/pago/rechazado/`         | Portal · Transacción rechazada                       | Servidor (sesión) |
+| `/portal/mi-proceso/`             | Portal · Mi proceso (resumen)                        | Servidor (sesión) |
+| `/portal/mi-proceso/detalle/`     | Portal · Mi proceso (todos los estados de cada paso) | Servidor (sesión) |
 
 <!-- ROUTES:END -->
 

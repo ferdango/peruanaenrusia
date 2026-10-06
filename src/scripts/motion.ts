@@ -1,5 +1,5 @@
 /**
- * Movimiento de las páginas inmersivas (Home, Blog y Caso de éxito)
+ * Movimiento de las páginas inmersivas (Home, Blog, Caso de éxito y Universidades)
  * --------------------------------------------------------------------------
  * Da vida a las páginas con body.motion sin librerías externas (cada regla
  * actúa solo si encuentra sus elementos en la página):
@@ -155,6 +155,29 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.more-cases__title', effect: 'up', delay: 80 },
 	{ selector: '.more-cases__subtitle', effect: 'up', delay: 180 },
 	{ selector: '.more-cases__cta', effect: 'fade', delay: 300 },
+	// Universidades: listado y ficha (las portadas entran con su propia animación al cargar)
+	{ selector: '.universities-grid__toolbar', effect: 'fade' },
+	{ selector: '.universities-grid .university-card', effect: 'up', stagger: 90 },
+	{ selector: '.university-overview__eyebrow', effect: 'up' },
+	{ selector: '.university-overview__title', effect: 'words', delay: 80 },
+	{ selector: '.university-overview__paragraph', effect: 'up', stagger: 100, delay: 180 },
+	{ selector: '.university-overview__highlights', effect: 'up', delay: 260 },
+	{ selector: '.university-overview__pending', effect: 'up', delay: 200 },
+	{ selector: '.university-overview__photo', effect: 'scale', stagger: 160 },
+	{ selector: '.university-overview__badge', effect: 'pop', delay: 400 },
+	{ selector: '.university-details__eyebrow', effect: 'up' },
+	{ selector: '.university-details__title', effect: 'words', delay: 80 },
+	{ selector: '.faculty', effect: 'up', stagger: 80, delay: 150 },
+	{ selector: '.university-details__card', effect: 'up', stagger: 140, delay: 150 },
+	{ selector: '.university-tips__eyebrow', effect: 'up' },
+	{ selector: '.university-tips__title', effect: 'words', delay: 80 },
+	{ selector: '.university-tips__text', effect: 'up', delay: 180 },
+	{ selector: '.tip-card', effect: 'scale', stagger: 110 },
+	{ selector: '.university-brochure__panel', effect: 'up' },
+	{ selector: '.university-more__eyebrow', effect: 'up' },
+	{ selector: '.university-more__title', effect: 'words', delay: 80 },
+	{ selector: '.university-more__text', effect: 'up', delay: 180 },
+	{ selector: '.university-more__cta', effect: 'fade', delay: 300 },
 	// Preguntas frecuentes
 	{ selector: '.home-faq__eyebrow', effect: 'up' },
 	{ selector: '.home-faq__title', effect: 'words', delay: 80 },
@@ -206,6 +229,7 @@ const TILT = [
 	'.testimony-video__card',
 	'.gallery-post',
 	'.testimony-closing__media',
+	'.university-card',
 ].join(', ');
 
 /* ==========================================================================

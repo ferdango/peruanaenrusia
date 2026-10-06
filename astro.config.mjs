@@ -114,9 +114,9 @@ export default defineConfig({
 	},
 
 	integrations: [
-		// sitemap-index.xml con todas las páginas públicas (sin portal, API ni 404)
+		// sitemap-index.xml con todas las páginas públicas (sin portal, API, 404 ni brochures)
 		sitemap({
-			filter: (page) => !/\/(portal|api|404)(\/|$)/.test(new URL(page).pathname),
+			filter: (page) => !/\/(portal|api|404|brochure)(\/|$)/.test(new URL(page).pathname),
 			changefreq: 'weekly',
 			priority: 0.7,
 		}),

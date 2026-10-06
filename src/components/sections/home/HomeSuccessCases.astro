@@ -444,6 +444,12 @@ const content = {
 		padding-block: var(--space-5);
 	}
 
+	/* Pantallas bajas (.is-slider-compact, lo decide src/scripts/motion.ts): menos aire */
+	.home-cases__reel:global(.is-scroll-slider.is-slider-compact) .home-cases__stage {
+		gap: var(--space-3);
+		padding-block: var(--space-3);
+	}
+
 	.home-cases__viewport {
 		overflow-x: auto;
 		overscroll-behavior-x: contain;

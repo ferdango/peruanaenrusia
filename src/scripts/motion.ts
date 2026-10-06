@@ -573,6 +573,12 @@ function initMarquee(): void {
 
    Solo se activa (clase .is-scroll-slider) si las tarjetas no caben en el
    ancho disponible; si no, quedan quietas.
+
+   El bloque fijo tiene que entrar entero en la pantalla (sin recortar las
+   tarjetas). Si no entra, se prueba la versión compacta: la sección recibe
+   .is-slider-compact y su CSS oculta lo secundario (ej. la bajada) y reduce
+   los espacios. Si aun así no entra (ej. un celular en horizontal), el slider
+   no se fija y la fila queda como deslizador táctil.
    ========================================================================== */
 
 interface ScrollSlider {
@@ -583,6 +589,8 @@ interface ScrollSlider {
 	items: HTMLElement[];
 	bar: HTMLElement | null;
 	current: HTMLElement | null;
+	/** Activo: las tarjetas no caben y, si es "pin", el bloque fijo entra en la pantalla */
+	enabled: boolean;
 	/** Scroll que dura cada tarjeta ("pin"), en fracciones del alto de la pantalla */
 	step: number;
 	/** Desplazamiento del riel en el que cada tarjeta queda en su lugar (px) */
@@ -604,6 +612,14 @@ const SLIDER_STEP = 0.45;
 
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
+/** El bloque fijo entra entero en la pantalla: nada se desborda y la fila no recorta las tarjetas */
+function stageFits(slider: ScrollSlider): boolean {
+	const stage = slider.section.firstElementChild;
+	if (!(stage instanceof HTMLElement)) return true;
+	const itemHeight = Math.max(...slider.items.map((item) => item.offsetHeight));
+	return stage.scrollHeight <= stage.clientHeight + 1 && itemHeight <= slider.viewport.clientHeight + 1;
+}
+
 function initScrollSliders(): void {
 	const sliders: ScrollSlider[] = [];
 
@@ -621,6 +637,7 @@ function initScrollSliders(): void {
 			items,
 			bar: section.querySelector<HTMLElement>('[data-slider-bar]'),
 			current: section.querySelector<HTMLElement>('[data-slider-current]'),
+			enabled: false,
 			step: Number.isFinite(step) && step > 0 ? step : SLIDER_STEP,
 			itemStops: [],
 			stops: [],
@@ -648,11 +665,22 @@ function initScrollSliders(): void {
 				(stop, index, all) => index === 0 || stop - all[index - 1] > 1,
 			);
 
-			const enabled = slider.maxShift > 1;
-			section.classList.toggle('is-scroll-slider', enabled);
+			slider.enabled = slider.maxShift > 1;
+			section.classList.toggle('is-scroll-slider', slider.enabled);
 			if (slider.mode === 'pin') {
+				// El bloque fijo no entra en la pantalla: versión compacta y, si
+				// tampoco entra, sin fijar (deslizador táctil)
+				section.classList.remove('is-slider-compact');
+				if (slider.enabled && !stageFits(slider)) {
+					section.classList.add('is-slider-compact');
+					if (!stageFits(slider)) {
+						section.classList.remove('is-slider-compact', 'is-scroll-slider');
+						slider.track.style.removeProperty('--slider-x');
+						slider.enabled = false;
+					}
+				}
 				const step = clamp(window.innerHeight * slider.step, 220, 460);
-				slider.length = enabled ? (slider.stops.length - 1) * step : 0;
+				slider.length = slider.enabled ? (slider.stops.length - 1) * step : 0;
 				section.style.setProperty('--slider-length', `${Math.round(slider.length)}px`);
 			}
 		}
@@ -663,7 +691,7 @@ function initScrollSliders(): void {
 		const headerOffset = header?.offsetHeight ?? 0;
 
 		for (const slider of sliders) {
-			if (slider.maxShift <= 1) continue;
+			if (!slider.enabled) continue;
 			const rect = slider.section.getBoundingClientRect();
 			if (rect.bottom < 0 || rect.top > viewportHeight) continue;
 
@@ -715,6 +743,8 @@ function initScrollSliders(): void {
 	};
 	window.addEventListener('resize', refresh, { passive: true });
 	window.addEventListener('load', refresh, { once: true });
+	// Con la fuente de la marca cambia el alto de los títulos: se mide otra vez
+	document.fonts?.ready.then(refresh);
 }
 
 /* ==========================================================================

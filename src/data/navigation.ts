@@ -53,9 +53,9 @@ export const mainNav: NavLink[] = [
 /** Menú lateral (botón hamburguesa): los mismos enlaces que el header */
 export const sideNav: NavLink[] = mainNav;
 
-/** Enlaces del pie de página */
+/** Enlaces del pie de página: los del header + Legales y FAQ */
 export const footerNav: NavLink[] = [
-	{ label: 'Acerca de', href: routes.home },
+	{ label: 'Estudia', href: routes.home },
 	{ label: 'Casos de éxito', href: routes.successCases },
 	{ label: 'Universidades', href: routes.universities },
 	{ label: 'Blog', href: routes.blog },

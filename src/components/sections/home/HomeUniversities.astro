@@ -13,7 +13,9 @@
  *     "Conocer más".
  *   - Tablet y móvil: tarjetas en una fila; la sección queda fija y el scroll
  *     las pasa una por una, con contador y barra de avance
- *     (data-scroll-slider="pin"); sin JavaScript se desliza con el dedo.
+ *     (data-scroll-slider="pin"); sin JavaScript se desliza con el dedo. En
+ *     móvil las tarjetas muestran solo la ciudad, el nombre y "Conocer más"
+ *     (sin el resumen).
  *   - Las ondas de la marca se dibujan con el scroll (--draw,
  *     src/scripts/scroll-draw.ts).
  *
@@ -772,9 +774,9 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 			font-size: var(--font-size-card-title-mobile);
 		}
 
-		.uni-panel__summary {
-			font-size: 0.8125rem;
-			line-height: 1.25rem;
+		/* Sin el resumen: la tarjeta muestra la ciudad, el nombre y "Conocer más" */
+		.home-universities .uni-panel__summary {
+			display: none;
 		}
 	}
 

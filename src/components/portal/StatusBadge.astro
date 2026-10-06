@@ -5,10 +5,11 @@
  * Figma: UI Desktop › "MacBook Pro 14' - 12" › "Terminado" (2113:50) y
  * "Más adelante" (2113:138); "MacBook Pro 14' - 8" › "En curso" / "En validación".
  *
- *   done        → "Terminado"     · fondo verde, texto claro
- *   in-progress → "En curso"      · fondo azul, texto claro
- *   in-review   → "En validación" · fondo gris, texto oscuro
- *   upcoming    → "Más adelante"  · fondo gris, texto oscuro
+ * Píldora con un punto de color (el de "En curso" late):
+ *   done        → "Terminado"     · verde
+ *   in-progress → "En curso"      · azul
+ *   in-review   → "En validación" · amarillo
+ *   upcoming    → "Más adelante"  · gris
  *
  * Los textos salen de src/data/portal.ts (stepStatusLabels).
  *
@@ -32,31 +33,64 @@ const { status, class: className } = Astro.props;
 
 <style>
 	.status-badge {
+		--badge-color: #5a6672;
+		--badge-bg: #eef1f5;
+		--badge-dot: #9aa6b2;
+
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.4375rem;
 		flex-shrink: 0;
-		padding: var(--space-2) var(--space-3); /* 8px 12px */
-		border-radius: var(--radius-sm);
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		line-height: 1.25rem;
+		padding: 0.3125rem 0.75rem 0.3125rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--badge-bg);
+		color: var(--badge-color);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.02em;
+		line-height: 1.125rem;
 		white-space: nowrap;
 	}
 
+	.status-badge::before {
+		content: '';
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--badge-dot);
+	}
+
 	.status-badge--done {
-		background-color: var(--color-green);
-		color: var(--color-white);
+		--badge-color: #00665e;
+		--badge-bg: rgb(0 115 106 / 0.12);
+		--badge-dot: var(--color-green);
 	}
 
 	.status-badge--in-progress {
-		background-color: var(--color-blue-title);
-		color: var(--color-white);
+		--badge-color: var(--color-blue-title);
+		--badge-bg: rgb(0 122 252 / 0.12);
+		--badge-dot: var(--color-blue);
 	}
 
-	.status-badge--in-review,
-	.status-badge--upcoming {
-		background-color: var(--color-white);
-		color: var(--text-on-light);
+	.status-badge--in-review {
+		--badge-color: #7a4e00;
+		--badge-bg: rgb(251 189 29 / 0.24);
+		--badge-dot: #e0a000;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.status-badge--in-progress::before {
+			animation: status-badge-pulse 1.8s ease-out infinite;
+		}
+	}
+
+	@keyframes status-badge-pulse {
+		0% {
+			box-shadow: 0 0 0 0 rgb(0 122 252 / 0.5);
+		}
+		100% {
+			box-shadow: 0 0 0 0.375rem rgb(0 122 252 / 0);
+		}
 	}
 </style>

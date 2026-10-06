@@ -94,7 +94,18 @@ const widthStyle = width ? `--portal-btn-width: ${width / 16}rem;` : '';
 			background-color var(--duration-base) var(--ease-out),
 			border-color var(--duration-base) var(--ease-out),
 			color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out),
+			translate var(--duration-base) var(--ease-out),
 			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.portal-btn:hover {
+		translate: 0 -1px;
+	}
+
+	.portal-btn:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 2px;
 	}
 
 	.portal-btn:active {
@@ -123,10 +134,12 @@ const widthStyle = width ? `--portal-btn-width: ${width / 16}rem;` : '';
 	/* ----- Variantes ----- */
 	.portal-btn--primary {
 		background-color: var(--color-yellow);
+		box-shadow: 0 0.75rem 1.5rem -1rem rgb(224 150 0 / 0.9);
 	}
 
 	.portal-btn--primary:hover {
-		background-color: color-mix(in srgb, var(--color-yellow) 88%, var(--color-black));
+		background-color: color-mix(in srgb, var(--color-yellow) 90%, var(--color-black));
+		box-shadow: 0 1rem 1.75rem -1rem rgb(224 150 0 / 1);
 	}
 
 	.portal-btn--muted {
@@ -153,7 +166,7 @@ const widthStyle = width ? `--portal-btn-width: ${width / 16}rem;` : '';
 	}
 
 	.portal-btn--action:hover {
-		background-color: var(--portal-tint);
+		background-color: rgb(0 122 252 / 0.08);
 	}
 
 	@media (max-width: 640px) {

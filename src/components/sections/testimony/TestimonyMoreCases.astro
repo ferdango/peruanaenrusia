@@ -9,9 +9,9 @@
  *
  * Con el lenguaje del Home ("Nuestros casos de éxito"): etiqueta, título,
  * bajada, el botón "Ver todos" (vuelve a la sección del Home) y las tarjetas
- * en una fila que avanza con el scroll mientras la sección cruza la pantalla
- * (src/scripts/motion.ts › data-scroll-slider="drift"); sin JavaScript se
- * desliza con el dedo.
+ * en una fila: al llegar a la sección queda fija y el scroll las pasa una por
+ * una; después de la última, el scroll sigue (src/scripts/motion.ts ›
+ * data-scroll-slider="pin"). Sin JavaScript se desliza con el dedo.
  *
  * Muestra los demás casos de éxito (sin el de la página actual).
  *
@@ -19,6 +19,7 @@
  */
 import TestimonialCard from '@components/cards/TestimonialCard.astro';
 import Button from '@components/ui/Button.astro';
+import SliderProgress from '@components/ui/SliderProgress.astro';
 import { routes } from '@data/navigation';
 import { getTestimonials } from '@lib/content';
 import Star from '@assets/graphics/stars/star-4-point.svg';
@@ -44,32 +45,41 @@ const content = {
 ---
 
 {others.length > 0 && (
-	<section class="more-cases section" aria-labelledby="more-cases-title" data-scroll-slider="drift">
-		<header class="more-cases__header container">
-			<div class="more-cases__intro">
-				<p class="more-cases__eyebrow">
-					<Star class="more-cases__eyebrow-star" aria-hidden="true" />
-					{content.eyebrow}
-				</p>
-				<h2 id="more-cases-title" class="more-cases__title">
-					<span class="more-cases__title-desktop">{content.title}</span>
-					<span class="more-cases__title-mobile">{content.mobileTitle}</span>
-				</h2>
-				<p class="more-cases__subtitle">{content.subtitle}</p>
-			</div>
-			<Button href={routes.successCases} size="sm" class="more-cases__cta">
-				{content.cta}
-			</Button>
-		</header>
+	<section
+		class="more-cases section"
+		aria-labelledby="more-cases-title"
+		data-scroll-slider="pin"
+		data-slider-step="0.34"
+	>
+		<div class="more-cases__stage">
+			<header class="more-cases__header container">
+				<div class="more-cases__intro">
+					<p class="more-cases__eyebrow">
+						<Star class="more-cases__eyebrow-star" aria-hidden="true" />
+						{content.eyebrow}
+					</p>
+					<h2 id="more-cases-title" class="more-cases__title">
+						<span class="more-cases__title-desktop">{content.title}</span>
+						<span class="more-cases__title-mobile">{content.mobileTitle}</span>
+					</h2>
+					<p class="more-cases__subtitle">{content.subtitle}</p>
+				</div>
+				<Button href={routes.successCases} size="sm" class="more-cases__cta">
+					{content.cta}
+				</Button>
+			</header>
 
-		<div class="more-cases__viewport" data-slider-viewport>
-			<ul class="more-cases__track" role="list" aria-label={content.listLabel} data-slider-track>
-				{others.map((testimonial) => (
-					<li class="more-cases__item" data-slider-item>
-						<TestimonialCard testimonial={testimonial} />
-					</li>
-				))}
-			</ul>
+			<div class="more-cases__viewport" data-slider-viewport>
+				<ul class="more-cases__track" role="list" aria-label={content.listLabel} data-slider-track>
+					{others.map((testimonial) => (
+						<li class="more-cases__item" data-slider-item>
+							<TestimonialCard testimonial={testimonial} />
+						</li>
+					))}
+				</ul>
+			</div>
+
+			<SliderProgress total={others.length} tone="light" class="more-cases__progress container" />
 		</div>
 	</section>
 )}
@@ -81,14 +91,34 @@ const content = {
 
 		position: relative;
 		isolation: isolate;
-		display: flex;
-		flex-direction: column;
-		gap: clamp(var(--space-7), 3vw, var(--space-8));
 		overflow: clip;
 		background:
 			radial-gradient(46rem 26rem at 100% 0%, rgb(0 122 252 / 0.22), transparent 70%),
 			var(--surface-dark);
 		color: var(--text-on-dark);
+	}
+
+	.more-cases__stage {
+		display: flex;
+		flex-direction: column;
+		gap: clamp(var(--space-7), 3vw, var(--space-8));
+	}
+
+	/* Con el slider activo: la sección mide lo que dura el recorrido y el bloque
+	   queda fijo bajo el header mientras pasan las tarjetas */
+	.more-cases:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+		padding-block: 0;
+	}
+
+	.more-cases:global(.is-scroll-slider) .more-cases__stage {
+		position: sticky;
+		top: var(--header-height);
+		justify-content: center;
+		gap: var(--space-6);
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
+		overflow: clip;
 	}
 
 	/* ===== Encabezado ===== */
@@ -204,8 +234,15 @@ const content = {
 	@media (max-width: 640px) {
 		.more-cases {
 			--cases-inset: var(--space-3);
+		}
 
+		.more-cases__stage {
 			gap: var(--space-6);
+		}
+
+		.more-cases:global(.is-scroll-slider) .more-cases__stage {
+			gap: var(--space-4);
+			padding-block: var(--space-5);
 		}
 
 		.more-cases__header {

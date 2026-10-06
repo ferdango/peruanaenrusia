@@ -8,9 +8,11 @@
  *     testimonio de un alumno en TikTok (src/data/testimonials.ts ›
  *     successVideos). Se reproducen en el modal del sitio (el de TikTok, en
  *     vertical); sin JavaScript abren YouTube / TikTok.
- *   - Testimonios en una fila que avanza con el scroll mientras la sección
- *     cruza la pantalla (src/scripts/motion.ts › data-scroll-slider="drift"),
- *     sin flechas ni puntos; sin JavaScript se desliza con el dedo.
+ *   - Testimonios: al llegar a la fila, el bloque queda fijo bajo el header y
+ *     el scroll pasa las tarjetas una por una (con contador y barra); después
+ *     de la última, el scroll sigue a la sección de abajo
+ *     (src/scripts/motion.ts › data-scroll-slider="pin"). Sin JavaScript se
+ *     desliza con el dedo.
  *
  * Los testimonios vienen de src/data/testimonials.ts (o WordPress).
  *
@@ -20,6 +22,7 @@ import { Image } from 'astro:assets';
 
 import TestimonialCard from '@components/cards/TestimonialCard.astro';
 import Icon from '@components/ui/Icon.astro';
+import SliderProgress from '@components/ui/SliderProgress.astro';
 import { successVideos } from '@data/testimonials';
 import { tiktokPostUrl, tiktokProfile } from '@data/social';
 import { getTestimonials } from '@lib/content';
@@ -41,15 +44,12 @@ const content = {
 	watch: 'Ver video',
 	views: 'reproducciones',
 	listLabel: 'Testimonios de estudiantes',
+	reelEyebrow: 'Testimonios',
+	reelTitle: 'Lo que dicen nuestros estudiantes',
 };
 ---
 
-<section
-	class="home-cases section"
-	id="casos-de-exito"
-	aria-labelledby="home-cases-title"
-	data-scroll-slider="drift"
->
+<section class="home-cases section" id="casos-de-exito" aria-labelledby="home-cases-title">
 	<header class="home-cases__header container">
 		<div class="home-cases__intro">
 			<p class="home-cases__eyebrow">
@@ -142,15 +142,26 @@ const content = {
 		</a>
 	</div>
 
-	<!-- Testimonios: fila que avanza con el scroll -->
-	<div class="home-cases__viewport" data-slider-viewport>
-		<ul class="home-cases__track" role="list" aria-label={content.listLabel} data-slider-track>
-			{testimonials.map((testimonial) => (
-				<li class="home-cases__item" data-slider-item>
-					<TestimonialCard testimonial={testimonial} />
-				</li>
-			))}
-		</ul>
+	<!-- Testimonios: el bloque queda fijo y el scroll pasa las tarjetas -->
+	<div class="home-cases__reel" data-scroll-slider="pin" data-slider-step="0.34">
+		<div class="home-cases__stage">
+			<div class="home-cases__reel-header container">
+				<p class="home-cases__reel-eyebrow">{content.reelEyebrow}</p>
+				<h3 class="home-cases__reel-title">{content.reelTitle}</h3>
+			</div>
+
+			<div class="home-cases__viewport" data-slider-viewport>
+				<ul class="home-cases__track" role="list" aria-label={content.listLabel} data-slider-track>
+					{testimonials.map((testimonial) => (
+						<li class="home-cases__item" data-slider-item>
+							<TestimonialCard testimonial={testimonial} />
+						</li>
+					))}
+				</ul>
+			</div>
+
+			<SliderProgress total={testimonials.length} tone="light" class="home-cases__progress container" />
+		</div>
 	</div>
 </section>
 
@@ -392,7 +403,47 @@ const content = {
 		outline-offset: 4px;
 	}
 
-	/* ===== Testimonios (fila deslizable; con el slider, avanza con el scroll) ===== */
+	/* ===== Testimonios (fila deslizable; con el slider, fija y avanza con el scroll) ===== */
+	.home-cases__stage {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-6);
+	}
+
+	.home-cases__reel-header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.home-cases__reel-eyebrow {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-skyblue);
+	}
+
+	.home-cases__reel-title {
+		font-size: var(--font-size-h3);
+		line-height: 1.2;
+		color: var(--color-pure-white);
+	}
+
+	/* Con el slider activo: el bloque mide lo que dura el recorrido y queda
+	   fijo bajo el header mientras pasan las tarjetas */
+	.home-cases__reel:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+	}
+
+	.home-cases__reel:global(.is-scroll-slider) .home-cases__stage {
+		position: sticky;
+		top: var(--header-height);
+		justify-content: center;
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-5);
+	}
+
 	.home-cases__viewport {
 		overflow-x: auto;
 		overscroll-behavior-x: contain;
@@ -425,12 +476,12 @@ const content = {
 		--testimonial-card-width: 22rem;
 	}
 
-	.home-cases:global(.is-scroll-slider) .home-cases__viewport {
+	.home-cases__reel:global(.is-scroll-slider) .home-cases__viewport {
 		overflow: hidden;
 		scroll-snap-type: none;
 	}
 
-	.home-cases:global(.is-scroll-slider) .home-cases__track {
+	.home-cases__reel:global(.is-scroll-slider) .home-cases__track {
 		transform: translate3d(var(--slider-x, 0px), 0, 0);
 		will-change: transform;
 	}
@@ -488,6 +539,19 @@ const content = {
 		.home-cases {
 			gap: var(--space-6);
 			padding-block: var(--space-9);
+		}
+
+		.home-cases__stage {
+			gap: var(--space-4);
+		}
+
+		.home-cases__reel-header {
+			align-items: center;
+			text-align: center;
+		}
+
+		.home-cases__reel-title {
+			font-size: var(--font-size-card-title-mobile);
 		}
 
 		.home-cases__header {

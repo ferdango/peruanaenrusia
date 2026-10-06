@@ -13,6 +13,8 @@ import { paymentRejection, portalRoutes } from '@data/portal';
 export const prerender = false;
 
 const content = {
+	heading: 'Estado de tu pago',
+	lead: 'No pudimos validar tu pago. Revisa el motivo y vuelve a intentarlo.',
 	title: 'Transacción rechazada',
 	action: 'Volver a intentar',
 };
@@ -21,6 +23,8 @@ const content = {
 <PortalLayout
 	title={content.title}
 	description="No pudimos validar tu pago. Revisa la constancia y vuelve a intentarlo."
+	heading={content.heading}
+	lead={content.lead}
 	currentStep="payment"
 >
 	<PaymentStatusCard

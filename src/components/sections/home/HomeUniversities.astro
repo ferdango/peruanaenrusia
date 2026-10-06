@@ -5,13 +5,15 @@
  * Figma: Home › "Frame 628110" (carrusel de tarjetas con la forma de color de
  * la marca y dos ondas planas, azul y naranja), mejorado:
  *
- *   - Desktop: paneles que se expanden. El panel abierto avanza solo con el
- *     scroll (uno tras otro mientras la sección cruza la pantalla) y al pasar
- *     el cursor o con el teclado se abre el que se señala. El abierto muestra
- *     el resumen y "Conocer más".
- *   - Tablet y móvil: tarjetas en una fila que se desliza con el scroll
- *     (data-scroll-slider="drift"), sin flechas ni puntos; sin JavaScript se
- *     desliza con el dedo.
+ *   - Desktop: paneles que se expanden. Al llegar a la sección, queda fija
+ *     bajo el header y el scroll abre un panel tras otro; después del último,
+ *     el scroll sigue a la sección de abajo (en pantallas bajas no se fija: se
+ *     abren mientras la sección cruza la pantalla). Con el cursor o el
+ *     teclado se abre el que se señala. El abierto muestra el resumen y
+ *     "Conocer más".
+ *   - Tablet y móvil: tarjetas en una fila; la sección queda fija y el scroll
+ *     las pasa una por una, con contador y barra de avance
+ *     (data-scroll-slider="pin"); sin JavaScript se desliza con el dedo.
  *   - Las ondas de la marca se dibujan con el scroll (--draw,
  *     src/scripts/scroll-draw.ts).
  *
@@ -21,6 +23,7 @@
  * Uso: <HomeUniversities /> (página de inicio).
  */
 import Button from '@components/ui/Button.astro';
+import SliderProgress from '@components/ui/SliderProgress.astro';
 import Icon from '@components/ui/Icon.astro';
 import MediaImage from '@components/ui/MediaImage.astro';
 import { detailRoutes, routes } from '@data/navigation';
@@ -55,93 +58,110 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 	class="home-universities section"
 	id="universidades"
 	aria-labelledby="home-universities-title"
-	data-scroll-slider="drift"
+	data-scroll-slider="pin"
+	data-slider-step="0.4"
+	data-uni-section
 	data-scroll-draw="0.9 0.3"
 >
-	<!-- Ondas planas de la marca (decorativas): se dibujan con el scroll -->
-	<div class="home-universities__decor" aria-hidden="true">
-		<div class="home-universities__wave home-universities__wave--orange">
-			<WaveOrange />
+	<!-- Bloque que queda fijo mientras pasan las universidades -->
+	<div class="home-universities__stage">
+		<!-- Ondas planas de la marca (decorativas): se dibujan con el scroll -->
+		<div class="home-universities__decor" aria-hidden="true">
+			<div class="home-universities__wave home-universities__wave--orange">
+				<WaveOrange />
+			</div>
+			<div class="home-universities__wave home-universities__wave--blue">
+				<WaveBlue />
+			</div>
 		</div>
-		<div class="home-universities__wave home-universities__wave--blue">
-			<WaveBlue />
-		</div>
-	</div>
 
-	<header class="home-universities__header container">
-		<div class="home-universities__intro">
-			<p class="home-universities__eyebrow">
-				<span class="home-universities__dot" aria-hidden="true"></span>
-				{content.eyebrow}
-			</p>
-			<h2 id="home-universities-title" class="home-universities__title">
-				{content.title}
-			</h2>
-			<p class="home-universities__subtitle">{content.subtitle}</p>
-		</div>
-		<Button href={routes.universities} size="md" class="home-universities__cta">
-			{content.cta}
-		</Button>
-	</header>
+		<header class="home-universities__header container">
+			<div class="home-universities__intro">
+				<p class="home-universities__eyebrow">
+					<span class="home-universities__dot" aria-hidden="true"></span>
+					{content.eyebrow}
+				</p>
+				<h2 id="home-universities-title" class="home-universities__title">
+					{content.title}
+				</h2>
+				<p class="home-universities__subtitle">{content.subtitle}</p>
+			</div>
+			<Button href={routes.universities} size="md" class="home-universities__cta">
+				{content.cta}
+			</Button>
+		</header>
 
-	<div class="home-universities__viewport" data-slider-viewport>
-		<ul class="uni-gallery" role="list" aria-label={content.listLabel} data-slider-track data-uni-gallery>
-			{featuredUniversities.map((university, index) => (
-				<li
-					class:list={[
-						'uni-panel',
-						`uni-panel--${accents[index % accents.length]}`,
-						{ 'is-active': index === 0 },
-					]}
-					data-slider-item
-					data-uni-panel
-				>
-					<article class="uni-panel__card">
-						<MediaImage
-							image={university.image}
-							alt=""
-							widths={[400, 800, 1200]}
-							sizes="(max-width: 1100px) 80vw, 640px"
-							class="uni-panel__photo"
-						/>
-						<span class="uni-panel__shade" aria-hidden="true" />
+		<div class="home-universities__viewport" data-slider-viewport>
+			<ul
+				class="uni-gallery"
+				role="list"
+				aria-label={content.listLabel}
+				data-slider-track
+				data-uni-gallery
+			>
+				{featuredUniversities.map((university, index) => (
+					<li
+						class:list={[
+							'uni-panel',
+							`uni-panel--${accents[index % accents.length]}`,
+							{ 'is-active': index === 0 },
+						]}
+						data-slider-item
+						data-uni-panel
+					>
+						<article class="uni-panel__card">
+							<MediaImage
+								image={university.image}
+								alt=""
+								widths={[400, 800, 1200]}
+								sizes="(max-width: 1100px) 80vw, 640px"
+								class="uni-panel__photo"
+							/>
+							<span class="uni-panel__shade" aria-hidden="true" />
 
-						<div class="uni-panel__top" aria-hidden="true">
-							<span class="uni-panel__city">{university.city}</span>
-							<span class="uni-panel__index">{panelNumber(index)}</span>
-						</div>
+							<div class="uni-panel__top" aria-hidden="true">
+								<span class="uni-panel__city">{university.city}</span>
+								<span class="uni-panel__index">{panelNumber(index)}</span>
+							</div>
 
-						<div class="uni-panel__body">
-							<h3 class="uni-panel__name">{university.name}</h3>
-							<!-- Resumen y botón: se despliegan en el panel abierto -->
-							<div class="uni-panel__more">
-								<div class="uni-panel__more-inner">
-									<p class="uni-panel__summary">
-										{university.summary ?? content.summaryFallback}
-									</p>
-									<a
-										href={detailRoutes.university(university.slug)}
-										class="uni-panel__link"
-									>
-										<span>{content.more}</span>
-										<span class="visually-hidden"> sobre {university.name}</span>
-										<span class="uni-panel__arrow" aria-hidden="true">
-											<Icon name="arrow-right" size={18} />
-										</span>
-									</a>
+							<div class="uni-panel__body">
+								<h3 class="uni-panel__name">{university.name}</h3>
+								<!-- Resumen y botón: se despliegan en el panel abierto -->
+								<div class="uni-panel__more">
+									<div class="uni-panel__more-inner">
+										<p class="uni-panel__summary">
+											{university.summary ?? content.summaryFallback}
+										</p>
+										<a
+											href={detailRoutes.university(university.slug)}
+											class="uni-panel__link"
+										>
+											<span>{content.more}</span>
+											<span class="visually-hidden"> sobre {university.name}</span>
+											<span class="uni-panel__arrow" aria-hidden="true">
+												<Icon name="arrow-right" size={18} />
+											</span>
+										</a>
+									</div>
 								</div>
 							</div>
-						</div>
-					</article>
-				</li>
-			))}
-		</ul>
-	</div>
+						</article>
+					</li>
+				))}
+			</ul>
+		</div>
 
-	<div class="home-universities__mobile-cta container">
-		<Button href={routes.universities} size="md" block>
-			{content.cta}
-		</Button>
+		<SliderProgress
+			total={featuredUniversities.length}
+			tone="light"
+			class="home-universities__progress container"
+		/>
+
+		<div class="home-universities__mobile-cta container">
+			<Button href={routes.universities} size="md" block>
+				{content.cta}
+			</Button>
+		</div>
 	</div>
 </section>
 
@@ -151,11 +171,39 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 		--uni-inset: max(var(--gutter), calc((100% - var(--container-max)) / 2));
 
 		position: relative;
+		overflow: clip;
+		/* El espacio vertical va en el bloque (que queda fijo con el slider) */
+		padding-block: 0;
+		background-color: var(--surface-dark);
+	}
+
+	.home-universities__stage {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: clamp(var(--space-8), 4vw, var(--space-9));
+		padding-block: var(--section-padding-y);
+	}
+
+	/* Fija bajo el header mientras pasan las tarjetas (tablet y móvil,
+	   .is-scroll-slider) o se abren los paneles (desktop, .is-pinned): la
+	   sección mide lo que dura el recorrido */
+	.home-universities:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+	}
+
+	.home-universities:global(.is-pinned) {
+		height: calc(100svh - var(--header-height) + var(--uni-length, 0px));
+	}
+
+	.home-universities:is(:global(.is-scroll-slider), :global(.is-pinned)) .home-universities__stage {
+		position: sticky;
+		top: var(--header-height);
+		justify-content: center;
+		gap: var(--space-6);
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
 		overflow: clip;
-		background-color: var(--surface-dark);
 	}
 
 	/* ===== Encabezado: texto a la izquierda, botón a la derecha ===== */
@@ -268,6 +316,14 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 		width: 1810.2px;
 		height: 409px;
 		transform: rotate(150deg) scale(1, -1) skewX(4.69deg);
+	}
+
+	/* Tablet con el bloque fijo: el contenido se centra en la pantalla y las
+	   ondas (ubicadas para desktop) pasarían sobre los textos */
+	@media (max-width: 1100px) {
+		.home-universities:global(.is-scroll-slider) .home-universities__decor {
+			display: none;
+		}
 	}
 
 	/* ===== Paneles / tarjetas ===== */
@@ -551,6 +607,11 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 		.home-universities__mobile-cta {
 			display: none;
 		}
+
+		/* Fija: la galería cabe en la pantalla junto al encabezado */
+		.home-universities:global(.is-pinned) .uni-gallery {
+			height: min(clamp(28rem, 34vw, 33rem), calc(100svh - var(--header-height) - 17rem));
+		}
 	}
 
 	/* =====================================================================
@@ -607,9 +668,14 @@ const panelNumber = (index: number) => String(index + 1).padStart(2, '0');
 
 	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
-		.home-universities {
+		.home-universities__stage {
 			gap: var(--space-7);
 			padding-block: var(--space-9);
+		}
+
+		.home-universities:global(.is-scroll-slider) .home-universities__stage {
+			gap: var(--space-5);
+			padding-block: var(--space-5);
 		}
 
 		.home-universities__header {

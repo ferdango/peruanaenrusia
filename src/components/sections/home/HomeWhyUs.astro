@@ -14,11 +14,11 @@
  * escalonadas como una onda. Al hacer scroll cada tarjeta se desplaza a su
  * propia velocidad (parallax de src/scripts/motion.ts) y el tubo flota.
  *
- * Tablet y móvil: las tarjetas van en una fila que se desliza en horizontal
- * con el scroll mientras la sección cruza la pantalla (motion.ts ›
- * sliders con scroll, data-scroll-slider="drift"; en desktop no se activa
- * porque las tarjetas caben). Sin JavaScript o con "reducir movimiento" se
- * deslizan con el dedo.
+ * Tablet y móvil: al llegar a la sección, el bloque queda fijo bajo el header
+ * y el scroll pasa las tarjetas una por una; después de la última, el scroll
+ * sigue a la sección de abajo (motion.ts › sliders con scroll,
+ * data-scroll-slider="pin"; en desktop no se activa porque las tarjetas
+ * caben). Sin JavaScript o con "reducir movimiento" se deslizan con el dedo.
  *
  * Los beneficios y las fotos de estudiantes vienen de src/data/benefits.ts.
  *
@@ -26,6 +26,7 @@
  */
 import { Image } from 'astro:assets';
 
+import SliderProgress from '@components/ui/SliderProgress.astro';
 import { benefits, studentAvatars } from '@data/benefits';
 import tubeLoop from '@assets/graphics/tubes/tube-gradient-loop.webp';
 import Star from '@assets/graphics/stars/star-4-point.svg';
@@ -49,80 +50,88 @@ const cardNumber = (index: number) => String(index + 1).padStart(2, '0');
 	class="home-why section"
 	id="por-que-elegirnos"
 	aria-labelledby="home-why-title"
-	data-scroll-slider="drift"
+	data-scroll-slider="pin"
 >
-	<!-- Tubo degradé y estrellas de la marca (decorativos) -->
-	<div class="home-why__art" aria-hidden="true">
-		<Image
-			src={tubeLoop}
-			alt=""
-			widths={[560, 900, 1400]}
-			sizes="(max-width: 1100px) 48vw, 40vw"
-			class="home-why__tube"
-		/>
-		<Star class="home-why__star home-why__star--yellow" />
-		<Star class="home-why__star home-why__star--blue" />
-		<Star class="home-why__star home-why__star--red" />
-	</div>
+	<!-- Bloque que queda fijo mientras pasan las tarjetas (tablet y móvil) -->
+	<div class="home-why__stage">
+		<!-- Tubo degradé y estrellas de la marca (decorativos) -->
+		<div class="home-why__art" aria-hidden="true">
+			<Image
+				src={tubeLoop}
+				alt=""
+				widths={[560, 900, 1400]}
+				sizes="(max-width: 1100px) 48vw, 40vw"
+				class="home-why__tube"
+			/>
+			<Star class="home-why__star home-why__star--yellow" />
+			<Star class="home-why__star home-why__star--blue" />
+			<Star class="home-why__star home-why__star--red" />
+		</div>
 
-	<div class="home-why__inner">
-		<header class="home-why__intro">
-			<p class="home-why__eyebrow">
-				<Star class="home-why__eyebrow-star" aria-hidden="true" />
-				{content.eyebrow}
-			</p>
+		<div class="home-why__inner">
+			<header class="home-why__intro">
+				<p class="home-why__eyebrow">
+					<Star class="home-why__eyebrow-star" aria-hidden="true" />
+					{content.eyebrow}
+				</p>
 
-			<h2 id="home-why-title" class="home-why__title">
-				{content.title}
-			</h2>
+				<h2 id="home-why-title" class="home-why__title">
+					{content.title}
+				</h2>
 
-			<div class="home-why__proof">
-				<ul class="home-why__avatars" role="list" aria-hidden="true">
-					{studentAvatars.map((avatar) => (
-						<li>
-							<Image src={avatar} alt="" width={48} height={48} class="home-why__avatar" />
+				<div class="home-why__proof">
+					<ul class="home-why__avatars" role="list" aria-hidden="true">
+						{studentAvatars.map((avatar) => (
+							<li>
+								<Image src={avatar} alt="" width={48} height={48} class="home-why__avatar" />
+							</li>
+						))}
+					</ul>
+					<p class="home-why__proof-text">{content.socialProof}</p>
+				</div>
+			</header>
+
+			<div class="home-why__cards" data-slider-viewport>
+				<ul class="home-why__track" role="list" aria-label={content.listLabel} data-slider-track>
+					{benefits.map((benefit, index) => (
+						<li
+							class:list={[
+								'home-why__item',
+								`home-why__item--${accents[index % accents.length]}`,
+							]}
+							data-slider-item
+						>
+							<article class="benefit-card">
+								<div class="benefit-card__media">
+									<Image
+										src={benefit.image}
+										alt=""
+										widths={[340, 680]}
+										sizes="(max-width: 640px) 300px, (max-width: 1100px) 340px, 30vw"
+										class="benefit-card__image"
+									/>
+									<span class="benefit-card__index" aria-hidden="true">
+										{cardNumber(index)}
+									</span>
+								</div>
+								<div class="benefit-card__body">
+									<h3 class="benefit-card__title">
+										{benefit.title.split('\n').map((line, lineIndex) => (
+											<Fragment>
+												{lineIndex > 0 && <br />}
+												{line}
+											</Fragment>
+										))}
+									</h3>
+									<p class="benefit-card__text">{benefit.text}</p>
+								</div>
+							</article>
 						</li>
 					))}
 				</ul>
-				<p class="home-why__proof-text">{content.socialProof}</p>
 			</div>
-		</header>
 
-		<div class="home-why__cards" data-slider-viewport>
-			<ul class="home-why__track" role="list" aria-label={content.listLabel} data-slider-track>
-				{benefits.map((benefit, index) => (
-					<li
-						class:list={['home-why__item', `home-why__item--${accents[index % accents.length]}`]}
-						data-slider-item
-					>
-						<article class="benefit-card">
-							<div class="benefit-card__media">
-								<Image
-									src={benefit.image}
-									alt=""
-									widths={[340, 680]}
-									sizes="(max-width: 640px) 300px, (max-width: 1100px) 340px, 30vw"
-									class="benefit-card__image"
-								/>
-								<span class="benefit-card__index" aria-hidden="true">
-									{cardNumber(index)}
-								</span>
-							</div>
-							<div class="benefit-card__body">
-								<h3 class="benefit-card__title">
-									{benefit.title.split('\n').map((line, lineIndex) => (
-										<Fragment>
-											{lineIndex > 0 && <br />}
-											{line}
-										</Fragment>
-									))}
-								</h3>
-								<p class="benefit-card__text">{benefit.text}</p>
-							</div>
-						</article>
-					</li>
-				))}
-			</ul>
+			<SliderProgress total={benefits.length} class="home-why__progress" />
 		</div>
 	</div>
 </section>
@@ -137,9 +146,38 @@ const cardNumber = (index: number) => String(index + 1).padStart(2, '0');
 		position: relative;
 		isolation: isolate;
 		overflow: clip;
-		padding-block: clamp(4.5rem, 2rem + 5vw, 7.5rem);
+		/* El espacio vertical va en el bloque (que queda fijo con el slider) */
+		padding-block: 0;
 		background-color: var(--surface-light);
 		color: var(--text-on-light);
+	}
+
+	.home-why__stage {
+		position: relative;
+		isolation: isolate;
+		padding-block: clamp(4.5rem, 2rem + 5vw, 7.5rem);
+	}
+
+	/* Con el slider activo (tablet y móvil): la sección mide lo que dura el
+	   recorrido y el bloque queda fijo bajo el header mientras pasan las tarjetas */
+	.home-why:global(.is-scroll-slider) {
+		height: calc(100svh - var(--header-height) + var(--slider-length, 0px));
+	}
+
+	.home-why:global(.is-scroll-slider) .home-why__stage {
+		position: sticky;
+		top: var(--header-height);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: calc(100svh - var(--header-height));
+		padding-block: var(--space-6);
+		overflow: clip;
+	}
+
+	/* Contador y barra del slider, alineados con las tarjetas */
+	.home-why :global(.home-why__progress) {
+		padding-right: var(--why-inset);
 	}
 
 	.home-why__inner {
@@ -536,8 +574,18 @@ const cardNumber = (index: number) => String(index + 1).padStart(2, '0');
 	@media (max-width: 640px) {
 		.home-why {
 			--why-fade: var(--gutter);
+		}
 
+		.home-why__stage {
 			padding-block: var(--space-8); /* 48px */
+		}
+
+		.home-why:global(.is-scroll-slider) .home-why__stage {
+			padding-block: var(--space-5);
+		}
+
+		.home-why :global(.home-why__progress) {
+			padding-inline: var(--gutter);
 		}
 
 		.home-why__inner {

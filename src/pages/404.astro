@@ -2,241 +2,671 @@
 /**
  * Página no encontrada (404)
  * --------------------------------------------------------------------------
- * Figma: UI Desktop › "404" (2405:272): foto a todo el ancho con un degradado
- * oscuro a la izquierda, el mensaje "No pudimos encontrar lo que buscabas"
- * y tres accesos: "Sobre nosotros" (amarillo), "Iniciar proceso" (abre el
- * modal de acceso) y "Reservar llamada" (WhatsApp).
- * El archivo de Figma no tiene versión móvil: en móvil la foto va arriba y
- * los botones se apilan.
+ * Figma: UI Desktop › "404" (2405:272): foto del estudiante, el mensaje "No
+ * pudimos encontrar lo que buscabas" y tres accesos: "Sobre nosotros",
+ * "Iniciar proceso" (abre el modal de acceso) y "Reservar llamada" (WhatsApp).
+ *
+ * Con el lenguaje del Home: el header es transparente sobre la portada
+ * oscura (body.hero-overlay). A la izquierda, el mensaje y los botones; a la
+ * derecha, la foto en una tarjeta con un "404" grande con el degradé de la
+ * marca. Debajo, "Quizás buscabas": accesos a las secciones principales.
+ * Las líneas de la marca se dibujan al cargar y las estrellas titilan.
  *
  * Astro sirve esta página para cualquier ruta que no exista (no se indexa).
  */
+import '@styles/motion.css';
+
 import { Image } from 'astro:assets';
 
 import SiteLayout from '@layouts/SiteLayout.astro';
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
 import { routes } from '@data/navigation';
 import { whatsappUrl } from '@data/site';
 import photo from '@assets/images/errors/not-found-student.jpg';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 // ----- Contenido de la página -----
 const content = {
+	eyebrow: 'Error 404',
 	title: 'No pudimos encontrar lo que buscabas',
-	text: 'No te preocupes, seguramente esto puede ayudarte a encontrar lo que buscabas:',
+	text: 'Puede que el enlace esté mal escrito o que la página ya no exista. No te preocupes: te ayudamos a encontrar el camino.',
 	photoAlt: 'Estudiante revisando su celular frente a un edificio universitario',
 	actions: {
-		about: 'Sobre nosotros',
+		home: 'Volver al inicio',
 		start: 'Iniciar proceso',
 		call: 'Reservar llamada',
 		callHint: ' por WhatsApp (se abre en una pestaña nueva)',
 	},
+	suggestionsTitle: 'Quizás buscabas',
+	suggestions: [
+		{
+			icon: 'landmark',
+			title: 'Universidades',
+			text: 'Conoce las universidades a las que puedes postular.',
+			href: routes.universities,
+		},
+		{
+			icon: 'quote',
+			title: 'Casos de éxito',
+			text: 'Historias de estudiantes que ya están en Rusia.',
+			href: routes.successCases,
+		},
+		{
+			icon: 'youtube-play',
+			title: 'Blog y videoblogs',
+			text: 'Consejos, visitas a universidades y charlas.',
+			href: routes.blog,
+		},
+		{
+			icon: 'info',
+			title: 'Preguntas frecuentes',
+			text: 'Becas, idioma, documentos y viaje.',
+			href: routes.faq,
+		},
+	],
 };
 ---
 
-<SiteLayout title="Página no encontrada" description={content.text} noindex>
+<SiteLayout
+	title="Página no encontrada"
+	description={content.text}
+	noindex
+	bodyClass="not-found-page hero-overlay"
+>
 	<section class="not-found" aria-labelledby="not-found-title">
-		<div class="not-found__media">
-			<Image
-				src={photo}
-				alt={content.photoAlt}
-				widths={[640, 1024, 1512, 1734]}
-				sizes="100vw"
-				loading="eager"
-				fetchpriority="high"
-				class="not-found__photo"
-			/>
+		<!-- Líneas planas y estrellas de la marca (decorativas) -->
+		<div class="not-found__decor" aria-hidden="true">
+			<BrandLines class="not-found__lines" />
+			<Star class="not-found__star not-found__star--yellow" />
+			<Star class="not-found__star not-found__star--sky" />
+			<Star class="not-found__star not-found__star--pink" />
 		</div>
 
-		<div class="not-found__content">
-			<div class="not-found__text">
+		<div class="not-found__inner container">
+			<div class="not-found__content">
+				<p class="not-found__eyebrow">
+					<span class="not-found__dot" aria-hidden="true"></span>
+					{content.eyebrow}
+				</p>
 				<h1 id="not-found-title" class="not-found__title">
 					{content.title}
 				</h1>
 				<p class="not-found__lead">{content.text}</p>
+
+				<div class="not-found__actions">
+					<Button href={routes.home} tone="light" icon="arrow-right">
+						{content.actions.home}
+					</Button>
+					<a href={whatsappUrl} class="not-found__link" target="_blank" rel="noopener noreferrer">
+						<Icon name="whatsapp" size={18} />
+						{content.actions.call}
+						<span class="visually-hidden">{content.actions.callHint}</span>
+					</a>
+					<button
+						type="button"
+						class="not-found__link"
+						data-dialog-open="auth-modal"
+						data-auth-view="register"
+					>
+						<Icon name="user" size={18} />
+						{content.actions.start}
+					</button>
+				</div>
 			</div>
 
-			<nav class="not-found__actions" aria-label="Accesos sugeridos">
-				<a
-					href={`${routes.home}#sobre-nosotros`}
-					class="not-found__action not-found__action--primary"
-				>
-					{content.actions.about}
-				</a>
-				<button
-					type="button"
-					class="not-found__action"
-					data-dialog-open="auth-modal"
-					data-auth-view="register"
-				>
-					{content.actions.start}
-				</button>
-				<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="not-found__action">
-					{content.actions.call}
-					<span class="visually-hidden">{content.actions.callHint}</span>
-				</a>
-			</nav>
+			<div class="not-found__media">
+				<span class="not-found__code" aria-hidden="true">
+					404
+				</span>
+				<div class="not-found__card">
+					<Image
+						src={photo}
+						alt={content.photoAlt}
+						widths={[480, 800, 1100]}
+						sizes="(max-width: 1100px) 80vw, 30rem"
+						loading="eager"
+						fetchpriority="high"
+						class="not-found__photo"
+					/>
+				</div>
+				<span class="not-found__badge" aria-hidden="true">
+					<Icon name="map-pin" size={22} />
+				</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- Accesos a las secciones principales -->
+	<section class="not-found-links" aria-labelledby="not-found-links-title">
+		<div class="container">
+			<h2 id="not-found-links-title" class="not-found-links__title">
+				{content.suggestionsTitle}
+			</h2>
+			<ul class="not-found-links__grid" role="list">
+				{content.suggestions.map((item) => (
+					<li>
+						<a href={item.href} class="not-found-links__card">
+							<span class="not-found-links__icon" aria-hidden="true">
+								<Icon name={item.icon} size={22} />
+							</span>
+							<span class="not-found-links__text">
+								<strong>{item.title}</strong>
+								<span>{item.text}</span>
+							</span>
+							<span class="not-found-links__arrow" aria-hidden="true">
+								<Icon name="arrow-right" size={18} />
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
 		</div>
 	</section>
 </SiteLayout>
 
 <style>
-	/* ----- Foto a todo el ancho (809px de alto en Figma) ----- */
+	/* ===== Portada (oscura, debajo del header transparente) ===== */
 	.not-found {
 		position: relative;
 		isolation: isolate;
-		display: flex;
-		align-items: center;
-		min-height: 50.5625rem; /* 809px */
+		/* Sube bajo el header (transparente sobre la portada, como en el Home) */
+		margin-top: calc(-1 * var(--header-height));
+		padding-block: calc(var(--header-height) + clamp(3rem, 2rem + 4vw, 6rem))
+			clamp(7rem, 5rem + 5vw, 9.5rem);
+		overflow: hidden; /* respaldo de "clip" en navegadores antiguos */
 		overflow: clip;
-		background-color: var(--surface-dark);
-		color: var(--color-white);
+		background:
+			radial-gradient(56rem 32rem at 90% 10%, rgb(0 122 252 / 0.3), transparent 65%),
+			radial-gradient(40rem 26rem at 0% 100%, rgb(255 26 48 / 0.18), transparent 70%),
+			var(--surface-dark);
+		color: var(--text-on-dark);
 	}
 
-	.not-found__media {
+	.not-found__decor {
 		position: absolute;
 		inset: 0;
 		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Líneas planas (amarilla, roja y celeste) al pie de la portada */
+	.not-found__lines {
+		position: absolute;
+		bottom: clamp(-1.5rem, -1vw, -0.5rem);
+		left: 0;
+		width: 100%;
+		height: clamp(5rem, 8vw, 8rem);
+	}
+
+	.not-found__lines :global(.brand-line) {
+		stroke-dasharray: 100 100;
+	}
+
+	.not-found__star {
+		position: absolute;
+		height: auto;
+	}
+
+	.not-found__star--yellow {
+		top: calc(var(--header-height) + 2.5rem);
+		left: max(var(--gutter), calc((100% - var(--container-max)) / 2 + 30rem));
+		width: 2rem;
+		color: var(--color-yellow);
+	}
+
+	.not-found__star--sky {
+		bottom: 9rem;
+		left: 46%;
+		width: 1.25rem;
+		color: var(--color-skyblue);
+	}
+
+	.not-found__star--pink {
+		top: 30%;
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2 - 1rem));
+		width: 1rem;
+		color: var(--color-pink);
+	}
+
+	.not-found__inner {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+		align-items: center;
+		gap: clamp(var(--space-8), 6vw, 6rem);
+	}
+
+	/* ----- Mensaje ----- */
+	.not-found__content {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+	}
+
+	.not-found__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem;
+		border: 1px solid rgb(255 255 255 / 0.16);
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.06);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+	}
+
+	.not-found__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		box-shadow: 0 0 0 0.25rem rgb(255 26 48 / 0.25);
+	}
+
+	/* Figma: Poppins Bold 48/56 */
+	.not-found__title {
+		max-width: 15ch;
+		font-size: clamp(2.5rem, 1.4rem + 3.6vw, 4.5rem);
+		line-height: 1.04;
+		letter-spacing: -0.01em;
+		color: var(--color-pure-white);
+		text-wrap: balance;
+	}
+
+	.not-found__lead {
+		max-width: 34rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: var(--text-on-dark-soft);
+	}
+
+	.not-found__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+		margin-top: var(--space-3);
+	}
+
+	/* "Reservar llamada" e "Iniciar proceso": enlaces con ícono */
+	.not-found__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: 3rem;
+		padding-inline: var(--space-2);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-pure-white);
+		text-decoration: underline;
+		text-decoration-color: rgb(255 255 255 / 0.35);
+		text-underline-offset: 4px;
+		transition: text-decoration-color var(--duration-base) var(--ease-out);
+	}
+
+	.not-found__link :global(svg) {
+		color: var(--color-yellow);
+	}
+
+	.not-found__link:hover {
+		text-decoration-color: var(--color-yellow);
+	}
+
+	.not-found a:focus-visible,
+	.not-found button:focus-visible {
+		outline: 2px solid var(--color-yellow);
+		outline-offset: 3px;
+	}
+
+	/* ----- Foto + "404" ----- */
+	.not-found__media {
+		position: relative;
+		justify-self: end;
+		width: min(100%, 30rem);
+	}
+
+	/* "404" grande con el degradé de la marca, detrás de la tarjeta */
+	.not-found__code {
+		position: absolute;
+		top: -0.18em;
+		left: -0.42em;
+		z-index: 1;
+		font-size: clamp(6rem, 3rem + 9vw, 11rem);
+		font-weight: var(--font-weight-extrabold);
+		line-height: 1;
+		letter-spacing: -0.04em;
+		background: linear-gradient(120deg, var(--color-skyblue), var(--color-blue) 45%, var(--color-red));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		filter: drop-shadow(0 1rem 2rem rgb(0 0 0 / 0.45));
+		pointer-events: none;
+	}
+
+	.not-found__card {
+		position: relative;
+		aspect-ratio: 4 / 5;
+		overflow: clip;
+		border: 1px solid rgb(255 255 255 / 0.16);
+		border-radius: 2.5rem;
+		box-shadow: 0 2.5rem 5rem -2rem rgb(0 0 0 / 0.7);
+	}
+
+	/* Halo de color detrás de la tarjeta */
+	.not-found__media::before {
+		content: '';
+		position: absolute;
+		inset: 10% -6% -6% 10%;
+		z-index: -1;
+		border-radius: 2.5rem;
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-red));
+		opacity: 0.45;
+		filter: blur(2.5rem);
 	}
 
 	.not-found__photo {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: 60% center;
+		object-position: 62% center;
 	}
 
-	/* Degradado oscuro a la izquierda (Figma: 886px, de transparente a negro) */
-	.not-found__media::after {
-		content: '';
+	.not-found__badge {
 		position: absolute;
-		inset: 0 auto 0 0;
-		width: min(58.6%, 55.375rem); /* 886px */
-		background: linear-gradient(to left, rgb(0 0 0 / 0) 5.135%, #000 111.06%);
-	}
-
-	/* ----- Texto y botones ----- */
-	.not-found__content {
-		display: flex;
-		flex-direction: column;
-		gap: 7.5rem; /* 120px entre el texto y los botones */
-		width: 100%;
-		max-width: calc(var(--container-max) + 2 * var(--gutter));
-		margin-inline: auto;
-		padding: var(--space-10) var(--gutter);
-	}
-
-	.not-found__text {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-6); /* 32px */
-		max-width: 28.25rem; /* 452px */
-	}
-
-	/* Figma: Poppins Bold 48/56 */
-	.not-found__title {
-		font-size: var(--font-size-h1);
-		line-height: 1.1667;
-		color: var(--color-white);
-		text-wrap: wrap;
-	}
-
-	.not-found__lead {
-		line-height: 1.5rem;
-	}
-
-	/* Figma: 3 botones de 78px (946px en total), radio 12, texto 18 */
-	.not-found__actions {
+		right: -1rem;
+		bottom: 2rem;
+		z-index: 1;
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: var(--space-3);
-		max-width: 59.125rem; /* 946px */
-	}
-
-	.not-found__action {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 4.875rem; /* 78px */
-		padding: var(--space-3) var(--space-4);
-		border: 1px solid #fff7ff;
-		border-radius: var(--radius-md);
-		background-color: #464949;
-		color: var(--color-white);
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-bold);
-		text-align: center;
-		transition:
-			background-color var(--duration-base) var(--ease-out),
-			transform var(--duration-fast) var(--ease-out);
-	}
-
-	.not-found__action:hover {
-		background-color: #5a5d5d;
-	}
-
-	.not-found__action:active {
-		transform: scale(0.98);
-	}
-
-	.not-found__action--primary {
-		border-color: var(--color-yellow);
+		place-items: center;
+		width: 3.75rem;
+		height: 3.75rem;
+		border-radius: var(--radius-pill);
 		background-color: var(--color-yellow);
+		box-shadow: 0 1rem 2rem -0.75rem rgb(0 0 0 / 0.5);
 		color: #002546;
 	}
 
-	.not-found__action--primary:hover {
-		background-color: color-mix(in srgb, var(--color-yellow) 88%, var(--color-black));
+	/* ===== "Quizás buscabas" ===== */
+	.not-found-links {
+		padding-block: var(--space-9) var(--space-10);
+		background-color: var(--surface-light);
+		color: var(--text-on-light);
 	}
 
-	/* ===== Tablet: el degradado cubre más ancho para que el texto se lea ===== */
+	.not-found-links__title {
+		margin-bottom: var(--space-6);
+		font-size: var(--font-size-h3);
+		line-height: 1.2;
+		color: var(--text-heading-light);
+	}
+
+	.not-found-links__grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+
+	.not-found-links__card {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-3);
+		height: 100%;
+		padding: var(--space-5);
+		border: 1px solid rgb(18 91 168 / 0.1);
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-white);
+		box-shadow: 0 1.25rem 2.5rem -2rem rgb(18 91 168 / 0.55);
+		transition:
+			border-color var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-slow) var(--ease-out),
+			translate var(--duration-slow) var(--ease-out);
+	}
+
+	.not-found-links__icon {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: var(--radius-pill);
+		background: linear-gradient(135deg, var(--color-skyblue), var(--color-blue));
+		color: var(--color-pure-white);
+	}
+
+	.not-found-links__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: #363636;
+	}
+
+	.not-found-links__text strong {
+		font-size: var(--font-size-md);
+		color: var(--color-blue-title);
+	}
+
+	.not-found-links__arrow {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		color: var(--color-blue);
+		transition:
+			background-color var(--duration-base) var(--ease-out),
+			color var(--duration-base) var(--ease-out),
+			translate var(--duration-base) var(--ease-out);
+	}
+
+	.not-found-links__card:hover {
+		border-color: rgb(0 122 252 / 0.35);
+		box-shadow: 0 1.75rem 3rem -2rem rgb(18 91 168 / 0.65);
+		translate: 0 -3px;
+	}
+
+	.not-found-links__card:hover .not-found-links__arrow {
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+		translate: 0.25rem 0;
+	}
+
+	.not-found-links__card:focus-visible {
+		outline: 3px solid var(--color-blue);
+		outline-offset: 3px;
+	}
+
+	/* ===== Entrada al cargar ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.not-found__content > * {
+			animation: not-found-rise 0.9s var(--ease-out) both;
+		}
+
+		.not-found__content > :nth-child(2) {
+			animation-delay: 0.08s;
+		}
+
+		.not-found__content > :nth-child(3) {
+			animation-delay: 0.16s;
+		}
+
+		.not-found__content > :nth-child(4) {
+			animation-delay: 0.24s;
+		}
+
+		.not-found__card {
+			animation: not-found-card 1.2s var(--ease-out) 0.1s both;
+		}
+
+		.not-found__code {
+			animation: not-found-code 1s var(--ease-out) 0.35s both;
+		}
+
+		.not-found__badge {
+			animation: not-found-float 6s ease-in-out 1s infinite;
+		}
+
+		.not-found__lines :global(.brand-line) {
+			animation: not-found-draw 1.8s 0.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+		}
+
+		.not-found__lines :global(.brand-line:nth-of-type(2)) {
+			animation-delay: 0.45s;
+		}
+
+		.not-found__lines :global(.brand-line:nth-of-type(3)) {
+			animation-delay: 0.6s;
+		}
+
+		.not-found__star {
+			animation: not-found-twinkle 3.4s ease-in-out infinite;
+		}
+
+		.not-found__star--sky {
+			animation-delay: -1.2s;
+		}
+
+		.not-found__star--pink {
+			animation-delay: -2.3s;
+		}
+	}
+
+	@keyframes not-found-rise {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+		}
+	}
+
+	@keyframes not-found-card {
+		from {
+			opacity: 0;
+			scale: 0.94;
+			translate: 0 2rem;
+		}
+	}
+
+	@keyframes not-found-code {
+		from {
+			opacity: 0;
+			translate: -1.5rem 0;
+		}
+	}
+
+	@keyframes not-found-float {
+		50% {
+			translate: 0 -0.5rem;
+		}
+	}
+
+	@keyframes not-found-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes not-found-twinkle {
+		0%,
+		100% {
+			transform: rotate(-14deg) scale(1);
+		}
+		50% {
+			transform: rotate(14deg) scale(0.7);
+		}
+	}
+
+	/* ===== Tablet ===== */
 	@media (max-width: 1100px) {
-		.not-found__media::after {
-			width: 100%;
-			background: linear-gradient(to right, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.35));
+		.not-found__inner {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+			gap: var(--space-7);
 		}
 
-		.not-found__content {
-			gap: var(--space-9);
+		.not-found-links__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.not-found__star--yellow {
+			left: auto;
+			right: 40%;
 		}
 	}
 
-	/* ===== Móvil: foto arriba, texto y botones apilados ===== */
+	/* ===== Móvil: el mensaje arriba y la foto debajo ===== */
 	@media (max-width: 640px) {
 		.not-found {
-			flex-direction: column;
-			align-items: stretch;
-			min-height: 0;
+			padding-block: calc(var(--header-height) + var(--space-6)) var(--space-10);
 		}
 
-		.not-found__media {
-			position: relative;
-			inset: auto;
-			aspect-ratio: 360 / 300;
-		}
-
-		.not-found__media::after {
-			inset: auto 0 0;
-			width: 100%;
-			height: 50%;
-			background: linear-gradient(to bottom, rgb(23 26 26 / 0), var(--surface-dark));
-		}
-
-		.not-found__content {
-			gap: var(--space-7);
-			padding-block: var(--space-6) var(--space-9);
+		.not-found__inner {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-9);
 		}
 
 		.not-found__title {
-			font-size: 2rem;
-			line-height: 1.125;
+			max-width: none;
+			font-size: var(--font-size-display-mobile);
+			line-height: 1.05;
+		}
+
+		.not-found__lead {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
 		}
 
 		.not-found__actions {
-			grid-template-columns: minmax(0, 1fr);
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
 		}
 
-		.not-found__action {
-			min-height: 3.75rem;
-			font-size: var(--font-size-md);
+		.not-found__link {
+			justify-content: center;
+		}
+
+		.not-found__media {
+			justify-self: center;
+			width: min(80%, 18rem);
+		}
+
+		.not-found__card {
+			border-radius: var(--radius-xl);
+		}
+
+		.not-found__code {
+			left: -0.3em;
+			font-size: 5.5rem;
+		}
+
+		.not-found__star--sky,
+		.not-found__star--pink {
+			display: none;
+		}
+
+		.not-found-links {
+			padding-block: var(--space-8) var(--space-9);
+		}
+
+		.not-found-links__title {
+			font-size: var(--font-size-card-title-mobile);
+			text-align: center;
+		}
+
+		.not-found-links__grid {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-3);
+		}
+
+		.not-found-links__card {
+			padding: var(--space-4);
 		}
 	}
 </style>

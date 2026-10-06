@@ -36,10 +36,10 @@ const states = ['in-progress', 'in-review', 'done'] as const;
 <PortalLayout
 	title="Mi proceso: detalle"
 	description="Completa cada paso de tu proceso para estudiar en Rusia."
+	heading="Detalle de tu proceso"
+	lead="Completa cada paso: tus datos, tus documentos, el contrato, el visado y tu viaje."
 	currentStep="process"
 >
-	<h1 class="visually-hidden">Mi proceso: detalle de cada paso</h1>
-
 	<div class="process-detail">
 		<StepCard number={personalData.number} title={personalData.title} status={personalData.status}>
 			<PersonalDataForm />
@@ -66,12 +66,6 @@ const states = ['in-progress', 'in-review', 'done'] as const;
 		gap: var(--space-4); /* 16px */
 		width: 100%;
 		max-width: 40rem; /* 640px */
-		margin: 2.75rem auto 0; /* 44px bajo el stepper */
-	}
-
-	@media (max-width: 640px) {
-		.process-detail {
-			margin-top: var(--space-6);
-		}
+		margin-inline: auto;
 	}
 </style>

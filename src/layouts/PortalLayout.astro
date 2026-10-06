@@ -5,18 +5,24 @@
  * Layout del portal del estudiante ("Mi proceso", pagos…).
  * Figma: UI Desktop › frames "MacBook Pro 14' - 7 / 8 / 9 / 10 / 12".
  *
- * Incluye: fondo celeste del portal, header con el saludo del estudiante y,
- * opcionalmente, el stepper "Registro → Pago → Mi Proceso".
+ * Con el lenguaje del sitio: una banda azul oscura de la marca arriba (con
+ * las líneas planas y las estrellas) que lleva el header del portal, el
+ * título de la pantalla (h1) con su bajada y, opcionalmente, el stepper
+ * "Registro → Pago → Mi Proceso". El contenido sube sobre el borde de la
+ * banda, sobre un fondo celeste claro.
+ *
  * A diferencia de SiteLayout, NO tiene footer, menú lateral ni WhatsApp
  * flotante, y por defecto las páginas no se indexan (`noindex`).
+ *
+ * En la versión estática (GitHub Pages) agrega el menú "Pantallas del
+ * portal" (PortalTour) para recorrer todas las pantallas.
  *
  * Uso en una página (src/pages/portal/…):
  *
  *   ---
  *   import PortalLayout from '@layouts/PortalLayout.astro';
  *   ---
- *   <PortalLayout title="Pago" currentStep="payment">
- *       <h1 class="visually-hidden">Pago</h1>
+ *   <PortalLayout title="Pago" heading="Pago de tu inscripción" lead="…" currentStep="payment">
  *       <MiSeccion />
  *   </PortalLayout>
  *
@@ -24,28 +30,64 @@
  * componentes de src/components/portal/): --portal-bg, --portal-surface,
  * --portal-tint, --portal-border… Ver el bloque `.portal-body` más abajo.
  */
+import { DEPLOY_TARGET } from 'astro:env/client';
+
 import BaseLayout, { type Props as BaseProps } from './BaseLayout.astro';
 import PortalHeader from '@components/portal/PortalHeader.astro';
 import PortalStepper from '@components/portal/PortalStepper.astro';
+import PortalTour from '@components/portal/PortalTour.astro';
 import type { PortalStepId } from '@data/portal';
+import BrandLines from '@assets/graphics/waves/brand-lines.svg';
+import Star from '@assets/graphics/stars/star-4-point.svg';
 
 interface Props extends BaseProps {
 	/** Paso actual del stepper. Si se omite, no se muestra el stepper */
 	currentStep?: PortalStepId;
+	/** Título visible de la pantalla (h1) */
+	heading: string;
+	/** Bajada bajo el título */
+	lead?: string;
 }
 
-const { currentStep, noindex = true, bodyClass, ...baseProps } = Astro.props;
+const { currentStep, heading, lead, noindex = true, bodyClass, ...baseProps } = Astro.props;
+
+/** Versión estática: el acceso es de demostración y se pueden recorrer todas las pantallas */
+const isStatic = DEPLOY_TARGET === 'static';
+
+// ----- Textos -----
+const content = {
+	eyebrow: 'Portal del estudiante',
+};
 ---
 
 <BaseLayout {...baseProps} noindex={noindex} bodyClass={['portal-body', bodyClass].filter(Boolean).join(' ')}>
 	<slot name="head" slot="head" />
 
-	<PortalHeader />
+	<div class="portal-top">
+		<!-- Líneas planas y estrellas de la marca (decorativas) -->
+		<div class="portal-top__decor" aria-hidden="true">
+			<BrandLines class="portal-top__lines" />
+			<Star class="portal-top__star portal-top__star--yellow" />
+			<Star class="portal-top__star portal-top__star--sky" />
+		</div>
 
-	<main id="contenido" class="portal-main">
-		{currentStep && <PortalStepper current={currentStep} />}
+		<PortalHeader />
+
+		<div class="portal-top__inner container">
+			<div class="portal-top__text">
+				<p class="portal-top__eyebrow">{content.eyebrow}</p>
+				<h1 class="portal-top__title">{heading}</h1>
+				{lead && <p class="portal-top__lead">{lead}</p>}
+			</div>
+			{currentStep && <PortalStepper current={currentStep} />}
+		</div>
+	</div>
+
+	<main id="contenido" class="portal-main container">
 		<slot />
 	</main>
+
+	{isStatic && <PortalTour />}
 
 	<!-- Avisos para lectores de pantalla (ej. "Copiado", archivo seleccionado) -->
 	<div class="visually-hidden" aria-live="polite" data-portal-announcer></div>
@@ -54,36 +96,214 @@ const { currentStep, noindex = true, bodyClass, ...baseProps } = Astro.props;
 <style>
 	/* ----- Variables del portal (colores de Figma sin token global) ----- */
 	:global(.portal-body) {
-		--portal-bg: #daeef5; /* Fondo celeste de las pantallas del portal */
-		--portal-surface: var(--surface-white); /* Tarjetas y header */
-		--portal-tint: rgb(212 222 251 / 0.24); /* Píldoras, zona de carga, avisos */
-		--portal-row: #f4f6fa; /* Filas de documentos y recuadro "¿Eres menor de edad?" */
-		--portal-border: rgb(23 26 26 / 0.2); /* Selector de banco y botón de cambio de moneda */
-		--portal-field-border: rgb(23 26 26 / 0.4); /* Campos del formulario */
+		--portal-bg: #eaf3f9; /* Fondo celeste claro de las pantallas del portal */
+		--portal-surface: var(--surface-white); /* Tarjetas */
+		--portal-tint: rgb(0 122 252 / 0.06); /* Píldoras, zona de carga, avisos */
+		--portal-row: #f3f7fb; /* Filas de documentos y recuadro "¿Eres menor de edad?" */
+		--portal-border: rgb(23 26 26 / 0.16); /* Selector de banco y botón de cambio de moneda */
+		--portal-field-border: rgb(23 26 26 / 0.3); /* Campos del formulario */
 		--portal-placeholder: rgb(23 26 26 / 0.64); /* Etiqueta en reposo de los campos */
-		--portal-text-soft: rgb(23 26 26 / 0.88); /* Textos secundarios */
+		--portal-text-soft: rgb(23 26 26 / 0.8); /* Textos secundarios */
 		--portal-text-help: #464949; /* Textos de ayuda bajo los campos */
 		--portal-text-button: #002546; /* Texto de los botones del portal */
-		--portal-button-muted: #c7dde5; /* Botón "Volver" (pago) */
-		--portal-button-outline: rgb(0 37 70 / 0.5); /* Borde del botón "Volver" (Mi proceso) */
+		--portal-button-muted: #dbe8f2; /* Botón "Volver" (pago) */
+		--portal-button-outline: rgb(0 37 70 / 0.35); /* Borde del botón "Volver" (Mi proceso) */
 		--portal-step-pending: #add0f0; /* Stepper: pasos pendientes */
-		--portal-whatsapp: #63d082; /* Píldora de WhatsApp */
+		--portal-whatsapp: #25d366; /* Píldora de WhatsApp */
 		--portal-radius-field: 1rem; /* 16px · campos y recuadros */
-		--portal-header-radius: 4rem; /* 64px · esquinas inferiores del header */
+		--portal-radius-card: 1.75rem; /* 28px · tarjetas */
+		--portal-card-border: 1px solid rgb(18 91 168 / 0.08);
+		--portal-card-shadow: 0 1.5rem 3rem -2.25rem rgb(18 91 168 / 0.55);
+		/* Cuánto sube el contenido sobre la banda oscura */
+		--portal-overlap: 3.5rem;
 
 		background-color: var(--portal-bg);
 		color: var(--text-on-light);
 	}
 
-	.portal-main {
+	/* ===== Banda superior de la marca ===== */
+	.portal-top {
+		position: relative;
+		isolation: isolate;
+		/* Deja las líneas de la marca entre el texto y las tarjetas que suben */
+		padding-bottom: calc(var(--portal-overlap) + var(--space-8) + var(--space-5));
+		overflow: hidden; /* respaldo de "clip" en navegadores antiguos */
+		overflow: clip;
+		background:
+			radial-gradient(48rem 26rem at 90% 0%, rgb(0 192 252 / 0.3), transparent 65%),
+			radial-gradient(36rem 22rem at 0% 100%, rgb(255 26 48 / 0.18), transparent 70%),
+			linear-gradient(115deg, #032a63 0%, #0046ad 55%, #005ad1 100%);
+		color: var(--color-pure-white);
+	}
+
+	.portal-top__decor {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Líneas planas al pie de la banda (detrás del contenido que sube) */
+	.portal-top__lines {
+		position: absolute;
+		bottom: calc(var(--portal-overlap) - 2.5rem);
+		left: 0;
+		width: 100%;
+		height: clamp(4.5rem, 7vw, 6.5rem);
+		opacity: 0.85;
+	}
+
+	.portal-top__lines :global(.brand-line) {
+		stroke-dasharray: 100 100;
+	}
+
+	.portal-top__star {
+		position: absolute;
+		height: auto;
+	}
+
+	/* Entre el borde del header y el stepper */
+	.portal-top__star--yellow {
+		top: 5.5rem;
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2 + 2rem));
+		width: 1.75rem;
+		color: var(--color-yellow);
+	}
+
+	.portal-top__star--sky {
+		top: 45%;
+		left: 46%;
+		width: 1.125rem;
+		color: var(--color-skyblue);
+	}
+
+	.portal-top__inner {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-6) var(--space-8);
+		padding-top: clamp(var(--space-6), 3vw, var(--space-8));
+	}
+
+	.portal-top__text {
 		display: flex;
 		flex-direction: column;
-		padding: 2.75rem var(--gutter) var(--space-10); /* 44px arriba (stepper), 80px abajo */
+		gap: var(--space-2);
+		max-width: 40rem;
+	}
+
+	.portal-top__eyebrow {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-skyblue);
+	}
+
+	.portal-top__title {
+		font-size: clamp(2rem, 1.3rem + 2.2vw, 3rem);
+		line-height: 1.1;
+		color: var(--color-pure-white);
+		text-wrap: balance;
+	}
+
+	.portal-top__lead {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		color: rgb(255 255 255 / 0.82);
+	}
+
+	/* ===== Contenido: sube sobre el borde de la banda ===== */
+	.portal-main {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		margin-top: calc(-1 * var(--portal-overlap));
+		padding-bottom: var(--space-10);
+	}
+
+	/* ===== Entrada al cargar ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.portal-top__text > * {
+			animation: portal-rise 0.8s var(--ease-out) both;
+		}
+
+		.portal-top__text > :nth-child(2) {
+			animation-delay: 0.06s;
+		}
+
+		.portal-top__text > :nth-child(3) {
+			animation-delay: 0.12s;
+		}
+
+		.portal-main {
+			animation: portal-rise 0.9s var(--ease-out) 0.15s both;
+		}
+
+		.portal-top__lines :global(.brand-line) {
+			animation: portal-draw 1.8s 0.2s cubic-bezier(0.65, 0, 0.35, 1) both;
+		}
+
+		.portal-top__lines :global(.brand-line:nth-of-type(2)) {
+			animation-delay: 0.35s;
+		}
+
+		.portal-top__lines :global(.brand-line:nth-of-type(3)) {
+			animation-delay: 0.5s;
+		}
+	}
+
+	@keyframes portal-rise {
+		from {
+			opacity: 0;
+			translate: 0 1.25rem;
+		}
+	}
+
+	@keyframes portal-draw {
+		from {
+			stroke-dashoffset: 100;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
 	}
 
 	@media (max-width: 640px) {
+		:global(.portal-body) {
+			--portal-overlap: 2.5rem;
+		}
+
+		.portal-top {
+			padding-bottom: calc(var(--portal-overlap) + var(--space-8));
+		}
+
+		.portal-top__inner {
+			padding-top: var(--space-5);
+		}
+
+		.portal-top__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.portal-top__lead {
+			font-size: var(--font-size-sm);
+			line-height: 1.375rem;
+		}
+
+		.portal-top__star--yellow {
+			top: 6.5rem;
+		}
+
+		.portal-top__star--sky {
+			display: none;
+		}
+
 		.portal-main {
-			padding-top: var(--space-6);
+			padding-bottom: var(--space-9);
 		}
 	}
 </style>

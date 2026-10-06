@@ -15,11 +15,12 @@
  *   6. Botones "magnéticos" (atributo data-magnetic).
  *   7. Franjas de lemas empujadas por el scroll (--marquee-shift).
  *   8. Sliders que avanzan con el scroll (data-scroll-slider): "¿Qué tengo que
- *      hacer?" pasa las tarjetas una por una; "¿Por qué elegir…?", "Redes
- *      sociales" y "Universidades" (en móvil) las deslizan.
+ *      hacer?", "¿Por qué elegir…?", "Universidades destacadas" (tablet y
+ *      móvil) y los testimonios quedan fijos y pasan las tarjetas una por una;
+ *      "Redes sociales" y "Videoblogs" las deslizan.
  *   9. "Soy Grecia Kristal": las fotos suben y se apilan; después, el texto.
- *  10. "Universidades destacadas" (desktop): el panel abierto avanza con el
- *      scroll.
+ *  10. "Universidades destacadas" (desktop): la sección queda fija mientras se
+ *      abren los paneles uno tras otro.
  *
  * Todo se configura en las listas de abajo (selectores de cada sección), sin
  * tocar los componentes. Estilos: src/styles/motion.css.
@@ -558,11 +559,21 @@ function initMarquee(): void {
    [data-slider-track] › [data-slider-item]… (+ [data-slider-bar] y
    [data-slider-current], opcionales). Los estilos viven en cada sección.
 
-     pin   → la sección queda fija y el scroll vertical pasa las tarjetas una
-             por una: cada una se detiene un momento antes de dar paso a la
-             siguiente ("¿Qué tengo que hacer?").
+     pin   → el bloque queda fijo bajo el header y el scroll vertical pasa
+             las tarjetas una por una: cada una se detiene un momento antes de
+             dar paso a la siguiente. Al llegar a la última, el siguiente
+             scroll ya sigue a la sección de abajo ("¿Qué tengo que hacer?",
+             "¿Por qué elegir…?", "Universidades destacadas" en tablet y
+             móvil, los testimonios).
      drift → sin fijar: la fila se desliza mientras la sección cruza la
-             pantalla ("¿Por qué elegir…?").
+             pantalla ("Redes sociales", "Videoblogs"…).
+
+   data-slider-step="0.4" (opcional, solo "pin"): scroll que dura cada tarjeta,
+   en fracciones del alto de la pantalla (por defecto 0.45).
+
+   El elemento con data-scroll-slider="pin" mide (por CSS) el alto de la
+   pantalla más --slider-length, y su primer hijo queda fijo (sticky) mientras
+   tanto. Puede ser la sección entera o un bloque dentro de ella.
 
    Solo se activa (clase .is-scroll-slider) si las tarjetas no caben en el
    ancho disponible; si no, quedan quietas.
@@ -576,17 +587,24 @@ interface ScrollSlider {
 	items: HTMLElement[];
 	bar: HTMLElement | null;
 	current: HTMLElement | null;
+	/** Scroll que dura cada tarjeta ("pin"), en fracciones del alto de la pantalla */
+	step: number;
 	/** Desplazamiento del riel en el que cada tarjeta queda en su lugar (px) */
+	itemStops: number[];
+	/** Las mismas paradas sin repetidas: las últimas tarjetas ya caben y no se mueven */
 	stops: number[];
 	/** Cuánto sobra el riel respecto del ancho visible (px) */
 	maxShift: number;
-	/** Recorrido de scroll mientras la sección está fija (px, solo "pin") */
+	/** Recorrido de scroll mientras el bloque está fijo (px, solo "pin") */
 	length: number;
 	active: number;
 }
 
 /** Fracción de cada tramo en que la tarjeta queda quieta antes y después de moverse */
 const SLIDER_HOLD = 0.18;
+
+/** Scroll por tarjeta por defecto (fracción del alto de la pantalla) */
+const SLIDER_STEP = 0.45;
 
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -598,6 +616,7 @@ function initScrollSliders(): void {
 		const track = section.querySelector<HTMLElement>('[data-slider-track]');
 		const items = Array.from(section.querySelectorAll<HTMLElement>('[data-slider-item]'));
 		if (!viewport || !track || items.length < 2) return;
+		const step = Number(section.dataset.sliderStep);
 		sliders.push({
 			section,
 			mode: section.dataset.scrollSlider === 'pin' ? 'pin' : 'drift',
@@ -606,6 +625,8 @@ function initScrollSliders(): void {
 			items,
 			bar: section.querySelector<HTMLElement>('[data-slider-bar]'),
 			current: section.querySelector<HTMLElement>('[data-slider-current]'),
+			step: Number.isFinite(step) && step > 0 ? step : SLIDER_STEP,
+			itemStops: [],
 			stops: [],
 			maxShift: 0,
 			length: 0,
@@ -624,13 +645,18 @@ function initScrollSliders(): void {
 			const paddingLeft = parseFloat(getComputedStyle(viewport).paddingLeft) || 0;
 			slider.maxShift = Math.max(0, paddingLeft + track.offsetWidth - viewport.clientWidth);
 			const first = items[0].offsetLeft;
-			slider.stops = items.map((item) => Math.min(item.offsetLeft - first, slider.maxShift));
+			slider.itemStops = items.map((item) => Math.min(item.offsetLeft - first, slider.maxShift));
+			// Sin tramos "muertos": cuando las últimas tarjetas ya caben, el riel no se
+			// mueve más y la sección suelta enseguida (sigue el scroll de la página)
+			slider.stops = slider.itemStops.filter(
+				(stop, index, all) => index === 0 || stop - all[index - 1] > 1,
+			);
 
 			const enabled = slider.maxShift > 1;
 			section.classList.toggle('is-scroll-slider', enabled);
 			if (slider.mode === 'pin') {
-				const step = clamp(window.innerHeight * 0.45, 260, 460);
-				slider.length = enabled ? (items.length - 1) * step : 0;
+				const step = clamp(window.innerHeight * slider.step, 220, 460);
+				slider.length = enabled ? (slider.stops.length - 1) * step : 0;
 				section.style.setProperty('--slider-length', `${Math.round(slider.length)}px`);
 			}
 		}
@@ -645,29 +671,30 @@ function initScrollSliders(): void {
 			const rect = slider.section.getBoundingClientRect();
 			if (rect.bottom < 0 || rect.top > viewportHeight) continue;
 
-			const last = slider.items.length - 1;
 			let shift: number;
 			let progress: number;
 			let active: number;
 
 			if (slider.mode === 'pin') {
-				// 0 cuando la sección llega bajo el header → 1 al terminar el recorrido
+				// 0 cuando el bloque llega bajo el header → 1 al terminar el recorrido
 				progress = slider.length ? clamp((headerOffset - rect.top) / slider.length, 0, 1) : 0;
-				const position = progress * last;
-				const index = Math.min(Math.floor(position), last - 1);
+				const segments = slider.stops.length - 1;
+				const position = progress * segments;
+				const index = Math.min(Math.floor(position), segments - 1);
 				// Pausa al inicio y al final de cada tramo: "una por una"
 				const local = clamp((position - index - SLIDER_HOLD) / (1 - 2 * SLIDER_HOLD), 0, 1);
 				const from = slider.stops[index];
 				shift = from + (slider.stops[index + 1] - from) * easeInOutCubic(local);
-				active = Math.round(position);
+				// La tarjeta resaltada y el contador recorren todas las tarjetas
+				active = Math.round(progress * (slider.items.length - 1));
 			} else {
 				// 0 cuando la sección asoma por abajo → 1 cuando sale por arriba
 				const travel = clamp((viewportHeight - rect.top) / (viewportHeight + rect.height), 0, 1);
 				progress = clamp((travel - 0.2) / 0.55, 0, 1);
 				shift = easeInOutCubic(progress) * slider.maxShift;
-				active = slider.stops.reduce(
+				active = slider.itemStops.reduce(
 					(best, stop, index) =>
-						Math.abs(stop - shift) < Math.abs(slider.stops[best] - shift) ? index : best,
+						Math.abs(stop - shift) < Math.abs(slider.itemStops[best] - shift) ? index : best,
 					0,
 				);
 			}
@@ -786,10 +813,20 @@ function initFounderStack(): void {
 /* ==========================================================================
    10. "Universidades destacadas" (desktop): el panel abierto avanza con el scroll
    --------------------------------------------------------------------------
-   Marcado: [data-uni-gallery] › [data-uni-panel]… Mientras la galería cruza
-   la pantalla se abre un panel tras otro (.is-active). Con el cursor o el
-   teclado manda el panel señalado (solo CSS).
+   Marcado: [data-uni-section] › [data-uni-gallery] › [data-uni-panel]…
+   Desktop con altura suficiente (UNI_PIN): la sección queda fija (.is-pinned,
+   --uni-length) mientras se abren los paneles uno tras otro; después del
+   último, el scroll sigue a la sección de abajo. Desktop bajo: sin fijar, se
+   abren mientras la galería cruza la pantalla. Con el cursor o el teclado
+   manda el panel señalado (solo CSS). En tablet y móvil la fila es un slider
+   "pin" como los demás (sección 8).
    ========================================================================== */
+
+/** Desktop con altura suficiente para ver la sección completa mientras está fija */
+const UNI_PIN = '(min-width: 1101px) and (min-height: 760px)';
+
+/** Scroll que dura cada panel abierto (fracción del alto de la pantalla) */
+const UNI_STEP = 0.3;
 
 function initUniversityGallery(): void {
 	const gallery = document.querySelector<HTMLElement>('[data-uni-gallery]');
@@ -797,25 +834,58 @@ function initUniversityGallery(): void {
 	const panels = Array.from(gallery.querySelectorAll<HTMLElement>('[data-uni-panel]'));
 	if (panels.length < 2) return;
 
+	const section = gallery.closest<HTMLElement>('[data-uni-section]');
+	const header = document.querySelector<HTMLElement>('.site-header');
 	const desktop = window.matchMedia('(min-width: 1101px)');
+	const pinQuery = window.matchMedia(UNI_PIN);
+	let pinned = false;
+	let length = 0;
 	let active = 0;
 
-	onScroll(() => {
+	const measure = () => {
+		pinned = Boolean(section) && pinQuery.matches;
+		section?.classList.toggle('is-pinned', pinned);
+		length = pinned ? Math.round(window.innerHeight * UNI_STEP * panels.length) : 0;
+		section?.style.setProperty('--uni-length', `${length}px`);
+	};
+
+	const update = () => {
 		if (!desktop.matches) return;
-		const rect = gallery.getBoundingClientRect();
 		const viewportHeight = window.innerHeight;
-		if (rect.bottom < 0 || rect.top > viewportHeight) return;
-		// 0 cuando la galería asoma por abajo → 1 cuando su parte de abajo llega arriba
-		const progress = clamp(
-			(viewportHeight * 0.85 - rect.top) / (viewportHeight * 0.85 + rect.height * 0.25),
-			0,
-			0.999,
-		);
+		let progress: number;
+
+		if (pinned && section) {
+			// 0 cuando la sección llega bajo el header → 1 al terminar el recorrido fijo
+			const rect = section.getBoundingClientRect();
+			if (rect.bottom < 0 || rect.top > viewportHeight) return;
+			const headerOffset = header?.offsetHeight ?? 0;
+			progress = clamp((headerOffset - rect.top) / length, 0, 0.999);
+		} else {
+			const rect = gallery.getBoundingClientRect();
+			if (rect.bottom < 0 || rect.top > viewportHeight) return;
+			// 0 cuando la galería asoma por abajo → 1 cuando su parte de abajo llega arriba
+			progress = clamp(
+				(viewportHeight * 0.85 - rect.top) / (viewportHeight * 0.85 + rect.height * 0.25),
+				0,
+				0.999,
+			);
+		}
+
 		const index = Math.floor(progress * panels.length);
 		if (index === active) return;
 		active = index;
 		panels.forEach((panel, panelIndex) => panel.classList.toggle('is-active', panelIndex === index));
-	});
+	};
+
+	measure();
+	onScroll(update);
+
+	const refresh = () => {
+		measure();
+		update();
+	};
+	window.addEventListener('resize', refresh, { passive: true });
+	pinQuery.addEventListener('change', refresh);
 }
 
 /* ==========================================================================

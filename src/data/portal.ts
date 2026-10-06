@@ -131,6 +131,56 @@ export const paymentRejection = {
 		'No se adjuntó la constancia de transferencia correcta y el dinero no ingresó a nuestras cuentas',
 };
 
+export interface PaymentNextStep {
+	title: string;
+	text: string;
+}
+
+/**
+ * Columna "¿Qué sigue?" junto al resultado del pago (enviado / rechazado).
+ * TODO: confirmar los textos con el equipo.
+ */
+export const paymentNextSteps: Record<
+	'sent' | 'rejected',
+	{ title: string; steps: PaymentNextStep[]; link?: { label: string; href: string } }
+> = {
+	sent: {
+		title: '¿Qué sigue?',
+		steps: [
+			{
+				title: 'Validamos tu transferencia',
+				text: 'Revisamos que el pago haya ingresado a nuestra cuenta y que la constancia coincida.',
+			},
+			{
+				title: 'Te avisamos',
+				text: 'Cuando el pago esté validado te escribiremos al correo con el que te registraste.',
+			},
+			{
+				title: 'Empiezas tu proceso',
+				text: 'Con el pago validado, en «Mi proceso» completas tus datos y envías tus documentos.',
+			},
+		],
+		link: { label: 'Ir a Mi proceso', href: portalRoutes.process },
+	},
+	rejected: {
+		title: '¿Cómo lo soluciono?',
+		steps: [
+			{
+				title: 'Revisa tu constancia',
+				text: 'Verifica que sea la de la transferencia a nuestra cuenta y que el monto sea el correcto.',
+			},
+			{
+				title: 'Vuelve a intentarlo',
+				text: 'Adjunta la constancia correcta desde la pantalla de pago.',
+			},
+			{
+				title: 'Escríbenos si tienes dudas',
+				text: 'Te ayudamos a revisar tu transferencia por WhatsApp o por correo.',
+			},
+		],
+	},
+};
+
 /* ==========================================================================
    5. PASOS DEL PROCESO ("Mi proceso")
    ========================================================================== */

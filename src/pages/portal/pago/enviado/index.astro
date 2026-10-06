@@ -13,6 +13,8 @@ import { formatDateTime, paymentRequest } from '@data/portal';
 export const prerender = false;
 
 const content = {
+	heading: 'Estado de tu pago',
+	lead: 'Recibimos tu solicitud. Estamos validando que el pago haya ingresado a nuestra cuenta.',
 	title: 'Solicitud de pago enviada',
 	action: 'Descargar mi constancia',
 };
@@ -21,6 +23,8 @@ const content = {
 <PortalLayout
 	title={content.title}
 	description="Recibimos tu solicitud de pago y estamos validando los fondos."
+	heading={content.heading}
+	lead={content.lead}
 	currentStep="payment"
 >
 	<PaymentStatusCard

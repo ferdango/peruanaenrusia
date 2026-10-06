@@ -9,9 +9,10 @@
  * tarjeta del video a todo el ancho del contenido: miniatura, onda amarilla
  * de la marca (se dibuja con el scroll, src/scripts/scroll-draw.ts) y botón ▶.
  *
- * VIDEO: si `testimonial.video.url` es de YouTube, se reproduce en el modal
- * del sitio (VideoModal); si no hay URL, el botón abre el canal de YouTube
- * de la marca (src/data/testimonials.ts › testimonialVideo).
+ * VIDEO: se reproduce en el modal del sitio (VideoModal), como en el Home:
+ * el de `testimonial.video.url` (YouTube o TikTok) o, si el caso no tiene
+ * video propio, el caso de éxito del canal de YouTube que se ve en el Home
+ * (src/data/testimonials.ts › testimonialVideo).
  *
  * Uso: <TestimonyVideo id="conoce-mi-historia" testimonial={testimonial} />
  */
@@ -38,16 +39,22 @@ const content = {
 const poster = testimonial.video?.poster ?? testimonial.portrait;
 const video = testimonialVideo(testimonial);
 
-/** Enlace del video: en el modal si es de YouTube; si no, en una pestaña nueva */
+/** Nombre del video: el del caso o, si no tiene video propio, el del video del Home */
+const videoTitle = video.title ?? content.playLabel;
+const videoLabel = video.title ? `Ver el video: ${video.title}` : content.playLabel;
+
+/** Enlace del video: en el modal del sitio (sin JavaScript, en una pestaña nueva) */
 const videoLink = {
 	href: video.href,
 	target: '_blank',
 	rel: 'noopener',
-	...(video.youtubeId
+	...(video.youtubeId || video.tiktokId
 		? {
 				'data-video-open': '',
-				'data-video-youtube': video.youtubeId,
-				'data-video-title': content.playLabel,
+				'data-video-title': videoTitle,
+				...(video.youtubeId
+					? { 'data-video-youtube': video.youtubeId }
+					: { 'data-video-tiktok': video.tiktokId }),
 			}
 		: {}),
 };
@@ -74,7 +81,7 @@ const videoLink = {
 		</header>
 
 		<div class="container">
-			<a class="testimony-video__card" aria-label={content.playLabel} {...videoLink}>
+			<a class="testimony-video__card" aria-label={videoLabel} {...videoLink}>
 				<MediaImage
 					image={poster.src}
 					alt=""

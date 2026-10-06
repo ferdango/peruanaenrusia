@@ -146,9 +146,6 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.testimony-story__text', effect: 'up', delay: 180 },
 	{ selector: '.story-block__photo', effect: 'scale' },
 	{ selector: '.story-tile', effect: 'scale', stagger: 90, delay: 100 },
-	{ selector: '.testimony-gallery__eyebrow', effect: 'up' },
-	{ selector: '.testimony-gallery__title', effect: 'words', delay: 80 },
-	{ selector: '.gallery-post', effect: 'up', stagger: 100, delay: 150 },
 	{ selector: '.testimony-closing__media', effect: 'scale' },
 	{ selector: '.testimony-closing__text > *', effect: 'up', stagger: 110, delay: 150 },
 	{ selector: '.more-cases__eyebrow', effect: 'up' },
@@ -228,7 +225,6 @@ const TILT = [
 	'.video-card',
 	'.blog-hero__feature',
 	'.testimony-video__card',
-	'.gallery-post',
 	'.testimony-closing__media',
 	'.university-card',
 ].join(', ');

@@ -42,23 +42,16 @@ export const detailRoutes = {
 	blogPost: (slug: string) => withBase(`/blog/${slug}/`),
 };
 
-/** Menú principal del header (desktop) */
+/** Menú principal del header (desktop). "Estudia" lleva al inicio */
 export const mainNav: NavLink[] = [
-	{ label: 'Sobre nosotros', href: routes.home, activeOn: [routes.home] },
+	{ label: 'Estudia', href: routes.home, activeOn: [routes.home] },
 	{ label: 'Casos de éxito', href: routes.successCases, activeOn: [withBase('/casos-de-exito/')] },
 	{ label: 'Universidades', href: routes.universities },
 	{ label: 'Blog', href: routes.blog },
-	{ label: 'FAQ', href: routes.faq },
 ];
 
-/** Menú lateral (botón hamburguesa) */
-export const sideNav: NavLink[] = [
-	{ label: 'Acerca de', href: routes.home },
-	{ label: 'Casos de éxito', href: routes.successCases },
-	{ label: 'Universidades', href: routes.universities },
-	{ label: 'Blog', href: routes.blog },
-	{ label: 'Legales', href: routes.legal },
-];
+/** Menú lateral (botón hamburguesa): los mismos enlaces que el header */
+export const sideNav: NavLink[] = mainNav;
 
 /** Enlaces del pie de página */
 export const footerNav: NavLink[] = [

@@ -20,10 +20,11 @@
  *   2. TestimonyVideo      → "Conoce mi historia"
  *   3. TestimonyHighlight  → cita destacada sobre la forma celeste
  *   4. TestimonyStory      → "Cómo lo logré: el paso a paso" (#mi-historia)
- *   5. TestimonyGallery    → publicaciones (estilo Instagram)
- *   6. TestimonyClosing    → segundo video + cita final
- *   7. StartCta (verde)    → "¿Te animas a intentarlo?"
- *   8. TestimonyMoreCases  → "Más casos de éxito"
+ *   5. TestimonyClosing    → segundo video + cita final
+ *   6. StartCta (verde)    → "¿Te animas a intentarlo?"
+ *   7. TestimonyMoreCases  → "Más casos de éxito"
+ *
+ * Los dos videos se ven en el modal del sitio (VideoModal), como en el Home.
  */
 import '@styles/motion.css';
 
@@ -34,7 +35,6 @@ import TestimonyHero from '@components/sections/testimony/TestimonyHero.astro';
 import TestimonyVideo from '@components/sections/testimony/TestimonyVideo.astro';
 import TestimonyHighlight from '@components/sections/testimony/TestimonyHighlight.astro';
 import TestimonyStory from '@components/sections/testimony/TestimonyStory.astro';
-import TestimonyGallery from '@components/sections/testimony/TestimonyGallery.astro';
 import TestimonyClosing from '@components/sections/testimony/TestimonyClosing.astro';
 import TestimonyMoreCases from '@components/sections/testimony/TestimonyMoreCases.astro';
 import StartCta from '@components/sections/shared/StartCta.astro';
@@ -104,7 +104,6 @@ const jsonLd = [
 	<TestimonyVideo id={anchors.video} testimonial={testimonial} />
 	<TestimonyHighlight testimonial={testimonial} />
 	<TestimonyStory id={anchors.story} testimonial={testimonial} />
-	<TestimonyGallery testimonial={testimonial} />
 	<TestimonyClosing testimonial={testimonial} />
 	<StartCta id="empezar" tone="green" title={cta.title} text={cta.text} cta={cta.button} />
 	<TestimonyMoreCases currentSlug={testimonial.slug} />

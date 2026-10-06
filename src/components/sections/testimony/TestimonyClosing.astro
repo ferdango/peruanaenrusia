@@ -10,8 +10,10 @@
  * firma del estudiante. La onda roja de la marca cruza la sección por detrás
  * del video y se dibuja con el scroll (src/scripts/scroll-draw.ts).
  *
- * VIDEO: igual que "Conoce mi historia" (src/data/testimonials.ts ›
- * testimonialVideo): en el modal si es de YouTube; si no, el canal de la marca.
+ * VIDEO: en el modal del sitio, como "Conoce mi historia": el de
+ * `testimonial.video.url` o, si el caso no tiene video propio, el testimonio
+ * de TikTok del Home (vertical, como la miniatura; src/data/testimonials.ts ›
+ * testimonialVideo).
  *
  * Uso: <TestimonyClosing testimonial={testimonial} />
  */
@@ -39,18 +41,24 @@ const content = {
 };
 
 const poster = testimonial.video?.poster;
-const video = testimonialVideo(testimonial);
+const video = testimonialVideo(testimonial, 'tiktok');
 
-/** Enlace del video: en el modal si es de YouTube; si no, en una pestaña nueva */
+/** Nombre del video: el del caso o, si no tiene video propio, el del video del Home */
+const videoTitle = video.title ?? content.playLabel;
+const videoLabel = video.title ? `Ver el video: ${video.title}` : content.playLabel;
+
+/** Enlace del video: en el modal del sitio (sin JavaScript, en una pestaña nueva) */
 const videoLink = {
 	href: video.href,
 	target: '_blank',
 	rel: 'noopener',
-	...(video.youtubeId
+	...(video.youtubeId || video.tiktokId
 		? {
 				'data-video-open': '',
-				'data-video-youtube': video.youtubeId,
-				'data-video-title': content.playLabel,
+				'data-video-title': videoTitle,
+				...(video.youtubeId
+					? { 'data-video-youtube': video.youtubeId }
+					: { 'data-video-tiktok': video.tiktokId }),
 			}
 		: {}),
 };
@@ -70,7 +78,7 @@ const videoLink = {
 
 		<div class="testimony-closing__inner container">
 			{poster && (
-				<a class="testimony-closing__media" aria-label={content.playLabel} {...videoLink}>
+				<a class="testimony-closing__media" aria-label={videoLabel} {...videoLink}>
 					<MediaImage
 						image={poster.src}
 						alt=""

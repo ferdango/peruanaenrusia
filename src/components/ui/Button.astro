@@ -154,9 +154,11 @@ const iconSize = isOutline ? (size === 'sm' ? 16 : 20) : size === 'sm' ? 16 : 32
 	/* =====================================================================
 	   Variante: outline → píldora con burbuja y flecha (botón de las secciones)
 	   ---------------------------------------------------------------------
-	   La burbuja es un círculo del color del botón (::before) con la flecha
-	   encima. Al pasar el cursor (o con el foco) el círculo crece hasta
-	   rellenar la píldora, el texto cambia a --btn-contrast y la flecha avanza.
+	   La burbuja es un círculo del color del botón (::before de .btn__bubble)
+	   con la flecha encima: va siempre detrás de la flecha, aunque una sección
+	   centre el contenido del botón. Al pasar el cursor el círculo crece
+	   hasta rellenar la píldora, el texto cambia a --btn-contrast y la
+	   flecha avanza.
 	   ===================================================================== */
 	.btn--outline {
 		--btn-bubble: 2.625rem; /* 42px */
@@ -184,30 +186,27 @@ const iconSize = isOutline ? (size === 'sm' ? 16 : 20) : size === 'sm' ? 16 : 32
 			transform var(--duration-fast) var(--ease-out);
 	}
 
-	/* Círculo de la burbuja: crece y rellena el botón */
-	.btn--outline::before {
-		content: '';
-		position: absolute;
-		z-index: -1;
-		top: 50%;
-		right: calc(var(--btn-inset) + var(--btn-bubble) / 2);
-		width: var(--btn-bubble);
-		aspect-ratio: 1;
-		border-radius: 50%;
-		background-color: var(--btn-color);
-		translate: 50% -50%;
-		transition: scale var(--btn-motion) cubic-bezier(0.65, 0, 0.35, 1);
-	}
-
 	.btn--outline .btn__bubble {
+		position: relative;
 		display: grid;
 		flex-shrink: 0;
 		place-items: center;
 		width: var(--btn-bubble);
 		height: var(--btn-bubble);
-		overflow: hidden;
 		border-radius: 50%;
 		color: var(--btn-contrast);
+	}
+
+	/* Círculo de la burbuja (detrás de la flecha): crece y rellena el botón.
+	   z-index -1 lo deja bajo el texto, dentro del botón (isolation: isolate) */
+	.btn--outline .btn__bubble::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: 50%;
+		background-color: var(--btn-color);
+		transition: scale var(--btn-motion) cubic-bezier(0.65, 0, 0.35, 1);
 	}
 
 	.btn--outline .btn__icon {
@@ -222,7 +221,7 @@ const iconSize = isOutline ? (size === 'sm' ? 16 : 20) : size === 'sm' ? 16 : 32
 			translate: 0 -2px;
 		}
 
-		.btn--outline:hover::before {
+		.btn--outline:hover .btn__bubble::before {
 			scale: var(--btn-fill-scale);
 		}
 

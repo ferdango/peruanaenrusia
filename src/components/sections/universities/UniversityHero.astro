@@ -496,9 +496,10 @@ const facts: { icon: string; label: string; value: string; href?: string }[] = [
 
 	/* ===== Móvil ===== */
 	@media (max-width: 640px) {
+		/* Aire bajo los datos clave: se ven las líneas de la marca detrás */
 		.university-hero {
 			min-height: 0;
-			padding-block: calc(var(--header-height) + var(--space-7)) var(--space-6);
+			padding-block: calc(var(--header-height) + var(--space-7)) 5.5rem;
 		}
 
 		.university-hero__shade {
@@ -556,7 +557,7 @@ const facts: { icon: string; label: string; value: string; href?: string }[] = [
 		}
 
 		.university-hero__lines {
-			bottom: -1rem;
+			bottom: 0.25rem;
 			height: 4.5rem;
 		}
 

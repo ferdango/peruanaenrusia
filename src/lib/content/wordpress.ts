@@ -32,7 +32,6 @@ import { isCountryCode } from '@data/countries';
 import type { Faq } from '@data/faqs';
 import type {
 	Testimonial,
-	TestimonialGalleryItem,
 	TestimonialPhoto,
 	TestimonialStoryBlock,
 	TestimonialStoryTile,
@@ -411,7 +410,6 @@ interface WpTestimonialFields {
 		photo?: WpImage;
 		tiles?: Array<{ title?: string; text?: string; photo?: WpImage }>;
 	}>;
-	gallery?: Array<WpImage & { href?: string; album?: boolean }>;
 	closing?: { quote?: string; text?: string } | null;
 }
 
@@ -445,11 +443,6 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
 			return photo && tiles.length === 4 ? [{ photo, tiles }] : [];
 		});
 
-		const gallery = (fields.gallery ?? []).flatMap((item): TestimonialGalleryItem[] => {
-			const photo = toPhoto(item, `Publicación de ${name}`);
-			return photo ? [{ ...photo, href: text(item.href), album: Boolean(item.album) }] : [];
-		});
-
 		const poster = toPhoto(fields.video?.poster, `Video de ${name}`);
 		const closingQuote = text(fields.closing?.quote);
 		const closingText = text(fields.closing?.text);
@@ -467,7 +460,6 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
 				video: poster ? { poster, url: text(fields.video?.url) } : undefined,
 				highlight: text(fields.highlight),
 				story: story.length ? story : undefined,
-				gallery: gallery.length ? gallery : undefined,
 				closing: closingQuote && closingText ? { quote: closingQuote, text: closingText } : undefined,
 			},
 		];

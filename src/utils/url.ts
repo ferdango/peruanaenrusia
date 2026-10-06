@@ -36,3 +36,12 @@ export function youtubeIdFromUrl(url: string | undefined): string | undefined {
 		/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/,
 	)?.[1];
 }
+
+/**
+ * Número de un video de TikTok a partir de su URL (…/video/NÚMERO o
+ * …/embed/v2/NÚMERO). Si la URL no es de un video de TikTok, undefined.
+ *   'https://www.tiktok.com/@peruanaenrusia/video/7635277713447767317' → '7635277713447767317'
+ */
+export function tiktokIdFromUrl(url: string | undefined): string | undefined {
+	return url?.match(/tiktok\.com\/(?:@[\w.-]+\/video|embed(?:\/v2)?)\/(\d+)/)?.[1];
+}

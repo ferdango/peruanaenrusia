@@ -119,21 +119,6 @@ function peru_rest_testimonial( $post ) {
 		}
 	}
 
-	$gallery = array();
-	foreach ( array( 1, 2, 3, 4 ) as $n ) {
-		$item  = peru_field( "gallery_{$n}", $id );
-		$image = is_array( $item ) ? peru_image( $item['image'] ?? null ) : null;
-		if ( $image ) {
-			$gallery[] = array_merge(
-				$image,
-				array(
-					'href'  => peru_text( $item['url'] ?? '' ),
-					'album' => ! empty( $item['album'] ),
-				)
-			);
-		}
-	}
-
 	$poster = peru_image( peru_field( 'video_poster', $id ) );
 
 	return array(
@@ -149,7 +134,6 @@ function peru_rest_testimonial( $post ) {
 		) : null,
 		'highlight' => peru_text( peru_field( 'highlight', $id ) ),
 		'story'     => $story,
-		'gallery'   => $gallery,
 		'closing'   => array(
 			'quote' => peru_text( peru_field( 'closing_quote', $id ) ),
 			'text'  => peru_text( peru_field( 'closing_text', $id ) ),

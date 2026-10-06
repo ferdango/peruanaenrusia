@@ -89,7 +89,7 @@ Título = nombre · Extracto = resumen · Imagen destacada = foto principal · C
 
 ### Casos de éxito
 
-Título = nombre del estudiante · Campos: carrera y universidad, país, frase de la tarjeta, foto de perfil, frase de la portada, foto de la portada, miniatura y enlace del video, cita destacada, dos bloques del **paso a paso** (foto grande + 4 casillas de texto o foto), 4 publicaciones (foto, enlace, "tiene varias fotos") y la cita y texto finales. Las secciones sin datos no se muestran.
+Título = nombre del estudiante · Campos: carrera y universidad, país, frase de la tarjeta, foto de perfil, frase de la portada, foto de la portada, miniatura y enlace del video (YouTube o TikTok: se ve en el modal del sitio), cita destacada, dos bloques del **paso a paso** (foto grande + 4 casillas de texto o foto) y la cita y texto finales. Las secciones sin datos no se muestran.
 
 ### Preguntas frecuentes
 

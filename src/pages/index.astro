@@ -22,6 +22,7 @@ import { getFaqs } from '@lib/content';
 import { faqSchema } from '@lib/seo/schema';
 
 import VideoModal from '@components/overlays/VideoModal.astro';
+import WelcomeVideo from '@components/overlays/WelcomeVideo.astro';
 import HomeHero from '@components/sections/home/HomeHero.astro';
 import HomeMarquee from '@components/sections/home/HomeMarquee.astro';
 import HomeIntro from '@components/sections/home/HomeIntro.astro';
@@ -30,11 +31,13 @@ import HomeWhyUs from '@components/sections/home/HomeWhyUs.astro';
 import HomeSteps from '@components/sections/home/HomeSteps.astro';
 import HomeStartCta from '@components/sections/home/HomeStartCta.astro';
 import HomeUniversities from '@components/sections/home/HomeUniversities.astro';
+import HomeTalks from '@components/sections/home/HomeTalks.astro';
 import HomeContactSplit from '@components/sections/home/HomeContactSplit.astro';
 import HomeSuccessCases from '@components/sections/home/HomeSuccessCases.astro';
 import HomeCommunityGrid from '@components/sections/home/HomeCommunityGrid.astro';
 import HomeSocial from '@components/sections/home/HomeSocial.astro';
 import HomeStories from '@components/sections/home/HomeStories.astro';
+import HomeCourses from '@components/sections/home/HomeCourses.astro';
 import HomeFaq from '@components/sections/home/HomeFaq.astro';
 
 // Preguntas frecuentes como datos estructurados (schema.org FAQPage)
@@ -50,15 +53,20 @@ const faqs = await getFaqs();
 	<HomeSteps />
 	<HomeStartCta />
 	<HomeUniversities />
+	<HomeTalks />
 	<HomeContactSplit />
 	<HomeSuccessCases />
 	<HomeCommunityGrid />
 	<HomeSocial />
 	<HomeStories />
+	<HomeCourses />
 	<HomeFaq />
 
 	<!-- Reproductor del video destacado (se puede minimizar y seguir navegando) -->
 	<VideoModal />
+
+	<!-- Video de bienvenida: se abre al entrar (una vez por sesión) -->
+	<WelcomeVideo />
 </SiteLayout>
 
 <script>

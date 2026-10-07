@@ -30,6 +30,19 @@ export const site = {
 		whatsappMessage: 'Hola, quiero información para estudiar en Rusia.',
 	},
 
+	/**
+	 * Charlas informativas gratuitas (sección "Charlas" del Home). La página de
+	 * registro es la misma que http://charla.peruanaenrusia.com/ (se usa https).
+	 */
+	talks: {
+		registerUrl: 'https://charla.peruanaenrusia.com/',
+		platform: 'Zoom',
+		day: 'Todos los domingos',
+		time: 'De 9:00 a 11:00 a. m.',
+		// TODO: confirmar la zona horaria de la charla (se asume la hora de Perú)
+		timeZone: 'hora de Perú',
+	},
+
 	/** Datos legales (Libro de reclamaciones, pie de página, pagos) */
 	legal: {
 		companyName: 'Peruana en Rusia SAC',

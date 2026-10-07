@@ -91,6 +91,13 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-universities__subtitle', effect: 'up', delay: 180 },
 	{ selector: '.home-universities__cta', effect: 'fade', delay: 300 },
 	{ selector: '.uni-panel', effect: 'up', stagger: 110 },
+	// Charlas informativas (Zoom)
+	{ selector: '.home-talks__eyebrow', effect: 'up' },
+	{ selector: '.home-talks__title', effect: 'words', delay: 80 },
+	{ selector: '.home-talks__text', effect: 'up', delay: 180 },
+	{ selector: '.home-talks__detail', effect: 'left', stagger: 90, delay: 260 },
+	{ selector: '.home-talks__cta', effect: 'fade', delay: 450 },
+	{ selector: '.home-talks__visual', effect: 'scale', delay: 150 },
 	// Reserva tu llamada / Resuelve tus dudas
 	{ selector: '.contact-split__eyebrow', effect: 'up' },
 	{ selector: '.contact-split__title', effect: 'up', delay: 80 },
@@ -123,6 +130,12 @@ const REVEALS: RevealRule[] = [
 	{ selector: '.home-stories__text', effect: 'up', delay: 180 },
 	{ selector: '.story-feature', effect: 'clip', delay: 120 },
 	{ selector: '.story-item', effect: 'up', stagger: 100, delay: 200 },
+	// Cursos gratuitos
+	{ selector: '.home-courses__eyebrow', effect: 'up' },
+	{ selector: '.home-courses__title', effect: 'words', delay: 80 },
+	{ selector: '.home-courses__text', effect: 'up', delay: 180 },
+	{ selector: '.home-courses__soon', effect: 'fade', delay: 300 },
+	{ selector: '.course-card', effect: 'up', delay: 150 },
 	// Blog: Novedades y Videoblogs (el hero entra con su propia animación al cargar)
 	{ selector: '.blog-news__eyebrow', effect: 'up' },
 	{ selector: '.blog-news__title', effect: 'words', delay: 80 },
@@ -226,6 +239,7 @@ const TILT = [
 	'.blog-hero__feature',
 	'.testimony-video__card',
 	'.testimony-closing__media',
+	'.course-card',
 	'.university-card',
 ].join(', ');
 

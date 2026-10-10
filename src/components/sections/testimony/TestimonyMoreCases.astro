@@ -121,6 +121,17 @@ const content = {
 		overflow: clip;
 	}
 
+	/* Pantallas bajas (.is-slider-compact, lo decide src/scripts/motion.ts):
+	   sin la bajada y con menos aire para que las tarjetas entren completas */
+	.more-cases:global(.is-scroll-slider.is-slider-compact) .more-cases__stage {
+		gap: var(--space-4);
+		padding-block: var(--space-4);
+	}
+
+	.more-cases:global(.is-scroll-slider.is-slider-compact) .more-cases__subtitle {
+		display: none;
+	}
+
 	/* ===== Encabezado ===== */
 	.more-cases__header {
 		display: flex;

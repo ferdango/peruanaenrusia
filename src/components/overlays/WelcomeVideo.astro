@@ -1,0 +1,347 @@
+---
+/**
+ * WelcomeVideo — video de bienvenida del Home
+ * --------------------------------------------------------------------------
+ * Modal (<dialog>) que se abre al entrar al Home con el video destacado de la
+ * marca (src/data/videos.ts › featuredVideo). Al terminar el video aparece el
+ * botón "Reserva una llamada gratis" (WhatsApp); antes, solo una indicación.
+ *
+ * Se abre una vez por sesión del navegador y no interrumpe otros modales ni
+ * los enlaces con ancla. El reproductor de YouTube se carga al pulsar ▶.
+ * Comportamiento: src/scripts/welcome-video.ts.
+ *
+ * Uso: <WelcomeVideo /> (solo en la página de inicio).
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import { whatsappUrl } from '@data/site';
+import { featuredVideo } from '@data/videos';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+// ----- Textos -----
+const content = {
+	eyebrow: 'Bienvenida',
+	play: `Reproducir el video: ${featuredVideo.title}`,
+	close: 'Cerrar el video',
+	hint: 'Mira el video hasta el final y reserva una llamada gratis con nuestro equipo.',
+	cta: 'Reserva una llamada gratis',
+	newTab: '(se abre WhatsApp en una pestaña nueva)',
+};
+---
+
+<dialog
+	id="welcome-video"
+	class="welcome-video"
+	aria-labelledby="welcome-video-title"
+	data-welcome-video
+	data-youtube={featuredVideo.youtubeId}
+	data-title={featuredVideo.title}
+>
+	<div class="welcome-video__bar">
+		<p class="welcome-video__heading">
+			<Star class="welcome-video__star" aria-hidden="true" />
+			<span class="welcome-video__eyebrow">{content.eyebrow}</span>
+			<span id="welcome-video-title" class="welcome-video__title">
+				{featuredVideo.title}
+			</span>
+		</p>
+		<button
+			type="button"
+			class="welcome-video__close"
+			data-dialog-close
+			aria-label={content.close}
+			title={content.close}
+		>
+			<Icon name="close" size={14} />
+		</button>
+	</div>
+
+	<div class="welcome-video__frame" data-welcome-frame>
+		<!-- Portada: el reproductor de YouTube se carga al pulsar -->
+		<button type="button" class="welcome-video__poster" data-welcome-play autofocus>
+			<Image
+				src={featuredVideo.cover}
+				alt=""
+				widths={[640, 1280]}
+				sizes="(max-width: 56rem) 100vw, 56rem"
+				class="welcome-video__cover"
+			/>
+			<span class="welcome-video__play" aria-hidden="true">
+				<Icon name="play" size={30} />
+			</span>
+			<span class="welcome-video__duration" aria-hidden="true">
+				{featuredVideo.duration}
+			</span>
+			<span class="visually-hidden">{content.play}</span>
+		</button>
+	</div>
+
+	<div class="welcome-video__footer">
+		<p class="welcome-video__hint" data-welcome-hint>
+			{content.hint}
+		</p>
+		<!-- Aparece solo cuando termina el video -->
+		<Button
+			href={whatsappUrl}
+			target="_blank"
+			rel="noopener"
+			variant="primary"
+			size="md"
+			icon="whatsapp"
+			class="welcome-video__cta"
+			data-welcome-cta
+			hidden
+		>
+			{content.cta}
+			<span class="visually-hidden"> {content.newTab}</span>
+		</Button>
+	</div>
+</dialog>
+
+<script>
+	import { initWelcomeVideo } from '@scripts/welcome-video';
+	initWelcomeVideo();
+</script>
+
+<style>
+	/* ----- <dialog> centrado (el fondo oscuro es ::backdrop) ----- */
+	.welcome-video {
+		/* Cabe entero en la pantalla: el ancho se limita también por el alto */
+		width: min(calc(100vw - 2rem), 56rem, calc((100dvh - 11rem) * 16 / 9));
+		max-width: none;
+		max-height: calc(100dvh - 2rem);
+		margin: auto;
+		padding: 0;
+		overflow: hidden;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: var(--radius-xl);
+		background-color: #0b1220;
+		box-shadow: 0 2.5rem 5rem -1.5rem rgb(0 0 0 / 0.7);
+		color: var(--color-pure-white);
+	}
+
+	.welcome-video::backdrop {
+		background: rgb(6 12 24 / 0.8);
+		backdrop-filter: blur(6px);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.welcome-video[open] {
+			animation: welcome-video-in 0.5s var(--ease-out);
+		}
+
+		.welcome-video[open]::backdrop {
+			animation: welcome-video-fade 0.5s var(--ease-out);
+		}
+	}
+
+	@keyframes welcome-video-in {
+		from {
+			opacity: 0;
+			translate: 0 1.5rem;
+			scale: 0.97;
+		}
+	}
+
+	@keyframes welcome-video-fade {
+		from {
+			opacity: 0;
+		}
+	}
+
+	/* ----- Barra superior ----- */
+	.welcome-video__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+	}
+
+	.welcome-video__heading {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-width: 0;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.welcome-video__star {
+		flex-shrink: 0;
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-yellow);
+	}
+
+	.welcome-video__eyebrow {
+		flex-shrink: 0;
+		padding: 0.125rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.1);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.welcome-video__title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.welcome-video__close {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(255 255 255 / 0.1);
+		color: var(--color-pure-white);
+		transition: background-color var(--duration-base) var(--ease-out);
+	}
+
+	.welcome-video__close:hover {
+		background-color: rgb(255 255 255 / 0.2);
+	}
+
+	.welcome-video__close:focus-visible,
+	.welcome-video__poster:focus-visible {
+		outline: 2px solid var(--color-skyblue);
+		outline-offset: 2px;
+	}
+
+	/* ----- Video ----- */
+	.welcome-video__frame {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background-color: #000;
+	}
+
+	.welcome-video__frame :global(.welcome-video__player) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+
+	.welcome-video__poster {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.welcome-video__poster :global(.welcome-video__cover) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: scale 0.8s var(--ease-out);
+	}
+
+	.welcome-video__poster:hover :global(.welcome-video__cover) {
+		scale: 1.03;
+	}
+
+	.welcome-video__play {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 5rem;
+		height: 5rem;
+		padding-left: 0.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		box-shadow:
+			0 0 0 0.625rem rgb(255 255 255 / 0.2),
+			0 1.25rem 2.5rem -1rem rgb(0 0 0 / 0.7);
+		color: var(--color-blue);
+		transition: scale var(--duration-base) var(--ease-out);
+	}
+
+	.welcome-video__poster:hover .welcome-video__play {
+		scale: 1.06;
+	}
+
+	.welcome-video__duration {
+		position: absolute;
+		right: var(--space-3);
+		bottom: var(--space-3);
+		padding: 0.125rem 0.5rem;
+		border-radius: var(--radius-sm);
+		background-color: rgb(0 0 0 / 0.65);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+	}
+
+	/* ----- Pie: indicación y, al terminar, el botón ----- */
+	.welcome-video__footer {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 4.75rem;
+		padding: var(--space-3) var(--space-5);
+		text-align: center;
+	}
+
+	.welcome-video__hint {
+		font-size: var(--font-size-sm);
+		line-height: 1.375rem;
+		color: rgb(255 255 255 / 0.75);
+	}
+
+	.welcome-video :global(.welcome-video__cta[hidden]) {
+		display: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.welcome-video :global(.welcome-video__cta) {
+			animation: welcome-video-cta 0.6s var(--ease-out);
+		}
+	}
+
+	@keyframes welcome-video-cta {
+		from {
+			opacity: 0;
+			translate: 0 0.75rem;
+			scale: 0.96;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.welcome-video {
+			border-radius: var(--radius-lg);
+		}
+
+		.welcome-video__bar {
+			padding-left: var(--space-4);
+		}
+
+		.welcome-video__eyebrow {
+			display: none;
+		}
+
+		.welcome-video__heading {
+			font-size: var(--font-size-sm);
+		}
+
+		.welcome-video__play {
+			width: 4rem;
+			height: 4rem;
+		}
+
+		.welcome-video :global(.welcome-video__cta) {
+			width: 100%;
+		}
+	}
+</style>

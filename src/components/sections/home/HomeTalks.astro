@@ -1,0 +1,535 @@
+---
+/**
+ * HomeTalks — "Charlas informativas todos los domingos"
+ * --------------------------------------------------------------------------
+ * Invita a la charla informativa gratuita por Zoom de todos los domingos.
+ *
+ * A la izquierda, el texto con el día, el horario y el botón "Regístrate a
+ * la charla", que lleva a la página de registro; a la derecha, una ventana
+ * de videollamada con la marca (decorativa): la anfitriona, los estudiantes
+ * conectados, una pregunta en el chat y el horario en una etiqueta.
+ *
+ * El enlace, el día, el horario y la plataforma salen de src/data/site.ts
+ * (talks).
+ *
+ * Uso: <HomeTalks /> (página de inicio, después de "Universidades destacadas").
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import { studentAvatars } from '@data/benefits';
+import { site } from '@data/site';
+import hostPhoto from '@assets/images/home/intro-accompaniment-photo.jpg';
+import tube from '@assets/graphics/tubes/tube-gradient-loop.webp';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+const { talks } = site;
+
+// ----- Contenido de la sección -----
+const content = {
+	eyebrow: `Charlas gratuitas por ${talks.platform}`,
+	title: 'Charlas informativas todos los domingos',
+	text: 'Conéctate en vivo y resuelve tus dudas sobre becas, carreras, documentos y la vida en Rusia. Es gratis: solo tienes que registrarte.',
+	details: [
+		{ icon: 'calendar', label: talks.day },
+		{ icon: 'clock', label: `${talks.time} (${talks.timeZone})` },
+		{ icon: 'globe', label: `En vivo por ${talks.platform}, desde donde estés` },
+	],
+	cta: 'Regístrate a la charla',
+	// Ventana de videollamada (ilustración)
+	windowTitle: 'Charla informativa',
+	live: 'En vivo',
+	host: site.name,
+	question: '¿Qué documentos necesito para postular?',
+	ticketDay: 'Domingos',
+	ticketTime: '9:00 – 11:00 a. m.',
+};
+---
+
+<section id="charlas" class="home-talks section" aria-labelledby="home-talks-title">
+	<div class="home-talks__inner container">
+		<div class="home-talks__content">
+			<p class="home-talks__eyebrow">
+				<span class="home-talks__dot" aria-hidden="true"></span>
+				{content.eyebrow}
+			</p>
+			<h2 id="home-talks-title" class="home-talks__title">
+				{content.title}
+			</h2>
+			<p class="home-talks__text">{content.text}</p>
+
+			<ul class="home-talks__details" role="list">
+				{content.details.map((detail) => (
+					<li class="home-talks__detail">
+						<span class="home-talks__detail-icon" aria-hidden="true">
+							<Icon name={detail.icon} size={20} />
+						</span>
+						{detail.label}
+					</li>
+				))}
+			</ul>
+
+			<Button href={talks.registerUrl} tone="blue" class="home-talks__cta">
+				{content.cta}
+			</Button>
+		</div>
+
+		<!-- Ventana de videollamada (ilustración: el horario está en el texto) -->
+		<div class="home-talks__visual" aria-hidden="true">
+			<Image
+				src={tube}
+				alt=""
+				widths={[480, 960]}
+				sizes="(max-width: 900px) 70vw, 32rem"
+				class="home-talks__tube"
+			/>
+			<Star class="home-talks__star home-talks__star--yellow" />
+			<Star class="home-talks__star home-talks__star--sky" />
+
+			<div class="talk-window">
+				<div class="talk-window__bar">
+					<span class="talk-window__dots">
+						<span></span>
+						<span></span>
+						<span></span>
+					</span>
+					<span class="talk-window__title">{content.windowTitle}</span>
+					<span class="talk-window__live">{content.live}</span>
+				</div>
+
+				<div class="talk-window__stage">
+					<Image
+						src={hostPhoto}
+						alt=""
+						widths={[480, 800, 1100]}
+						sizes="(max-width: 900px) 90vw, 32rem"
+						class="talk-window__host"
+					/>
+					<span class="talk-window__name">{content.host}</span>
+				</div>
+
+				<ul class="talk-window__people" role="list">
+					{studentAvatars.map((avatar) => (
+						<li class="talk-window__person">
+							<Image src={avatar} alt="" width={48} height={48} densities={[1, 2]} />
+						</li>
+					))}
+					<li class="talk-window__person talk-window__person--more">+20</li>
+				</ul>
+			</div>
+
+			<!-- Pregunta en el chat -->
+			<p class="talk-chat">
+				<Image
+					src={studentAvatars[1]}
+					alt=""
+					width={32}
+					height={32}
+					densities={[1, 2]}
+					class="talk-chat__avatar"
+				/>
+				<span>{content.question}</span>
+			</p>
+
+			<!-- Etiqueta con el horario -->
+			<p class="talk-ticket">
+				<Icon name="calendar" size={18} />
+				<span class="talk-ticket__day">{content.ticketDay}</span>
+				<span class="talk-ticket__time">{content.ticketTime}</span>
+			</p>
+		</div>
+	</div>
+</section>
+
+<style>
+	.home-talks {
+		position: relative;
+		overflow: clip;
+		background:
+			radial-gradient(42rem 26rem at 100% 0%, rgb(0 192 252 / 0.12), transparent 70%),
+			radial-gradient(30rem 22rem at 0% 100%, rgb(251 189 29 / 0.1), transparent 70%),
+			var(--surface-white);
+		color: var(--text-on-light);
+	}
+
+	.home-talks__inner {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		align-items: center;
+		gap: clamp(var(--space-8), 6vw, 6rem);
+	}
+
+	/* ===== Texto ===== */
+	.home-talks__content {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+		max-width: 36rem;
+	}
+
+	.home-talks__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	/* Punto rojo "en vivo" */
+	.home-talks__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		box-shadow: 0 0 0 0.25rem rgb(255 26 48 / 0.18);
+	}
+
+	.home-talks__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		letter-spacing: -0.01em;
+		color: var(--text-heading-light);
+		text-wrap: balance;
+	}
+
+	.home-talks__text {
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(23 26 26 / 0.8);
+	}
+
+	.home-talks__details {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.home-talks__detail {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.5rem;
+		color: var(--color-blue-title);
+	}
+
+	.home-talks__detail-icon {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-blue);
+		color: var(--color-pure-white);
+	}
+
+	.home-talks :global(.home-talks__cta) {
+		margin-top: var(--space-3);
+	}
+
+	/* ===== Ventana de videollamada ===== */
+	.home-talks__visual {
+		position: relative;
+		isolation: isolate;
+		justify-self: center;
+		width: min(100%, 32rem);
+		padding: var(--space-6) var(--space-5) var(--space-8);
+	}
+
+	/* Tubo degradé de la marca detrás de la ventana */
+	.home-talks__tube {
+		position: absolute;
+		z-index: -1;
+		top: -8%;
+		right: -22%;
+		width: 82%;
+		height: auto;
+		opacity: 0.9;
+		pointer-events: none;
+	}
+
+	.home-talks__star {
+		position: absolute;
+		z-index: 1;
+		height: auto;
+	}
+
+	.home-talks__star--yellow {
+		top: 0;
+		left: 4%;
+		width: 1.75rem;
+		color: var(--color-yellow);
+	}
+
+	.home-talks__star--sky {
+		right: 2%;
+		bottom: 18%;
+		width: 1.125rem;
+		color: var(--color-skyblue);
+	}
+
+	.talk-window {
+		overflow: hidden;
+		border: 1px solid rgb(18 91 168 / 0.12);
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-white);
+		box-shadow: 0 2rem 4rem -2rem rgb(0 52 130 / 0.45);
+	}
+
+	.talk-window__bar {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		border-bottom: 1px solid rgb(18 91 168 / 0.08);
+		background-color: #f3f7fb;
+	}
+
+	.talk-window__dots {
+		display: flex;
+		gap: 0.375rem;
+	}
+
+	.talk-window__dots span {
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+	}
+
+	.talk-window__dots span:nth-child(2) {
+		background-color: var(--color-yellow);
+	}
+
+	.talk-window__dots span:nth-child(3) {
+		background-color: var(--color-green);
+	}
+
+	.talk-window__title {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-blue-title);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.talk-window__live {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.1875rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-red);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-pure-white);
+	}
+
+	.talk-window__live::before {
+		content: '';
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+	}
+
+	.talk-window__stage {
+		position: relative;
+		margin: var(--space-3) var(--space-3) 0;
+		overflow: hidden;
+		border-radius: var(--radius-md);
+	}
+
+	.talk-window__stage :global(.talk-window__host) {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 10;
+		object-fit: cover;
+		object-position: 70% 40%;
+	}
+
+	.talk-window__name {
+		position: absolute;
+		bottom: var(--space-3);
+		left: var(--space-3);
+		padding: 0.25rem 0.625rem;
+		border-radius: var(--radius-sm);
+		background-color: rgb(6 12 24 / 0.6);
+		backdrop-filter: blur(6px);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-pure-white);
+	}
+
+	.talk-window__people {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin: 0;
+		padding: var(--space-3);
+		list-style: none;
+	}
+
+	.talk-window__person {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		flex-shrink: 0;
+	}
+
+	.talk-window__person :global(img) {
+		width: 100%;
+		height: 100%;
+		border-radius: var(--radius-pill);
+	}
+
+	.talk-window__person--more {
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-blue-title);
+	}
+
+	/* Pregunta en el chat (flota sobre el borde derecho de la ventana) */
+	.talk-chat {
+		position: absolute;
+		top: 42%;
+		right: calc(-1 * var(--space-2));
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		max-width: 15rem;
+		padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+		border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 0.25rem;
+		background-color: var(--color-blue-title);
+		box-shadow: 0 1rem 2rem -1rem rgb(0 37 70 / 0.6);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.125rem;
+		color: var(--color-pure-white);
+	}
+
+	.talk-chat :global(.talk-chat__avatar) {
+		flex-shrink: 0;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-pill);
+	}
+
+	/* Horario (etiqueta amarilla sobre el borde inferior) */
+	.talk-ticket {
+		position: absolute;
+		bottom: var(--space-1);
+		left: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-pill);
+		background-color: var(--color-yellow);
+		box-shadow: 0 1rem 2rem -1rem rgb(224 150 0 / 0.9);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: #002546;
+	}
+
+	.talk-ticket__time {
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.talk-ticket__time::before {
+		content: '·';
+		margin-right: var(--space-2);
+	}
+
+	/* ===== Movimiento: el "en vivo" late y la pregunta flota ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.home-talks__dot,
+		.talk-window__live::before {
+			animation: home-talks-pulse 1.8s ease-in-out infinite;
+		}
+
+		.talk-chat {
+			animation: home-talks-float 5s ease-in-out infinite;
+		}
+	}
+
+	@keyframes home-talks-pulse {
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	@keyframes home-talks-float {
+		50% {
+			translate: 0 -0.5rem;
+		}
+	}
+
+	/* ===== Tablet y móvil: texto arriba y la ventana debajo ===== */
+	@media (max-width: 900px) {
+		.home-talks__inner {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.home-talks__content {
+			max-width: 40rem;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.home-talks__content {
+			align-items: center;
+			text-align: center;
+		}
+
+		.home-talks__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.home-talks__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.home-talks__details {
+			align-items: flex-start;
+			text-align: left;
+		}
+
+		.home-talks :global(.home-talks__cta) {
+			width: 100%;
+		}
+
+		.home-talks__visual {
+			padding: var(--space-5) var(--space-2) var(--space-8);
+		}
+
+		.talk-chat {
+			top: auto;
+			right: var(--space-2);
+			bottom: 5.25rem;
+			max-width: 12.5rem;
+		}
+	}
+</style>

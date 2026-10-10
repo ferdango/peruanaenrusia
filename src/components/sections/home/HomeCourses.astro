@@ -1,0 +1,399 @@
+---
+/**
+ * HomeCourses — "Cursos gratuitos"
+ * --------------------------------------------------------------------------
+ * Promociona los cursos gratuitos de la marca. A la izquierda, el título,
+ * la bajada y el aviso "Próximamente más cursos"; a la derecha, una tarjeta
+ * por curso con su miniatura, etiquetas ("Gratis", "Video"), nombre,
+ * descripción y "Ver curso", que abre el curso en YouTube en una pestaña
+ * nueva.
+ *
+ * Los cursos salen de src/data/courses.ts. Si el curso tiene `youtubeId`, la
+ * tarjeta usa la miniatura del video; si no, una portada de la marca.
+ *
+ * Uso: <HomeCourses /> (página de inicio, antes de las preguntas frecuentes).
+ */
+import { Image } from 'astro:assets';
+
+import Button from '@components/ui/Button.astro';
+import Icon from '@components/ui/Icon.astro';
+import MediaImage from '@components/ui/MediaImage.astro';
+import { courseThumbnail, courseUrl, freeCourses } from '@data/courses';
+import tube from '@assets/graphics/tubes/tube-red.webp';
+import Star from '@assets/graphics/stars/star-4-point.svg';
+
+// ----- Contenido de la sección -----
+const content = {
+	eyebrow: 'Cursos gratuitos',
+	title: 'Aprende gratis con nuestros cursos',
+	text: 'Compartimos lo que aprendimos al estudiar en Rusia para que prepares tu viaje con ventaja. Míralos cuando quieras y a tu ritmo.',
+	soon: 'Muy pronto, más cursos gratuitos',
+	free: 'Gratis',
+	video: 'Video',
+	cover: 'Curso gratuito',
+	cta: 'Ver curso',
+	newTab: '(se abre en una pestaña nueva en YouTube)',
+};
+---
+
+<section id="cursos" class="home-courses section" aria-labelledby="home-courses-title">
+	<Star class="home-courses__star home-courses__star--yellow" aria-hidden="true" />
+	<Star class="home-courses__star home-courses__star--red" aria-hidden="true" />
+
+	<div class="home-courses__inner container">
+		<header class="home-courses__header">
+			<p class="home-courses__eyebrow">
+				<Icon name="youtube-play" size={18} class="home-courses__eyebrow-icon" />
+				{content.eyebrow}
+			</p>
+			<h2 id="home-courses-title" class="home-courses__title">
+				{content.title}
+			</h2>
+			<p class="home-courses__text">{content.text}</p>
+			<p class="home-courses__soon">
+				<Icon name="clock" size={18} />
+				{content.soon}
+			</p>
+		</header>
+
+		<ul class="home-courses__list" role="list">
+			{freeCourses.map((course) => {
+				const href = courseUrl(course);
+				const thumbnail = courseThumbnail(course);
+				return (
+					<li>
+						<article class="course-card">
+							<div class="course-card__media" aria-hidden="true">
+								{thumbnail ? (
+									<MediaImage
+										image={thumbnail}
+										alt=""
+										widths={[480]}
+										sizes="(max-width: 900px) 92vw, 34rem"
+										class="course-card__thumb"
+									/>
+								) : (
+									<span class="course-card__cover">
+										<Image
+											src={tube}
+											alt=""
+											widths={[480, 960]}
+											sizes="34rem"
+											class="course-card__tube"
+										/>
+										<span class="course-card__cover-label">{content.cover}</span>
+									</span>
+								)}
+								<span class="course-card__play">
+									<Icon name="play" size={28} />
+								</span>
+							</div>
+
+							<div class="course-card__body">
+								<p class="course-card__tags">
+									<span class="course-card__tag course-card__tag--free">
+										{content.free}
+									</span>
+									<span class="course-card__tag">
+										<Icon name="play" size={12} />
+										{content.video}
+									</span>
+									{course.duration && (
+										<span class="course-card__tag">{course.duration}</span>
+									)}
+								</p>
+								<h3 class="course-card__title">{course.title}</h3>
+								<p class="course-card__text">{course.description}</p>
+								<Button
+									href={href}
+									target="_blank"
+									rel="noopener"
+									tone="blue"
+									size="md"
+									icon="external-link"
+									class="course-card__cta"
+								>
+									{content.cta}
+									<span class="visually-hidden"> {content.newTab}</span>
+								</Button>
+							</div>
+						</article>
+					</li>
+				);
+			})}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.home-courses {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		background-color: var(--surface-light);
+		color: var(--text-on-light);
+	}
+
+	.home-courses__star {
+		position: absolute;
+		z-index: -1;
+		height: auto;
+	}
+
+	.home-courses__star--yellow {
+		top: clamp(2rem, 6vw, 4rem);
+		right: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+		width: 1.75rem;
+		color: var(--color-yellow);
+	}
+
+	.home-courses__star--red {
+		bottom: clamp(2rem, 5vw, 3.5rem);
+		left: max(var(--gutter), calc((100% - var(--container-max)) / 2 - 1.5rem));
+		width: 1.125rem;
+		color: var(--color-red);
+	}
+
+	.home-courses__inner {
+		display: grid;
+		grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+		align-items: center;
+		gap: clamp(var(--space-8), 6vw, 6rem);
+	}
+
+	/* ===== Encabezado ===== */
+	.home-courses__header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+	}
+
+	.home-courses__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.02em;
+		color: var(--color-blue-title);
+	}
+
+	.home-courses__eyebrow :global(.home-courses__eyebrow-icon) {
+		color: var(--color-red);
+	}
+
+	.home-courses__title {
+		font-size: var(--font-size-h1);
+		line-height: 1.1;
+		letter-spacing: -0.01em;
+		color: var(--text-heading-light);
+		text-wrap: balance;
+	}
+
+	.home-courses__text {
+		max-width: 32rem;
+		font-size: var(--font-size-lg);
+		line-height: 1.75rem;
+		color: rgb(23 26 26 / 0.8);
+	}
+
+	/* "Muy pronto, más cursos": píldora con borde punteado */
+	.home-courses__soon {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 0.5rem 1rem;
+		border: 1.5px dashed rgb(18 91 168 / 0.35);
+		border-radius: var(--radius-pill);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-blue-title);
+	}
+
+	/* ===== Tarjetas ===== */
+	.home-courses__list {
+		display: grid;
+		gap: var(--space-5);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.course-card {
+		overflow: hidden;
+		border: 1px solid rgb(18 91 168 / 0.08);
+		border-radius: var(--radius-xl);
+		background-color: var(--surface-white);
+		box-shadow: 0 1.5rem 3rem -2rem rgb(0 52 130 / 0.4);
+	}
+
+	.course-card__media {
+		position: relative;
+		display: grid;
+		place-items: center;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		background-color: #0b1220;
+	}
+
+	.course-card__media :global(.course-card__thumb) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Portada de la marca (mientras el curso no tenga miniatura propia) */
+	.course-card__cover {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: flex-end;
+		padding: var(--space-5);
+		background:
+			radial-gradient(70% 90% at 0% 100%, rgb(255 26 48 / 0.25), transparent 70%),
+			linear-gradient(120deg, #032a63 0%, #0046ad 55%, #007cff 100%);
+	}
+
+	.course-card__cover :global(.course-card__tube) {
+		position: absolute;
+		top: -18%;
+		right: -16%;
+		width: 74%;
+		height: auto;
+		pointer-events: none;
+	}
+
+	.course-card__cover-label {
+		position: relative;
+		font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+		font-weight: var(--font-weight-bold);
+		line-height: 1.1;
+		color: var(--color-pure-white);
+	}
+
+	/* Botón ▶ (decorativo: el enlace es "Ver curso") */
+	.course-card__play {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		padding-left: 0.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--color-pure-white);
+		box-shadow:
+			0 0 0 0.5rem rgb(255 255 255 / 0.2),
+			0 1rem 2rem -0.75rem rgb(0 0 0 / 0.6);
+		color: var(--color-red);
+	}
+
+	.course-card__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-6);
+	}
+
+	.course-card__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+
+	.course-card__tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: var(--radius-pill);
+		background-color: rgb(0 122 252 / 0.1);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-blue-title);
+	}
+
+	.course-card__tag--free {
+		background-color: var(--color-green);
+		color: var(--color-pure-white);
+	}
+
+	.course-card__title {
+		font-size: var(--font-size-h3);
+		line-height: 1.2;
+		color: var(--color-blue-title);
+	}
+
+	.course-card__text {
+		font-size: var(--font-size-md);
+		line-height: 1.5rem;
+		color: rgb(23 26 26 / 0.8);
+	}
+
+	.course-card :global(.course-card__cta) {
+		margin-top: var(--space-2);
+	}
+
+	/* ===== Movimiento: el botón ▶ late suavemente ===== */
+	@media (prefers-reduced-motion: no-preference) {
+		.course-card__play {
+			animation: home-courses-ping 2.6s ease-in-out infinite;
+		}
+	}
+
+	@keyframes home-courses-ping {
+		50% {
+			box-shadow:
+				0 0 0 1rem rgb(255 255 255 / 0.08),
+				0 1rem 2rem -0.75rem rgb(0 0 0 / 0.6);
+		}
+	}
+
+	/* ===== Tablet y móvil: una columna ===== */
+	@media (max-width: 900px) {
+		.home-courses__inner {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.home-courses__header {
+			align-items: center;
+			text-align: center;
+		}
+
+		.home-courses__title {
+			font-size: var(--font-size-title-mobile);
+			line-height: var(--line-height-title-mobile);
+		}
+
+		.home-courses__text {
+			font-size: var(--font-size-md);
+			line-height: 1.5rem;
+		}
+
+		.course-card {
+			border-radius: var(--radius-lg);
+		}
+
+		.course-card__body {
+			padding: var(--space-5) var(--space-4);
+		}
+
+		.course-card__title {
+			font-size: var(--font-size-card-title-mobile);
+		}
+
+		.course-card :global(.course-card__cta) {
+			width: 100%;
+		}
+	}
+</style>

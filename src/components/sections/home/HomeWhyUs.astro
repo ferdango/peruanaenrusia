@@ -363,6 +363,24 @@ const cardNumber = (index: number) => String(index + 1).padStart(2, '0');
 		will-change: transform;
 	}
 
+	/* Pantallas bajas (.is-slider-compact, lo decide src/scripts/motion.ts):
+	   menos aire y fotos más bajas para que el bloque fijo entre completo */
+	.home-why:global(.is-scroll-slider.is-slider-compact) .home-why__stage {
+		padding-block: var(--space-3);
+	}
+
+	.home-why:global(.is-scroll-slider.is-slider-compact) .home-why__inner {
+		gap: var(--space-4);
+	}
+
+	.home-why:global(.is-scroll-slider.is-slider-compact) .home-why__cards {
+		padding-block: var(--space-2) var(--space-4);
+	}
+
+	.home-why:global(.is-scroll-slider.is-slider-compact) .benefit-card__image {
+		aspect-ratio: 2 / 1;
+	}
+
 	/* ----- Tarjeta de beneficio ----- */
 	.benefit-card {
 		position: relative;

@@ -304,16 +304,15 @@ const stepNumber = (index: number) => String(index + 1).padStart(2, '0');
 			0 1.5rem 3rem -1.5rem rgb(18 91 168 / 0.45);
 	}
 
-	/* Pantallas bajas: menos aire para que todo quepa mientras está fija */
-	@media (max-height: 760px) {
-		.home-steps:global(.is-scroll-slider) .home-steps__sticky {
-			gap: var(--space-4);
-			padding-block: var(--space-4);
-		}
+	/* Pantallas bajas (.is-slider-compact, lo decide src/scripts/motion.ts):
+	   menos aire y sin la bajada para que todo quepa mientras está fija */
+	.home-steps:global(.is-scroll-slider.is-slider-compact) .home-steps__sticky {
+		gap: var(--space-4);
+		padding-block: var(--space-4);
+	}
 
-		.home-steps:global(.is-scroll-slider) .home-steps__text {
-			display: none;
-		}
+	.home-steps:global(.is-scroll-slider.is-slider-compact) .home-steps__text {
+		display: none;
 	}
 
 	/* ===== Móvil (Figma 1407:1315): encabezado centrado y tarjetas de 321px ===== */

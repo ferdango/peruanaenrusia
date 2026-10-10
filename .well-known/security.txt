@@ -1,0 +1,6 @@
+# Reporte responsable de vulnerabilidades — Peruana en Rusia
+# https://www.rfc-editor.org/rfc/rfc9116
+Contact: mailto:hola@peruanaenrusia.pe
+Expires: 2027-10-04T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: https://peruanaenrusia.pe/.well-known/security.txt

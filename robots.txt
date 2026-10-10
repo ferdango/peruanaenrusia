@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+Sitemap: https://ferdango.github.io/peruanaenrusia/sitemap-index.xml

@@ -1,0 +1,1 @@
+import{t as e}from"./dialog.eEPvVBRA.js";e(),document.querySelectorAll(`[data-dialog-close-on-nav]`).forEach(e=>{e.addEventListener(`click`,()=>e.closest(`dialog`)?.close())});

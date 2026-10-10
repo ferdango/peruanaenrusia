@@ -1,0 +1,1 @@
+function e(e){let t=document.querySelector(`[data-portal-announcer]`);t&&(t.textContent=``,window.setTimeout(()=>{t.textContent=e},50))}export{e as t};
